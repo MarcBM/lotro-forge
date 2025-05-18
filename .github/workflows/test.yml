@@ -33,7 +33,8 @@ jobs:
       with:
         file: ./coverage.xml
         fail_ci_if_error: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+        # @vscode-ignore: Context access is valid
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     - name: Check coverage threshold
       run: |

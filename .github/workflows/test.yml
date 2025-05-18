@@ -25,13 +25,16 @@ jobs:
         mv tests lotro_forge/
         mv setup.py lotro_forge/
         mv requirements.txt lotro_forge/
+        touch lotro_forge/lotro_forge/__init__.py
+        touch lotro_forge/lotro_forge/models/__init__.py
+        touch lotro_forge/lotro_forge/parsers/__init__.py
         
     - name: Install dependencies
       working-directory: lotro_forge
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install -e .
+        pip install -e ".[dev]"
         
     - name: Run tests with coverage
       working-directory: lotro_forge

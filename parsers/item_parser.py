@@ -18,7 +18,13 @@ class ItemParser:
             ItemDefinition object containing the parsed item data
             
         Raises:
-            ValueError: If required attributes are missing or invalid
+            ValueError: If required attributes are missing or invalid, or if stats are missing
+            
+        Notes:
+            - All items must have a <stats> element with at least one stat
+            - All items must have the required attributes: key, name, level, slot, quality, minLevel
+            - Optional attributes (scaling, valueTableId) may be None
+            - Each stat in the <stats> element must have both name and scaling attributes
         """
         # Required attributes
         try:
@@ -37,20 +43,25 @@ class ItemParser:
         if value_table_id is not None:
             value_table_id = int(value_table_id)
 
-        # Parse stats
+        # Parse stats - required for all items
         stats = []
         stats_elem = item_elem.find('stats')
-        if stats_elem is not None:
-            for stat_elem in stats_elem.findall('stat'):
-                stat_name = stat_elem.get('name')
-                scaling_id = stat_elem.get('scaling')
-                if stat_name is None or scaling_id is None:
-                    raise ValueError(f"Invalid stat in item {key}: missing name or scaling")
-                try:
-                    scaling_id = int(scaling_id)
-                except ValueError:
-                    raise ValueError(f"Invalid scaling ID in item {key} for stat {stat_name}")
-                stats.append(ItemStat(name=stat_name, scaling_id=scaling_id))
+        if stats_elem is None:
+            raise ValueError(f"Item {key} ({name}) is missing required <stats> element")
+            
+        for stat_elem in stats_elem.findall('stat'):
+            stat_name = stat_elem.get('name')
+            scaling_id = stat_elem.get('scaling')
+            if stat_name is None or scaling_id is None:
+                raise ValueError(f"Invalid stat in item {key}: missing name or scaling")
+            try:
+                scaling_id = int(scaling_id)
+            except ValueError:
+                raise ValueError(f"Invalid scaling ID in item {key} for stat {stat_name}")
+            stats.append(ItemStat(name=stat_name, scaling_id=scaling_id))
+            
+        if not stats:
+            raise ValueError(f"Item {key} ({name}) has no stats defined in <stats> element")
 
         return ItemDefinition(
             key=key,

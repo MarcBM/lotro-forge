@@ -63,15 +63,6 @@ class ItemDefinition:
             for stat in self.stats
         ]
 
-    @classmethod
-    def from_xml(cls, xml_item) -> 'ItemDefinition':
-        """
-        Create an ItemDefinition instance from XML data.
-        This is a placeholder for XML parsing logic.
-        """
-        # TODO: Implement XML parsing
-        pass
-
     def to_dict(self) -> Dict:
         """Convert the item definition to a dictionary representation."""
         return {

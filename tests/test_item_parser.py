@@ -38,6 +38,22 @@ class TestItemParser:
         </item>
         '''
         
+        # Item with missing stats element
+        self.missing_stats_xml = '''
+        <item key="1879480679" name="Missing Stats Item" level="1" 
+              slot="NECK" quality="COMMON" minLevel="1">
+        </item>
+        '''
+        
+        # Item with empty stats element
+        self.empty_stats_xml = '''
+        <item key="1879480680" name="Empty Stats Item" level="1" 
+              slot="NECK" quality="COMMON" minLevel="1">
+            <stats>
+            </stats>
+        </item>
+        '''
+        
         # Invalid item XML (missing required attributes)
         self.invalid_item_xml = '''
         <item key="1879480677" name="Invalid Item">
@@ -98,6 +114,22 @@ class TestItemParser:
         # Check stats
         assert len(item_def.stats) == 1
         assert item_def.stats[0] == ItemStat("VITALITY", 1879347271)
+
+    @pytest.mark.parser
+    def test_parse_missing_stats(self):
+        """Test parsing an item with missing stats element."""
+        item_elem = ET.fromstring(self.missing_stats_xml)
+        with pytest.raises(ValueError) as exc_info:
+            ItemParser.parse_item_element(item_elem)
+        assert "missing required <stats> element" in str(exc_info.value)
+
+    @pytest.mark.parser
+    def test_parse_empty_stats(self):
+        """Test parsing an item with empty stats element."""
+        item_elem = ET.fromstring(self.empty_stats_xml)
+        with pytest.raises(ValueError) as exc_info:
+            ItemParser.parse_item_element(item_elem)
+        assert "has no stats defined in <stats> element" in str(exc_info.value)
 
     @pytest.mark.parser
     def test_parse_invalid_item(self):

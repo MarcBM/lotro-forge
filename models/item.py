@@ -96,11 +96,12 @@ class Item:
     Attributes:
         definition (ItemDefinition): The base definition of this item
         ilvl (int): The specific item level of this instance
-        stats (List[ConcreteStat]): The concrete stat values for this item at its ilvl
+        stats (Optional[List[ConcreteStat]]): The concrete stat values for this item at its ilvl.
+            If not provided, will be calculated automatically based on the ilvl.
     """
     definition: ItemDefinition
     ilvl: int
-    stats: List[ConcreteStat]
+    stats: Optional[List[ConcreteStat]] = None
 
     def __post_init__(self):
         """Validate the item level and calculate concrete stats."""
@@ -111,7 +112,7 @@ class Item:
             raise ValueError(f"Item level {self.ilvl} is above maximum {max_ilvl}")
         
         # Calculate concrete stats if not provided
-        if not self.stats:
+        if self.stats is None:
             self.stats = self.definition.calculate_stats_at_ilvl(self.ilvl)
 
     @property

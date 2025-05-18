@@ -1,9 +1,9 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 setup(
     name="lotro_forge",
     version="0.1.0",
-    packages=find_packages(),
+    packages=find_namespace_packages(include=['models', 'parsers']),
     install_requires=[
         # Add your project dependencies here
     ],

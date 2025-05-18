@@ -172,4 +172,21 @@ class TestItemParser:
     def test_parse_file_not_found(self):
         """Test parsing a non-existent file."""
         with pytest.raises(FileNotFoundError):
-            ItemParser.parse_file("nonexistent.xml") 
+            ItemParser.parse_file("nonexistent.xml")
+
+    @pytest.mark.parser
+    def test_parse_file_error_handling(self):
+        """Test error handling in parse_file."""
+        # Test with a file containing an invalid item
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f:
+            f.write('<?xml version="1.0" encoding="UTF-8"?><items>')
+            f.write(self.invalid_item_xml)
+            f.write('</items>')
+            temp_path = f.name
+
+        try:
+            # Should not raise an exception, but should log the error
+            items = ItemParser.parse_file(temp_path)
+            assert len(items) == 0  # No valid items should be parsed
+        finally:
+            Path(temp_path).unlink() 

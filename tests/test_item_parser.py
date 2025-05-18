@@ -4,8 +4,8 @@ import pytest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import tempfile
-from ..parsers.item_parser import ItemParser
-from ..models.item import ItemDefinition, ItemStat
+from parsers.item_parser import ItemParser
+from models.item import ItemDefinition, ItemStat
 
 @pytest.mark.parser
 class TestItemParser:

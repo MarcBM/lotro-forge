@@ -7,9 +7,20 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  validate:
+    name: Validate Branch Protection
     runs-on: ubuntu-latest
+    steps:
+      - name: Check for direct push to main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "Direct pushes to main branch are not allowed. Please create a pull request instead."
+          exit 1
 
+  test:
+    name: Test
+    needs: validate
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     
@@ -17,6 +28,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        cache: 'pip'
         
     - name: Install dependencies
       run: |

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><items>
+<item key="1879480674" name="Ornate Umbari Earring" icon="1092915087-1090519044-1091947416" level="517" slot="EAR" category="ITEM" class="49" equipmentCategory="1" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="60" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879050475" slots="P" scaling="ze_skirmish_level#141-:1879471068;1:0.33">
+<stats>
+<stat name="VITALITY" scaling="1879211544"/>
+<stat name="CRITICAL_RATING" scaling="1879211604"/>
+<stat name="FINESSE" scaling="1879211719"/>
+<stat name="FATE" scaling="1879211551"/>
+</stats>
+</item>
+<item key="1879480675" name="Chipped Bright Umbari Necklace" icon="1092915095-1090519042-1091947416" level="512" slot="NECK" category="ITEM" class="49" equipmentCategory="23" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="80" sturdiness="NORMAL" quality="UNCOMMON" minLevel="150" valueTableId="1879050115" scaling="ze_skirmish_level#141-:1879471052;2:0.3">
+<stats>
+<stat name="VITALITY" scaling="1879347271"/>
+<stat name="CRITICAL_RATING" scaling="1879211605"/>
+<stat name="FINESSE" scaling="1879211717"/>
+</stats>
+</item>
+<item key="1879480676" name="Chipped Sturdy Umbari Ring" icon="1092915091-1090519042-1091947416" level="512" slot="FINGER" category="ITEM" class="49" equipmentCategory="19" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="50" sturdiness="NORMAL" quality="UNCOMMON" minLevel="150" valueTableId="1879050476" scaling="ze_skirmish_level#141-:1879471052;2:0.3">
+<stats>
+<stat name="VITALITY" scaling="1879347271"/>
+<stat name="AGILITY" scaling="1879211546"/>
+<stat name="PHYSICAL_MITIGATION" scaling="1879215061"/>
+<stat name="EVADE" scaling="1879212001"/>
+</stats>
+</item>
+</items>

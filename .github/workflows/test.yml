@@ -26,7 +26,6 @@ jobs:
         
     - name: Run tests with coverage
       run: |
-        cd lotro_forge
         python -m pytest --cov=. --cov-report=xml
         
     - name: Upload coverage to Codecov

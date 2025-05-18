@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
-# This edit is to test the CI/CD pipeline.
-
 @dataclass
 class ItemStat:
     """Represents a single stat on an item with its scaling reference."""

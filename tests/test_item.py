@@ -100,4 +100,60 @@ def test_item_properties(sample_item_def):
     assert item.name == "Test Item"
     assert item.slot == "NECK"
     assert item.quality == "UNCOMMON"
-    assert item.required_player_level == 150 
+    assert item.required_player_level == 150
+
+def test_item_post_init_without_stats(sample_item_def):
+    """Test Item initialization without providing stats."""
+    # This should calculate stats automatically
+    item = Item(definition=sample_item_def, ilvl=514)
+    assert len(item.stats) == 2
+    assert item.stats[0].name == "VITALITY"
+    assert item.stats[0].value == 300
+    assert item.stats[1].name == "CRITICAL_RATING"
+    assert item.stats[1].value == 300
+
+def test_item_post_init_with_empty_stats(sample_item_def):
+    """Test Item initialization with empty stats list."""
+    # This should calculate stats automatically
+    item = Item(definition=sample_item_def, ilvl=514, stats=[])
+    assert len(item.stats) == 2
+    assert item.stats[0].name == "VITALITY"
+    assert item.stats[0].value == 300
+    assert item.stats[1].name == "CRITICAL_RATING"
+    assert item.stats[1].value == 300
+
+def test_item_post_init_with_none_stats(sample_item_def):
+    """Test Item initialization with None stats."""
+    # This should calculate stats automatically
+    item = Item(definition=sample_item_def, ilvl=514, stats=None)
+    assert len(item.stats) == 2
+    assert item.stats[0].name == "VITALITY"
+    assert item.stats[0].value == 300
+    assert item.stats[1].name == "CRITICAL_RATING"
+    assert item.stats[1].value == 300
+
+def test_item_property_accessors_with_different_ilvl(sample_item_def):
+    """Test Item property accessors with a different item level."""
+    item = Item(sample_item_def, ilvl=520)
+    assert item.key == 1879480675
+    assert item.name == "Test Item"
+    assert item.slot == "NECK"
+    assert item.quality == "UNCOMMON"
+    assert item.required_player_level == 150
+    assert item.ilvl == 520
+    assert len(item.stats) == 2
+    assert item.stats[0].value == 900  # 100 * (520 - 512 + 1)
+    assert item.stats[1].value == 900
+
+def test_item_property_accessors_with_max_ilvl(sample_item_def):
+    """Test Item property accessors with maximum item level."""
+    item = Item(sample_item_def, ilvl=522)  # max_ilvl from get_valid_ilvls
+    assert item.key == 1879480675
+    assert item.name == "Test Item"
+    assert item.slot == "NECK"
+    assert item.quality == "UNCOMMON"
+    assert item.required_player_level == 150
+    assert item.ilvl == 522
+    assert len(item.stats) == 2
+    assert item.stats[0].value == 1100  # 100 * (522 - 512 + 1)
+    assert item.stats[1].value == 1100 

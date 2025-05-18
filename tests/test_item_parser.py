@@ -189,4 +189,25 @@ class TestItemParser:
             items = ItemParser.parse_file(temp_path)
             assert len(items) == 0  # No valid items should be parsed
         finally:
+            Path(temp_path).unlink()
+
+    @pytest.mark.parser
+    def test_parse_file_multiple_errors(self):
+        """Test error handling in parse_file with multiple invalid items."""
+        # Create a file with multiple invalid items
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f:
+            f.write('<?xml version="1.0" encoding="UTF-8"?><items>')
+            f.write(self.invalid_item_xml)  # Missing required attributes
+            f.write(self.invalid_stat_xml)  # Invalid stat
+            f.write(self.valid_item_xml)    # One valid item
+            f.write(self.invalid_item_xml)  # Another invalid item
+            f.write('</items>')
+            temp_path = f.name
+
+        try:
+            # Should parse the valid item and skip the invalid ones
+            items = ItemParser.parse_file(temp_path)
+            assert len(items) == 1  # Only the valid item should be parsed
+            assert items[0].key == 1879480675  # Key of the valid item
+        finally:
             Path(temp_path).unlink() 

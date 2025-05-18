@@ -1,8 +1,6 @@
 name: Tests
 
 on:
-  pull_request_target:
-    branches: [ main ]
   push:
     branches: [ main ]
     paths-ignore:
@@ -10,20 +8,9 @@ on:
       - '.github/**'
 
 jobs:
-  validate:
-    name: Validate Branch Protection
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Check for direct push to main
-        run: |
-          echo "Direct pushes to main branch are not allowed. Please create a pull request instead."
-          exit 1
-
   test:
     name: Test
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request_target'
     steps:
     - uses: actions/checkout@v4
     

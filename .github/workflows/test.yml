@@ -1,16 +1,19 @@
 name: Tests
 
 on:
+  pull_request_target:
+    branches: [ main ]
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
 
 jobs:
   validate:
     name: Validate Branch Protection
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && !github.event.pull_request }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Check for direct push to main
         run: |
@@ -20,6 +23,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request_target'
     steps:
     - uses: actions/checkout@v4
     

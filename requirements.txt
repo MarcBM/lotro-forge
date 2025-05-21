@@ -1,9 +1,2 @@
-# Build requirements
-setuptools>=68.0.0
-
-# Testing requirements
-pytest>=7.4.0
-pytest-cov>=4.1.0
-coverage>=7.3.0
-
-# ... existing requirements ... 
+# Core requirements
+lxml>=4.9.0  # For XML parsing 

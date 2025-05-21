@@ -1,0 +1,3 @@
+"""
+LOTRO Forge package initialization.
+""" 

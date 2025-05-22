@@ -28,6 +28,9 @@ class DatabaseConfig:
 
     def get_connection_url(self) -> str:
         """Get the SQLAlchemy connection URL."""
+        # For peer authentication, we can omit the password
+        if not self.password:
+            return f"postgresql://{self.user}@{self.host}:{self.port}/{self.database}"
         return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
 
     def validate(self) -> Optional[str]:
@@ -38,8 +41,6 @@ class DatabaseConfig:
         """
         if not self.user:
             return "Database user not set"
-        if not self.password:
-            return "Database password not set"
         if not self.database:
             return "Database name not set"
         return None

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import xml.etree.ElementTree as ET
-from models.item import ItemDefinition, ItemStat
+from domain.item import ItemDefinition, ItemStat
 
 class ItemParser:
     """Parser for converting XML item data into ItemDefinition objects."""

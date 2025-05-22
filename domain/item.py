@@ -1,3 +1,7 @@
+"""
+Domain models for LOTRO items.
+These are the core business objects representing items in their various forms.
+"""
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
@@ -137,39 +141,4 @@ class Item:
             'stats': [{'name': stat.name, 'value': stat.value} 
                      for stat in self.stats],
             'required_player_level': self.required_player_level
-        }
-
-# Example usage:
-"""
-# Creating an item definition (primitive form)
-necklace_def = ItemDefinition(
-    key=1879480675,
-    name="Chipped Bright Umbari Necklace",
-    min_ilvl=512,  # This is the baseline iLvl
-    slot="NECK",
-    quality="UNCOMMON",
-    stats=[
-        ItemStat("VITALITY", 1879347271),
-        ItemStat("CRITICAL_RATING", 1879211605),
-        ItemStat("FINESSE", 1879211717)
-    ],
-    required_player_level=150,  # Player must be level 150 to equip
-    scaling="ze_skirmish_level#141-:1879471052;2:0.3",
-    value_table_id=1879050115
-)
-
-# Creating an instantiated item with a specific ilvl
-# The stats will be calculated automatically based on the ilvl
-necklace_514 = Item(necklace_def, ilvl=514)
-
-# Or we can provide pre-calculated stats
-precalculated_stats = [
-    ConcreteStat("VITALITY", 1500),
-    ConcreteStat("CRITICAL_RATING", 1200),
-    ConcreteStat("FINESSE", 800)
-]
-necklace_514_with_stats = Item(necklace_def, ilvl=514, stats=precalculated_stats)
-
-# The items can be converted to dictionaries with their concrete stat values
-item_dict = necklace_514.to_dict()
-""" 
+        } 

@@ -1,0 +1,24 @@
+{% from "database/components/base_panel.html" import database_panel %}
+
+{% set filters_content %}
+<!-- Filters placeholder -->
+<div class="text-gray-400 text-center py-4">
+    Filters coming soon
+</div>
+{% endset %}
+
+{% set results_content %}
+<!-- Results placeholder -->
+<div class="text-gray-400 text-center py-4">
+    Results will be displayed here
+</div>
+{% endset %}
+
+{% set details_content %}
+<!-- Details placeholder -->
+<div class="text-gray-400 text-center py-4">
+    Select an item to view details
+</div>
+{% endset %}
+
+{{ database_panel('buffs', 'Buffs Database', filters_content, results_content, details_content) }} 

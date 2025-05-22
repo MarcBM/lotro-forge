@@ -3,8 +3,10 @@
      x-data="{ 
          buildName: 'New Build',
          isEditingName: false,
-         activePanel: null,
+         activePanel: window.location.pathname === '/database' ? 'items' : null,
          isBuilderPage: window.location.pathname === '/builder',
+         isDatabasePage: window.location.pathname === '/database',
+         isBuildsPage: window.location.pathname === '/builds',
          
          // Panel management
          openPanel(panel) {
@@ -16,7 +18,14 @@
              }));
          }
      }"
-     x-init="$watch('isBuilderPage', value => console.log('Builder page:', value))"
+     x-init="$watch('isBuilderPage', value => console.log('Builder page:', value));
+              $watch('isDatabasePage', value => {
+                  console.log('Database page:', value);
+                  if (value) {
+                      this.activePanel = 'items';
+                  }
+              });
+              $watch('isBuildsPage', value => console.log('Builds page:', value))"
      @panel-closed.window="activePanel = null">
     <div class="max-w-7xl mx-auto px-4">
         <!-- Main Navigation Bar -->
@@ -29,13 +38,19 @@
                 </div>
                 <!-- Navigation Links -->
                 <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                    <a href="/builds" class="text-gray-300 hover:text-lotro-gold hover:border-lotro-gold inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">
+                    <a href="/builds" 
+                       class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+                       :class="isBuildsPage ? 'text-lotro-gold border-lotro-gold' : 'text-gray-300 hover:text-lotro-gold hover:border-lotro-gold border-transparent'">
                         Builds
                     </a>
-                    <a href="/database" class="text-gray-300 hover:text-lotro-gold hover:border-lotro-gold inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">
+                    <a href="/database" 
+                       class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+                       :class="isDatabasePage ? 'text-lotro-gold border-lotro-gold' : 'text-gray-300 hover:text-lotro-gold hover:border-lotro-gold border-transparent'">
                         Database
                     </a>
-                    <a href="/builder" class="text-gray-300 hover:text-lotro-gold hover:border-lotro-gold inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">
+                    <a href="/builder" 
+                       class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+                       :class="isBuilderPage ? 'text-lotro-gold border-lotro-gold' : 'text-gray-300 hover:text-lotro-gold hover:border-lotro-gold border-transparent'">
                         Builder
                     </a>
                 </div>
@@ -69,7 +84,7 @@
             </div>
         </div>
 
-        <!-- Panel Navigation (only shown on builder page) -->
+        <!-- Panel Navigation (shown on builder or database page) -->
         <template x-if="isBuilderPage">
             <div class="flex justify-center space-x-4 py-2 border-t border-lotro-border">
                 <button @click="openPanel('legendary')" 
@@ -96,6 +111,47 @@
                         class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
                         :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'optimise'}">
                     Optimise
+                </button>
+            </div>
+        </template>
+
+        <!-- Database Navigation (shown on database page) -->
+        <template x-if="isDatabasePage">
+            <div class="flex justify-center space-x-4 py-2 border-t border-lotro-border">
+                <button @click="openPanel('items')" 
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'items'}">
+                    Items
+                </button>
+                <button @click="openPanel('traceries')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'traceries'}">
+                    Traceries
+                </button>
+                <button @click="openPanel('essences')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'essences'}">
+                    Essences
+                </button>
+                <button @click="openPanel('traits')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'traits'}">
+                    Traits
+                </button>
+                <button @click="openPanel('buffs')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'buffs'}">
+                    Buffs
+                </button>
+                <button @click="openPanel('misc')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'misc'}">
+                    Misc
+                </button>
+                <button @click="openPanel('sources')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'sources'}">
+                    Sources
                 </button>
             </div>
         </template>

@@ -3,43 +3,31 @@
 {% block title %}Database - LotRO Forge{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Header Section -->
-    <div class="text-center">
-        <h1 class="text-4xl font-bold text-lotro-gold mb-4">Item Database</h1>
-        <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-            Explore our comprehensive database of LOTRO items and equipment.
-        </p>
-    </div>
-
-    <!-- Coming Soon Card -->
-    <div class="max-w-3xl mx-auto">
-        <div class="bg-lotro-dark rounded-lg shadow-lg overflow-hidden border border-lotro-border">
-            <div class="p-8 text-center">
-                <h2 class="text-2xl font-bold text-lotro-gold mb-4">Coming Soon</h2>
-                <p class="text-gray-300 mb-6">
-                    The item database is currently under development. Soon you'll be able to:
-                </p>
-                <ul class="text-gray-300 space-y-2 text-left max-w-md mx-auto">
-                    <li class="flex items-center">
-                        <span class="text-lotro-gold mr-2">•</span>
-                        Browse and search items by slot, level, and stats
-                    </li>
-                    <li class="flex items-center">
-                        <span class="text-lotro-gold mr-2">•</span>
-                        Compare different equipment options
-                    </li>
-                    <li class="flex items-center">
-                        <span class="text-lotro-gold mr-2">•</span>
-                        View detailed item information and set bonuses
-                    </li>
-                    <li class="flex items-center">
-                        <span class="text-lotro-gold mr-2">•</span>
-                        Filter items by quality, source, and requirements
-                    </li>
-                </ul>
-            </div>
+<!-- Database Component -->
+<div id="database-component" 
+     x-data="{ 
+         activePanel: window.location.pathname === '/database' ? 'items' : null
+     }"
+     @open-panel.window="activePanel = $event.detail"
+     class="bg-lotro-darker">
+    
+    <!-- Main content area -->
+    <div class="max-w-7xl mx-auto px-4 py-4">
+        <!-- Panel Content -->
+        <div>
+            {% include "database/components/items_panel.html" %}
+            {% include "database/components/traceries_panel.html" %}
+            {% include "database/components/essences_panel.html" %}
+            {% include "database/components/traits_panel.html" %}
+            {% include "database/components/buffs_panel.html" %}
+            {% include "database/components/misc_panel.html" %}
+            {% include "database/components/sources_panel.html" %}
         </div>
     </div>
 </div>
+
+<!-- Hide elements until Alpine.js is ready -->
+<style>
+    [x-cloak] { display: none !important; }
+</style>
 {% endblock %} 

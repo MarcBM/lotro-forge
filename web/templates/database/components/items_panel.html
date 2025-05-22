@@ -1,0 +1,81 @@
+{% from "database/components/base_panel.html" import database_panel %}
+
+{% set filters_content %}
+<!-- Filters placeholder -->
+<div class="text-gray-400 text-center py-4">
+    Filters coming soon
+</div>
+{% endset %}
+
+{% set results_content %}
+<!-- Results placeholder -->
+<div class="text-gray-400 text-center py-4">
+    Results will be displayed here
+</div>
+{% endset %}
+
+{% set details_content %}
+<!-- Details placeholder -->
+<div class="text-gray-400 text-center py-4">
+    Select an item to view details
+</div>
+{% endset %}
+
+{{ database_panel('items', 'Items Database', filters_content, results_content, details_content) }}
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('itemsPanel', () => ({
+        searchQuery: '',
+        currentPage: 1,
+        itemsPerPage: 12,
+        totalItems: 0,
+        items: [],
+        selectedItem: null,
+        
+        get startIndex() {
+            return (this.currentPage - 1) * this.itemsPerPage;
+        },
+        
+        get endIndex() {
+            return Math.min(this.startIndex + this.itemsPerPage, this.totalItems);
+        },
+        
+        get totalPages() {
+            return Math.ceil(this.totalItems / this.itemsPerPage);
+        },
+
+        debounceSearch() {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.loadItems();
+            }, 300);
+        },
+        
+        init() {
+            this.loadItems();
+        },
+        
+        async loadItems() {
+            try {
+                // TODO: Implement API call to load items
+                console.log('Loading items...');
+                // For now, just show some placeholder data
+                this.items = [
+                    {
+                        id: 1,
+                        name: 'Example Item',
+                        type: 'Weapon',
+                        level: 140,
+                        slot: 'Main Hand',
+                        icon_url: '/static/images/placeholder.png'
+                    }
+                ];
+                this.totalItems = 1;
+            } catch (error) {
+                console.error('Error loading items:', error);
+            }
+        }
+    }));
+});
+</script> 

@@ -70,7 +70,7 @@ class ItemImporter(BaseImporter):
                 required_player_level = int(item_elem.get("minLevel", "0"))
                 
                 # Skip items that don't meet our criteria
-                if min_ilvl < 520 or slot != "NECK":
+                if min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
                     continue
                 
                 # Optional attributes
@@ -109,7 +109,7 @@ class ItemImporter(BaseImporter):
                 self.logger.error(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
                 continue
         
-        self.logger.info(f"Found {len(items)} items matching criteria (level >= 520 and slot = NECK)")
+        self.logger.info(f"Found {len(items)} items matching criteria (level >= 510 and slot in [NECK, FINGER, POCKET, EAR, WRIST])")
         return items
     
     def transform_data(self, items: List[ItemDefinitionData]) -> Tuple[List[ItemDefinition], List[ItemStat]]:
@@ -197,7 +197,7 @@ class ItemImporter(BaseImporter):
                 # Skip items that don't meet our criteria
                 min_ilvl = int(item_elem.get("level", "0"))
                 slot = item_elem.get("slot", "")
-                if min_ilvl < 520 or slot != "NECK":
+                if min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
                     continue
                 
                 # Get value table ID from item stats

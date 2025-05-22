@@ -9,36 +9,38 @@
 
 {% set results_content %}
 <!-- Item Grid -->
-<template x-for="item in items" :key="item.key">
-    <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
-         @click="selectItem(item)">
-        <!-- Item Key -->
-        <div class="absolute top-1 left-1 text-xs text-gray-500" 
-             x-text="item.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
-        
-        <!-- Main Content -->
-        <div class="flex items-center gap-3 h-full pt-2">
-            <!-- Item Icon (placeholder for now) -->
-            <div class="w-10 h-10 bg-gray-700 rounded flex-shrink-0"></div>
+<div class="grid grid-cols-3 gap-4">
+    <template x-for="(item, index) in items" :key="item.key">
+        <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
+             @click="selectItem(item)">
+            <!-- Item Key -->
+            <div class="absolute top-1 left-1 text-xs text-gray-500" 
+                 x-text="item.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
             
-            <!-- Item Name -->
-            <h3 class="text-sm font-medium line-clamp-2 leading-tight"
-                :class="{
-                    'text-white': item.quality === 'COMMON',
-                    'text-yellow-300': item.quality === 'UNCOMMON',
-                    'text-purple-400': item.quality === 'RARE',
-                    'text-teal-400': item.quality === 'INCOMPARABLE',
-                    'text-orange-400': item.quality === 'LEGENDARY'
-                }"
-                x-text="item.name"></h3>
+            <!-- Main Content -->
+            <div class="flex items-center gap-3 h-full pt-2">
+                <!-- Item Icon (placeholder for now) -->
+                <div class="w-10 h-10 bg-gray-700 rounded flex-shrink-0"></div>
+                
+                <!-- Item Name -->
+                <h3 class="text-sm font-medium line-clamp-2 leading-tight flex-1"
+                    :class="{
+                        'text-white': item.quality === 'COMMON',
+                        'text-yellow-300': item.quality === 'UNCOMMON',
+                        'text-purple-400': item.quality === 'RARE',
+                        'text-teal-400': item.quality === 'INCOMPARABLE',
+                        'text-orange-400': item.quality === 'LEGENDARY'
+                    }"
+                    x-text="item.name"></h3>
+            </div>
+            
+            <!-- EV Value -->
+            <div class="absolute bottom-1 right-2 text-sm text-gray-400">
+                <span x-text="(item.ev || '0.00')"></span>
+            </div>
         </div>
-        
-        <!-- EV Value -->
-        <div class="absolute bottom-1 right-2 text-sm text-gray-400">
-            <span x-text="(item.ev || '0.00')"></span>
-        </div>
-    </div>
-</template>
+    </template>
+</div>
 {% endset %}
 
 {% set details_content %}
@@ -99,7 +101,7 @@
 </template>
 {% endset %}
 
-<div x-data="itemsPanel">
+<div x-data="itemsPanel" x-init="$nextTick(() => init())">
     {{ database_panel('items', 'Items Database', filters_content, results_content, details_content) }}
 </div>
 
@@ -110,24 +112,83 @@ document.addEventListener('alpine:init', () => {
         items: [],
         selectedItem: null,
         concreteItem: null,
+        loading: false,
         
         init() {
-            this.loadItems();
+            // Initialize with empty array to ensure reactivity
+            this.items = [];
+            // Initial load with a fixed limit of 99 (multiple of 3)
+            this.loadItems(0, 99);
+            
+            // Listen for load-more events from the base panel
+            window.addEventListener('load-more', this.handleLoadMore.bind(this));
+        },
+
+        handleLoadMore(event) {
+            if (event.detail.panelId !== 'items') return;
+            this.loadMoreItems(event.detail.offset, event.detail.limit);
         },
         
-        async loadItems() {
+        async loadItems(offset, limit) {
+            if (this.loading) return;
+            
             try {
-                const response = await fetch('/api/items/?limit=100');
+                this.loading = true;
+                const response = await fetch(`/api/items/?limit=${limit}&skip=${offset}`);
                 if (!response.ok) {
                     throw new Error('Failed to load items');
                 }
                 
                 const data = await response.json();
-                // Sort items by key in reverse order
-                this.items = data.sort((a, b) => b.key - a.key);
+                // Use Alpine's reactive array update
+                this.items = data;
+                // Update pagination state in the base panel
+                this.$dispatch('update-pagination', { 
+                    hasMore: data.length === limit,
+                    offset: offset + limit,
+                    newItems: data
+                });
             } catch (error) {
                 console.error('Error loading items:', error);
                 this.items = [];
+                this.$dispatch('update-pagination', { 
+                    hasMore: false,
+                    offset: offset,
+                    newItems: []
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async loadMoreItems(offset, limit) {
+            if (this.loading) return;
+            
+            try {
+                this.loading = true;
+                const response = await fetch(`/api/items/?limit=${limit}&skip=${offset}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load more items');
+                }
+                
+                const data = await response.json();
+                // Use Alpine's reactive array update
+                this.items = [...this.items, ...data];
+                // Update pagination state in the base panel
+                this.$dispatch('update-pagination', { 
+                    hasMore: data.length === limit,
+                    offset: offset + limit,
+                    newItems: data
+                });
+            } catch (error) {
+                console.error('Error loading more items:', error);
+                this.$dispatch('update-pagination', { 
+                    hasMore: false,
+                    offset: offset,
+                    newItems: []
+                });
+            } finally {
+                this.loading = false;
             }
         },
 

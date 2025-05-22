@@ -1,6 +1,7 @@
 {% macro database_panel(panel_id, title, filters_content, results_content, details_content) %}
-<div x-data="{}"
+<div x-data="databasePanel('{{ panel_id }}')"
      x-show="activePanel === '{{ panel_id }}'" 
+     @update-pagination.window="handlePaginationUpdate($event.detail)"
      class="h-[calc(100vh-20rem)] flex gap-4">
     
     <!-- Left Column - Filters -->
@@ -35,8 +36,29 @@
         <!-- Results Grid - Now scrollable -->
         <div class="flex-1 overflow-y-auto">
             <div class="p-4">
-                <div class="grid grid-cols-3 gap-4">
-                    {{ results_content }}
+                {{ results_content }}
+                
+                <!-- Load More Button or End Message -->
+                <div class="mt-4 text-center">
+                    <template x-if="hasMore">
+                        <button @click="loadMore" 
+                                class="bg-lotro-darker text-lotro-gold px-6 py-2 rounded border border-lotro-border hover:border-lotro-gold focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                :disabled="loading">
+                            <span x-show="!loading">Load More</span>
+                            <span x-show="loading" class="inline-flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-lotro-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Loading...
+                            </span>
+                        </button>
+                    </template>
+                    <template x-if="!hasMore && items.length > 0">
+                        <div class="text-gray-400 py-2">
+                            No more items to load
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -52,4 +74,45 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('databasePanel', (panelId) => ({
+        loading: false,
+        hasMore: true,
+        offset: 0,
+        limit: 99,
+        items: [], // Add items array to track total items
+
+        handlePaginationUpdate(detail) {
+            this.hasMore = detail.hasMore;
+            this.offset = detail.offset;
+            // Update total items count
+            this.items = [...this.items, ...detail.newItems || []];
+        },
+
+        async loadMore() {
+            if (this.loading || !this.hasMore) return;
+
+            try {
+                this.loading = true;
+                // Dispatch a custom event that the panel component can listen for
+                const event = new CustomEvent('load-more', {
+                    detail: {
+                        panelId,
+                        offset: this.offset,
+                        limit: this.limit
+                    }
+                });
+                window.dispatchEvent(event);
+            } catch (error) {
+                console.error('Error loading more items:', error);
+                this.hasMore = false;
+            } finally {
+                this.loading = false;
+            }
+        }
+    }));
+});
+</script>
 {% endmacro %} 

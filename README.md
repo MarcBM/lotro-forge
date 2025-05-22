@@ -137,6 +137,16 @@ This project uses Alembic for database migrations. Migrations help track and app
 - The main code is in the `models/` and `parsers/` directories
 - See `RULES.md` for important project rules and terminology
 
+### Running the Web Server
+
+To start the web server in development mode:
+
+```bash
+python -m scripts.run_web
+```
+
+This will start a development server with hot-reloading enabled. The server will automatically restart when you make changes to the code.
+
 ## Project Structure
 
 ```

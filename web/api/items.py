@@ -67,6 +67,9 @@ async def list_items(
             logger.debug(f"Filtering by max_level: {max_level}")
             stmt = stmt.where(ItemDefinition.required_player_level <= max_level)
         
+        # Sort by key in descending order
+        stmt = stmt.order_by(ItemDefinition.key.desc())
+        
         # Apply pagination
         logger.debug(f"Applying pagination: skip={skip}, limit={limit}")
         stmt = stmt.offset(skip).limit(limit)

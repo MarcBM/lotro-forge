@@ -8,49 +8,92 @@
 {% endset %}
 
 {% set results_content %}
-<!-- Results placeholder -->
-<div class="text-gray-400 text-center py-4">
-    Results will be displayed here
-</div>
+<!-- Item Grid -->
+<template x-for="item in items" :key="item.key">
+    <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
+         @click="selectedItem = item">
+        <!-- Item Key -->
+        <div class="absolute top-1 left-1 text-xs text-gray-500" 
+             x-text="item.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
+        
+        <!-- Main Content -->
+        <div class="flex items-center gap-3 h-full pt-2">
+            <!-- Item Icon (placeholder for now) -->
+            <div class="w-10 h-10 bg-gray-700 rounded flex-shrink-0"></div>
+            
+            <!-- Item Name -->
+            <h3 class="text-sm font-medium line-clamp-2 leading-tight"
+                :class="{
+                    'text-white': item.quality === 'COMMON',
+                    'text-yellow-300': item.quality === 'UNCOMMON',
+                    'text-purple-400': item.quality === 'RARE',
+                    'text-teal-400': item.quality === 'INCOMPARABLE',
+                    'text-orange-400': item.quality === 'LEGENDARY'
+                }"
+                x-text="item.name"></h3>
+        </div>
+        
+        <!-- EV Value -->
+        <div class="absolute bottom-1 right-2 text-sm text-gray-400">
+            <span x-text="(item.ev || '0.00')"></span>
+        </div>
+    </div>
+</template>
 {% endset %}
 
 {% set details_content %}
-<!-- Details placeholder -->
-<div class="text-gray-400 text-center py-4">
-    Select an item to view details
-</div>
+<!-- Item Details -->
+<template x-if="selectedItem">
+    <div class="space-y-4">
+        <div class="flex items-start gap-4">
+            <!-- Item Icon (placeholder for now) -->
+            <div class="w-16 h-16 bg-gray-700 rounded flex-shrink-0"></div>
+            
+            <!-- Item Info -->
+            <div class="flex-1 min-w-0">
+                <h3 class="text-xl font-bold text-lotro-gold mb-1" x-text="selectedItem.name"></h3>
+                <div class="text-sm text-gray-400 space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="quality-rare" x-text="selectedItem.quality"></span>
+                        <span x-text="'Level ' + selectedItem.required_player_level"></span>
+                    </div>
+                    <div class="text-gray-500" x-text="selectedItem.slot"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Item Stats -->
+        <div class="border-t border-lotro-border pt-4">
+            <div class="text-sm text-gray-400">
+                <div class="flex justify-between mb-1">
+                    <span>Item Level:</span>
+                    <span x-text="selectedItem.base_ilvl"></span>
+                </div>
+                <div class="flex justify-between mb-1">
+                    <span>Scaling:</span>
+                    <span x-text="selectedItem.scaling"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+<template x-if="!selectedItem">
+    <div class="text-gray-400 text-center py-4">
+        Select an item to view details
+    </div>
+</template>
 {% endset %}
 
-{{ database_panel('items', 'Items Database', filters_content, results_content, details_content) }}
+<div x-data="itemsPanel">
+    {{ database_panel('items', 'Items Database', filters_content, results_content, details_content) }}
+</div>
 
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.data('itemsPanel', () => ({
         searchQuery: '',
-        currentPage: 1,
-        itemsPerPage: 12,
-        totalItems: 0,
         items: [],
         selectedItem: null,
-        
-        get startIndex() {
-            return (this.currentPage - 1) * this.itemsPerPage;
-        },
-        
-        get endIndex() {
-            return Math.min(this.startIndex + this.itemsPerPage, this.totalItems);
-        },
-        
-        get totalPages() {
-            return Math.ceil(this.totalItems / this.itemsPerPage);
-        },
-
-        debounceSearch() {
-            clearTimeout(this.searchTimeout);
-            this.searchTimeout = setTimeout(() => {
-                this.loadItems();
-            }, 300);
-        },
         
         init() {
             this.loadItems();
@@ -58,22 +101,17 @@ document.addEventListener('alpine:init', () => {
         
         async loadItems() {
             try {
-                // TODO: Implement API call to load items
-                console.log('Loading items...');
-                // For now, just show some placeholder data
-                this.items = [
-                    {
-                        id: 1,
-                        name: 'Example Item',
-                        type: 'Weapon',
-                        level: 140,
-                        slot: 'Main Hand',
-                        icon_url: '/static/images/placeholder.png'
-                    }
-                ];
-                this.totalItems = 1;
+                const response = await fetch('/api/items/?limit=100');
+                if (!response.ok) {
+                    throw new Error('Failed to load items');
+                }
+                
+                const data = await response.json();
+                // Sort items by key in reverse order
+                this.items = data.sort((a, b) => b.key - a.key);
             } catch (error) {
                 console.error('Error loading items:', error);
+                this.items = [];
             }
         }
     }));

@@ -173,9 +173,23 @@ This command will:
 2. Recreate the tables with their original schema
 3. Import all progression tables needed by items
 4. Import all items
+5. Import any icons not already acquired to the static folder.
 
 Other useful commands:
 - `--wipe` alone: Just drops and recreates tables without importing
 - `--import-type items`: Import only items (requires tables to exist)
 - `--import-type progressions`: Import only progression tables
 - `--create-tables`: Create tables if they don't exist (without wiping)
+
+To simply run the example data in:
+
+```bash
+python -m scripts.importers.example_import --wipe
+```
+
+This command will:
+1. Drop all existing tables
+2. Recreate the tables with their original schema
+3. Import all progression tables needed by items
+4. Import any items found in example_items.xml
+5. Import any icons not already acquired to the static folder.

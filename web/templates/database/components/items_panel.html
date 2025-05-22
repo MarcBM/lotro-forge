@@ -19,8 +19,20 @@
             
             <!-- Main Content -->
             <div class="flex items-center gap-3 h-full pt-2">
-                <!-- Item Icon (placeholder for now) -->
-                <div class="w-10 h-10 bg-gray-700 rounded flex-shrink-0"></div>
+                <!-- Item Icon (layered) -->
+                <div class="w-10 h-10 flex-shrink-0 relative">
+                    <template x-if="item.icon_urls">
+                        <template x-for="(url, i) in [...item.icon_urls].reverse()" :key="i">
+                            <img :src="url" 
+                                 :alt="'Item icon layer ' + (i + 1)"
+                                 class="absolute inset-0 w-full h-full object-contain"
+                                 @error="$el.style.display='none'">
+                        </template>
+                    </template>
+                    <template x-if="!item.icon_urls">
+                        <div class="w-full h-full bg-gray-700 rounded"></div>
+                    </template>
+                </div>
                 
                 <!-- Item Name -->
                 <h3 class="text-sm font-medium line-clamp-2 leading-tight flex-1"
@@ -51,8 +63,20 @@
         <div class="space-y-2">
             <!-- Icon and Title -->
             <div class="flex items-start gap-4">
-                <!-- Item Icon (placeholder for now) -->
-                <div class="w-16 h-16 bg-gray-700 rounded flex-shrink-0"></div>
+                <!-- Item Icon (layered) -->
+                <div class="w-16 h-16 flex-shrink-0 relative">
+                    <template x-if="selectedItem.icon_urls">
+                        <template x-for="(url, i) in [...selectedItem.icon_urls].reverse()" :key="i">
+                            <img :src="url" 
+                                 :alt="'Item icon layer ' + (i + 1)"
+                                 class="absolute inset-0 w-full h-full object-contain"
+                                 @error="$el.style.display='none'">
+                        </template>
+                    </template>
+                    <template x-if="!selectedItem.icon_urls">
+                        <div class="w-full h-full bg-gray-700 rounded"></div>
+                    </template>
+                </div>
                 
                 <!-- Item Info -->
                 <div class="flex-1 min-w-0">

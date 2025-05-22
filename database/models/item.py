@@ -67,6 +67,7 @@ class ItemDefinition(Base):
     required_player_level: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     scaling: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     armour_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, index=True)  # e.g. "HEAVY", "MEDIUM", "LIGHT"
+    icon: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Hyphen-separated icon IDs
     
     # Relationships
     stats: Mapped[List[ItemStat]] = relationship(
@@ -130,6 +131,7 @@ class ItemDefinition(Base):
             'required_player_level': self.required_player_level,
             'scaling': self.scaling,
             'armour_type': self.armour_type,  # Include armour type in output
+            'icon': self.icon,  # Include icon IDs in output
             'stats': [
                 {
                     'name': stat.stat_name,

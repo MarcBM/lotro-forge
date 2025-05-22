@@ -2,8 +2,8 @@
 API endpoints for item operations.
 """
 import logging
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from typing import List, Optional, Dict
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -37,8 +37,28 @@ def get_db():
     finally:
         db.close()
 
+def get_icon_urls(request: Request, icon_ids: Optional[str]) -> Optional[List[str]]:
+    """Convert icon IDs to full URLs.
+    
+    Args:
+        request: FastAPI request object for getting base URL
+        icon_ids: Comma-separated icon IDs or None
+        
+    Returns:
+        List of icon URLs or None if no icons
+    """
+    if not icon_ids:
+        return None
+        
+    base_url = str(request.base_url).rstrip('/')
+    return [
+        f"{base_url}/static/icons/items/{icon_id}.png"
+        for icon_id in icon_ids.split('-')
+    ]
+
 @router.get("/")
 async def list_items(
+    request: Request,
     db: Session = Depends(get_db),
     skip: int = Query(0, ge=0, description="Skip N items"),
     limit: int = Query(10, ge=1, le=100, description="Limit to N items"),
@@ -92,6 +112,8 @@ async def list_items(
                 "required_player_level": item.required_player_level,
                 "scaling": item.scaling,
                 "armour_type": item.armour_type,
+                "icon": item.icon,
+                "icon_urls": get_icon_urls(request, item.icon),
                 # Stats with their progression table references
                 "stats": [
                     {
@@ -121,6 +143,7 @@ async def list_items(
 
 @router.get("/{item_key}")
 async def get_item(
+    request: Request,
     item_key: int,
     db: Session = Depends(get_db)
 ) -> dict:
@@ -140,6 +163,8 @@ async def get_item(
             "quality": item.quality,
             "required_player_level": item.required_player_level,
             "armour_type": item.armour_type,
+            "icon": item.icon,
+            "icon_urls": get_icon_urls(request, item.icon),
             "stats": [
                 {
                     "stat_name": stat.stat_name,
@@ -156,6 +181,7 @@ async def get_item(
 
 @router.get("/{item_key}/concrete")
 async def get_concrete_item(
+    request: Request,
     item_key: int,
     ilvl: int = Query(..., ge=1, description="Item level to get concrete stats for"),
     db: Session = Depends(get_db)
@@ -191,6 +217,8 @@ async def get_concrete_item(
             "quality": item.quality,
             "required_player_level": item.required_player_level,
             "armour_type": item.armour_type,
+            "icon": item.icon,
+            "icon_urls": get_icon_urls(request, item.icon),
             "stat_values": [
                 {
                     "stat_name": stat.stat_name,

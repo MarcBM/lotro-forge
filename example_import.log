@@ -1,19 +1,21 @@
-2025-05-22 18:55:17,988 INFO Importing example items from: /home/marcb/workspace/lotro/lotro_forge/example_data/example_items.xml
-2025-05-22 18:55:17,988 INFO Using progressions from: /home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml
-2025-05-22 18:55:18,016 INFO Dropping all tables...
-2025-05-22 18:55:18,041 INFO Recreating tables...
-2025-05-22 18:55:18,087 INFO Database wiped successfully
-2025-05-22 18:55:18,099 INFO Analyzing example items to determine required progression tables...
-2025-05-22 18:55:18,100 INFO Found 18 required progression tables
-2025-05-22 18:55:18,100 INFO Found 18 required progression tables
-2025-05-22 18:55:18,100 INFO Importing required progressions from /home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml
-2025-05-22 18:55:18,354 INFO Parsed 18 tables from progressions.xml
-2025-05-22 18:55:18,417 INFO Successfully imported 18 tables and 349 values
-2025-05-22 18:55:18,417 INFO Import completed successfully
-2025-05-22 18:55:18,418 INFO Progressions import complete.
-2025-05-22 18:55:18,418 INFO Importing example items from /home/marcb/workspace/lotro/lotro_forge/example_data/example_items.xml
-2025-05-22 18:55:18,418 INFO Found 5 items in example data
-2025-05-22 18:55:18,463 INFO Successfully imported 5 items and 21 stats
-2025-05-22 18:55:18,463 INFO Import completed successfully
-2025-05-22 18:55:18,464 INFO Items import complete.
-2025-05-22 18:55:18,466 INFO All imports completed successfully
+2025-05-22 22:57:58,490 INFO Importing example items from: /home/marcb/workspace/lotro/lotro_forge/example_data/example_items.xml
+2025-05-22 22:57:58,490 INFO Using progressions from: /home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml
+2025-05-22 22:57:58,517 INFO Dropping all tables...
+2025-05-22 22:57:58,543 INFO Recreating tables...
+2025-05-22 22:57:58,600 INFO Database wiped successfully
+2025-05-22 22:57:58,613 INFO Analyzing example items to determine required progression tables...
+2025-05-22 22:57:58,613 INFO Found 18 required progression tables
+2025-05-22 22:57:58,613 INFO Found 18 required progression tables
+2025-05-22 22:57:58,613 INFO Importing required progressions from /home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml
+2025-05-22 22:57:58,864 INFO Parsed 18 tables from progressions.xml
+2025-05-22 22:57:58,923 INFO Successfully imported 18 tables and 349 values
+2025-05-22 22:57:58,923 INFO Import completed successfully
+2025-05-22 22:57:58,923 INFO Progressions import complete.
+2025-05-22 22:57:58,923 INFO Importing example items from /home/marcb/workspace/lotro/lotro_forge/example_data/example_items.xml
+2025-05-22 22:57:58,924 INFO Found 5 items matching criteria (level >= 510 and slot in [NECK, FINGER, POCKET, EAR, WRIST])
+2025-05-22 22:57:58,966 INFO Successfully imported 5 items and 21 stats
+2025-05-22 22:57:58,967 INFO Import completed successfully
+2025-05-22 22:57:58,967 INFO Items import complete.
+2025-05-22 22:57:58,967 INFO Copying required icons...
+2025-05-22 22:57:58,969 INFO Icon copy complete: 2 new, 7 existing, 0 missing
+2025-05-22 22:57:58,971 INFO All imports completed successfully

@@ -17,6 +17,7 @@ from database.models.base import Base
 from database.config import get_database_url
 from scripts.importers.progressions import ProgressionsImporter
 from scripts.importers.items import ItemImporter
+from scripts.copy_icons import copy_required_icons  # Import icon copying function
 
 def setup_logging(log_dir: Path = None):
     """Configure logging for the import script.
@@ -42,13 +43,10 @@ def setup_logging(log_dir: Path = None):
 
 @contextmanager
 def database_session(create_tables: bool = False):
-    """Create and manage a database session.
+    """Get a database session with optional table creation.
     
     Args:
-        create_tables: Whether to create tables if they don't exist
-    
-    Yields:
-        Session: Database session
+        create_tables: If True, create tables if they don't exist
     """
     engine = create_engine(get_database_url())
     if create_tables:
@@ -57,6 +55,10 @@ def database_session(create_tables: bool = False):
     session = Session()
     try:
         yield session
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise
     finally:
         session.close()
         engine.dispose()
@@ -176,6 +178,16 @@ def main():
                     success = False
                     logger.error(f"ItemImporter failed with error: {str(e)}", exc_info=True)
                     session.rollback()
+            
+            # Step 4: Copy required icons (only if items were imported successfully)
+            if item_importer and success:
+                logger.info("Copying required icons...")
+                try:
+                    copied, skipped, missing = copy_required_icons(session)
+                    logger.info(f"Icon copy complete: {copied} new, {skipped} existing, {missing} missing")
+                except Exception as e:
+                    logger.error(f"Failed to copy icons: {str(e)}")
+                    success = False
             
             if success:
                 logger.info("All imports completed successfully")

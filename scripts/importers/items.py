@@ -20,20 +20,24 @@ class ItemDefinitionData:
     scaling: Optional[str]
     value_table_id: Optional[int]  # Keep this for reference but don't use in ItemDefinition
     armour_type: Optional[str]  # e.g. "HEAVY", "MEDIUM", "LIGHT"
+    icon: Optional[str]  # Hyphen-separated icon IDs
     stats: List[Dict[str, str]]  # List of {name: str, scaling: str}
 
 class ItemImporter(BaseImporter):
     """Importer for item definitions."""
     
-    def __init__(self, source_path: Path, db_session: Session):
+    def __init__(self, source_path: Path, db_session: Session, skip_filters: bool = False):
         """Initialize the importer.
         
         Args:
             source_path: Path to the items.xml file
             db_session: Database session
+            skip_filters: If True, skip filtering items by level and slot
         """
         super().__init__(source_path, db_session)
         self.items_file = source_path  # source_path is now the direct path to items.xml
+        self.skip_filters = skip_filters
+        self.required_icons = set()  # Track unique icon IDs needed
         
     def validate_source(self) -> bool:
         """Validate that items.xml exists and has the expected structure."""
@@ -70,8 +74,8 @@ class ItemImporter(BaseImporter):
                 quality = item_elem.get("quality", "")
                 required_player_level = int(item_elem.get("minLevel", "0"))
                 
-                # Skip items that don't meet our criteria
-                if min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
+                # Skip items that don't meet our criteria (unless skip_filters is True)
+                if not self.skip_filters and (min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]):
                     continue
                 
                 # Optional attributes
@@ -80,6 +84,11 @@ class ItemImporter(BaseImporter):
                 if value_table_id is not None:
                     value_table_id = int(value_table_id)
                 armour_type = item_elem.get("armourType")  # Get armour type if present
+                icon = item_elem.get("icon")  # Get icon IDs if present
+                
+                # Add icon IDs to required set if present
+                if icon:
+                    self.required_icons.update(icon.split('-'))
                 
                 # Parse stats
                 stats = []
@@ -104,6 +113,7 @@ class ItemImporter(BaseImporter):
                     scaling=scaling,
                     value_table_id=value_table_id,
                     armour_type=armour_type,  # Include armour type
+                    icon=icon,  # Include icon IDs
                     stats=stats
                 )
                 items.append(item)
@@ -130,7 +140,8 @@ class ItemImporter(BaseImporter):
                 quality=item.quality,
                 required_player_level=item.required_player_level,
                 scaling=item.scaling,
-                armour_type=item.armour_type  # Include armour type
+                armour_type=item.armour_type,  # Include armour type
+                icon=item.icon  # Include icon IDs
             )
             item_defs.append(item_def)
             
@@ -185,11 +196,7 @@ class ItemImporter(BaseImporter):
             raise 
 
     def get_required_progression_tables(self) -> set[str]:
-        """Extract the set of progression table IDs required by the items.
-        
-        Returns:
-            set[str]: Set of progression table IDs that are referenced by items
-        """
+        """Extract the set of progression table IDs required by the items."""
         if not self.validate_source():
             return set()
             
@@ -198,11 +205,12 @@ class ItemImporter(BaseImporter):
         
         for item_elem in root.findall(".//item"):
             try:
-                # Skip items that don't meet our criteria
-                min_ilvl = int(item_elem.get("level", "0"))
-                slot = item_elem.get("slot", "")
-                if min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
-                    continue
+                # Skip items that don't meet our criteria (unless skip_filters is True)
+                if not self.skip_filters:
+                    min_ilvl = int(item_elem.get("level", "0"))
+                    slot = item_elem.get("slot", "")
+                    if min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
+                        continue
                 
                 # Get value table ID from item stats
                 stats_elem = item_elem.find("stats")
@@ -219,92 +227,10 @@ class ItemImporter(BaseImporter):
         self.logger.info(f"Found {len(required_tables)} required progression tables")
         return required_tables 
 
-class ExampleItemImporter(ItemImporter):
-    """Custom importer for example items that doesn't apply filtering."""
-    
-    def parse_source(self) -> list[ItemDefinitionData]:
-        """Parse items.xml into ItemDefinitionData objects without filtering."""
-        root = self.parse_xml(self.items_file)
-        items = []
+    def get_required_icons(self) -> set[str]:
+        """Get the set of unique icon IDs required by the imported items.
         
-        for item_elem in root.findall(".//item"):
-            try:
-                # Required attributes
-                key = int(item_elem.get("key", "0"))
-                name = item_elem.get("name", "")
-                min_ilvl = int(item_elem.get("level", "0"))  # Use level attribute for base_ilvl
-                slot = item_elem.get("slot", "")
-                quality = item_elem.get("quality", "")
-                required_player_level = int(item_elem.get("minLevel", "0"))
-                
-                # Optional attributes
-                scaling = item_elem.get("scaling")
-                value_table_id = item_elem.get("valueTableId")
-                if value_table_id is not None:
-                    value_table_id = int(value_table_id)
-                armour_type = item_elem.get("armourType")  # Get armour type if present
-                
-                # Parse stats
-                stats = []
-                stats_elem = item_elem.find("stats")
-                if stats_elem is not None:
-                    for stat_elem in stats_elem.findall("stat"):
-                        stat_name = stat_elem.get("name", "")
-                        stat_scaling = stat_elem.get("scaling", "")
-                        if stat_name and stat_scaling:
-                            stats.append({
-                                "name": stat_name,
-                                "scaling": stat_scaling
-                            })
-                
-                item = ItemDefinitionData(
-                    key=key,
-                    name=name,
-                    min_ilvl=min_ilvl,
-                    slot=slot,
-                    quality=quality,
-                    required_player_level=required_player_level,
-                    scaling=scaling,
-                    value_table_id=value_table_id,
-                    armour_type=armour_type,  # Include armour type
-                    stats=stats
-                )
-                items.append(item)
-                
-            except (ValueError, AttributeError) as e:
-                self.logger.error(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
-                continue
-        
-        self.logger.info(f"Found {len(items)} items in example data")
-        return items
-
-    def transform_data(self, items: List[ItemDefinitionData]) -> Tuple[List[ItemDefinition], List[ItemStat]]:
-        """Transform ItemDefinitionData objects into database models."""
-        item_defs = []
-        item_stats = []
-        
-        for item in items:
-            # Create item definition (without value_table_id)
-            item_def = ItemDefinition(
-                key=item.key,
-                name=item.name,
-                base_ilvl=item.min_ilvl,
-                slot=item.slot,
-                quality=item.quality,
-                required_player_level=item.required_player_level,
-                scaling=item.scaling,
-                armour_type=item.armour_type  # Include armour type
-            )
-            item_defs.append(item_def)
-            
-            # Create item stats
-            for order, stat in enumerate(item.stats):
-                item_stat = ItemStat(
-                    item_key=item.key,
-                    stat_name=stat["name"],
-                    value_table_id=stat["scaling"],  # Use the scaling ID as the value table ID
-                    order=order  # Preserve the order from XML
-                )
-                item_stats.append(item_stat)
-        
-        return item_defs, item_stats 
+        Returns:
+            set[str]: Set of icon IDs that need to be copied
+        """
+        return self.required_icons 

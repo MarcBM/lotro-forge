@@ -16,91 +16,8 @@ from database.connection import create_engine
 from database.config import get_database_url
 from database.models.base import Base
 from scripts.importers.progressions import ProgressionsImporter
-from scripts.importers.items import ItemImporter, ItemDefinitionData
-
-class ExampleItemImporter(ItemImporter):
-    """Custom importer for example items that doesn't apply filtering."""
-    
-    def parse_source(self) -> list[ItemDefinitionData]:
-        """Parse items.xml into ItemDefinitionData objects without filtering."""
-        root = self.parse_xml(self.items_file)
-        items = []
-        
-        for item_elem in root.findall(".//item"):
-            try:
-                # Required attributes
-                key = int(item_elem.get("key", "0"))
-                name = item_elem.get("name", "")
-                min_ilvl = int(item_elem.get("level", "0"))  # Use level attribute for base_ilvl
-                slot = item_elem.get("slot", "")
-                quality = item_elem.get("quality", "")
-                required_player_level = int(item_elem.get("minLevel", "0"))
-                
-                # Optional attributes
-                scaling = item_elem.get("scaling")
-                value_table_id = item_elem.get("valueTableId")
-                if value_table_id is not None:
-                    value_table_id = int(value_table_id)
-                armour_type = item_elem.get("armourType")  # Get armour type if present
-                
-                # Parse stats
-                stats = []
-                stats_elem = item_elem.find("stats")
-                if stats_elem is not None:
-                    for stat_elem in stats_elem.findall("stat"):
-                        stat_name = stat_elem.get("name", "")
-                        stat_scaling = stat_elem.get("scaling", "")
-                        if stat_name and stat_scaling:
-                            stats.append({
-                                "name": stat_name,
-                                "scaling": stat_scaling
-                            })
-                
-                item = ItemDefinitionData(
-                    key=key,
-                    name=name,
-                    min_ilvl=min_ilvl,
-                    slot=slot,
-                    quality=quality,
-                    required_player_level=required_player_level,
-                    scaling=scaling,
-                    value_table_id=value_table_id,
-                    armour_type=armour_type,  # Include armour type
-                    stats=stats
-                )
-                items.append(item)
-                
-            except (ValueError, AttributeError) as e:
-                self.logger.error(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
-                continue
-        
-        self.logger.info(f"Found {len(items)} items in example data")
-        return items
-
-    def get_required_progression_tables(self) -> set[str]:
-        """Extract the set of progression table IDs required by the items without filtering."""
-        if not self.validate_source():
-            return set()
-            
-        root = self.parse_xml(self.items_file)
-        required_tables = set()
-        
-        for item_elem in root.findall(".//item"):
-            try:
-                # Get value table ID from item stats
-                stats_elem = item_elem.find("stats")
-                if stats_elem is not None:
-                    for stat_elem in stats_elem.findall("stat"):
-                        stat_scaling = stat_elem.get("scaling", "")
-                        if stat_scaling:
-                            required_tables.add(stat_scaling)
-                
-            except (ValueError, AttributeError) as e:
-                self.logger.warning(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
-                continue
-        
-        self.logger.info(f"Found {len(required_tables)} required progression tables")
-        return required_tables
+from scripts.importers.items import ItemImporter  # Import the base importer
+from scripts.copy_icons import copy_required_icons  # Import icon copying function
 
 # Example data paths
 EXAMPLE_DATA_DIR = Path(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) / 'example_data'
@@ -109,7 +26,6 @@ ITEMS_FILE = EXAMPLE_DATA_DIR / 'example_items.xml'
 # Main data paths
 MAIN_DATA_DIR = Path('/home/marcb/workspace/lotro/lotro_companion')
 PROGRESSIONS_FILE = MAIN_DATA_DIR / 'lotro-data/lore/progressions.xml'
-
 
 def setup_logging():
     logging.basicConfig(
@@ -174,7 +90,7 @@ def main():
         with database_session(True) as session:
             # First, analyze example items to get required progression tables
             logger.info("Analyzing example items to determine required progression tables...")
-            items_importer = ExampleItemImporter(ITEMS_FILE, session)  # Use custom importer
+            items_importer = ItemImporter(ITEMS_FILE, session, skip_filters=True)  # Use base importer with skip_filters
             required_tables = items_importer.get_required_progression_tables()
             
             if not required_tables:
@@ -197,6 +113,15 @@ def main():
                 logger.error("Items import failed")
                 return 1
             logger.info("Items import complete.")
+
+            # Copy required icons
+            logger.info("Copying required icons...")
+            try:
+                copied, skipped, missing = copy_required_icons(session)
+                logger.info(f"Icon copy complete: {copied} new, {skipped} existing, {missing} missing")
+            except Exception as e:
+                logger.error(f"Failed to copy icons: {str(e)}")
+                return 1
 
         logger.info("All imports completed successfully")
         return 0

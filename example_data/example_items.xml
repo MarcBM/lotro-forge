@@ -40,4 +40,29 @@
 <stat name="ARMOUR" scaling="1879099362"/>
 </stats>
 </item>
+<item key="1879496414" name="Thorned Cuff" icon="1091625562-1090519044-1091947416" level="530" slot="WRIST" category="ITEM" class="49" equipmentCategory="30" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="80" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879049907" slots="P" scaling="ze_skirmish_level#141-:1879471069;2:0.3">
+<stats>
+<stat name="VITALITY" scaling="1879347269"/>
+<stat name="CRITICAL_RATING" scaling="1879211605"/>
+<stat name="FINESSE" scaling="1879211722"/>
+</stats>
+</item>
+</item>
+<item key="1879496416" name="Silver Leaf Earring" icon="1091564991-1090519044-1091947416" level="530" slot="EAR" category="ITEM" class="49" equipmentCategory="1" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="60" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879050475" slots="PS" scaling="ze_skirmish_level#141-:1879471069;2:0.3">
+<stats>
+<stat name="VITALITY" scaling="1879211544"/>
+<stat name="CRITICAL_RATING" scaling="1879211605"/>
+</stats>
+</item>
+<item key="1879477264" name="Expertly Carved Umbari Empowered Bow" icon="1092912022-1090519043" level="512" slot="RANGED_ITEM" category="WEAPON" class="1" equipmentCategory="8" binding="BIND_ON_EQUIP" durability="100" sturdiness="NORMAL" quality="RARE" minLevel="150" valueTableId="1879338011" slots="PVS" dps="678.4128" dpsTableId="1879049506" minDamage="581" maxDamage="775" damageType="COMMON" weaponType="BOW">
+<stats>
+<stat name="TACTICAL_MASTERY" scaling="1879223967"/>
+<stat name="CRITICAL_RATING" scaling="1879211603"/>
+</stats>
+</item>
+<item key="1879477437" name="Fortifying Pearl Necklace" icon="1092915095-1090519044-1091947416" level="517" slot="NECK" category="ITEM" class="49" equipmentCategory="23" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="80" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879050115" slots="PVSSS">
+<stats>
+<stat name="VITALITY" scaling="1879211535"/>
+</stats>
+</item>
 </items>

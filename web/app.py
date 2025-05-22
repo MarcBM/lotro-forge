@@ -60,9 +60,17 @@ async def home(request: Request):
 
 @app.get("/builds")
 async def builds(request: Request):
-    """Render the builds page."""
+    """Render the builds page - a repository of community-created builds."""
     return templates.TemplateResponse(
         "builds/builds.html",
+        {"request": request}
+    )
+
+@app.get("/builder")
+async def builder(request: Request):
+    """Render the builder page - where users can create and edit builds."""
+    return templates.TemplateResponse(
+        "builder/builder.html",
         {"request": request}
     )
 

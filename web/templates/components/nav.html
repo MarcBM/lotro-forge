@@ -1,11 +1,30 @@
 <!-- Navigation Component -->
-<nav class="bg-lotro-dark shadow-lg border-b border-lotro-border">
+<nav class="bg-lotro-dark shadow-lg border-b border-lotro-border" 
+     x-data="{ 
+         buildName: 'New Build',
+         isEditingName: false,
+         activePanel: null,
+         isBuilderPage: window.location.pathname === '/builder',
+         
+         // Panel management
+         openPanel(panel) {
+             console.log('Nav: Opening panel:', panel);
+             this.activePanel = panel;
+             window.dispatchEvent(new CustomEvent('open-panel', { 
+                 detail: panel,
+                 bubbles: true 
+             }));
+         }
+     }"
+     x-init="$watch('isBuilderPage', value => console.log('Builder page:', value))"
+     @panel-closed.window="activePanel = null">
     <div class="max-w-7xl mx-auto px-4">
-        <div class="flex justify-between h-16">
+        <!-- Main Navigation Bar -->
+        <div class="flex h-16" :class="{'justify-between': !isBuilderPage}">
             <!-- Left side - Main navigation -->
-            <div class="flex">
+            <div class="flex items-center" :class="{'w-1/4': isBuilderPage}">
                 <!-- Logo -->
-                <div class="flex-shrink-0 flex items-center">
+                <div class="flex-shrink-0">
                     <a href="/" class="text-xl font-bold text-lotro-gold">LotRO Forge</a>
                 </div>
                 <!-- Navigation Links -->
@@ -16,14 +35,69 @@
                     <a href="/database" class="text-gray-300 hover:text-lotro-gold hover:border-lotro-gold inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">
                         Database
                     </a>
+                    <a href="/builder" class="text-gray-300 hover:text-lotro-gold hover:border-lotro-gold inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium">
+                        Builder
+                    </a>
                 </div>
             </div>
+
+            <!-- Center - Build Name and Save (only on builder page) -->
+            <template x-if="isBuilderPage">
+                <div class="flex-1 flex justify-center items-center">
+                    <!-- Build Name (Editable) -->
+                    <div class="relative" x-show="!isEditingName" @click="isEditingName = true">
+                        <h1 class="text-2xl font-bold text-lotro-gold cursor-pointer hover:text-white transition-colors duration-200" x-text="buildName"></h1>
+                    </div>
+                    <div class="relative" x-show="isEditingName" @click.away="isEditingName = false">
+                        <input type="text" 
+                               x-model="buildName"
+                               class="bg-lotro-dark text-lotro-gold text-2xl font-bold px-2 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none"
+                               @keyup.enter="isEditingName = false">
+                    </div>
+                    <!-- Save Button -->
+                    <button class="ml-4 bg-lotro-blue hover:bg-lotro-gold text-white px-4 py-2 rounded transition-colors duration-200">
+                        Save Build
+                    </button>
+                </div>
+            </template>
+
             <!-- Right side - Account placeholder -->
-            <div class="flex items-center">
+            <div class="flex items-center" :class="{'w-1/4 justify-end': isBuilderPage}">
                 <button class="text-gray-300 hover:text-lotro-gold px-3 py-2 rounded-md text-sm font-medium border border-lotro-border hover:border-lotro-gold transition-colors duration-200">
                     Sign In
                 </button>
             </div>
         </div>
+
+        <!-- Panel Navigation (only shown on builder page) -->
+        <template x-if="isBuilderPage">
+            <div class="flex justify-center space-x-4 py-2 border-t border-lotro-border">
+                <button @click="openPanel('legendary')" 
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'legendary'}">
+                    Legendary Items
+                </button>
+                <button @click="openPanel('traits')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'traits'}">
+                    Traits
+                </button>
+                <button @click="openPanel('buffs')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'buffs'}">
+                    Buffs
+                </button>
+                <button @click="openPanel('misc')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'misc'}">
+                    Misc
+                </button>
+                <button @click="openPanel('optimise')"
+                        class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'optimise'}">
+                    Optimise
+                </button>
+            </div>
+        </template>
     </div>
 </nav> 

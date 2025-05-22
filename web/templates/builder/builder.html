@@ -1,0 +1,111 @@
+{% extends "base/base.html" %}
+
+{% block title %}Builder - LotRO Forge{% endblock %}
+
+{% block content %}
+<!-- Builder Component -->
+<div id="builder-component" 
+     x-data="{ 
+         activePanel: null,
+         init() {
+             console.log('Builder component initialized with ID:', this.$el.id);
+         },
+         openPanel(panel) {
+             console.log('Opening panel:', panel);
+             this.activePanel = panel;
+             document.body.style.overflow = 'hidden';
+         },
+         closePanel(panel) {
+             console.log('Closing panel:', panel);
+             if (this.activePanel === panel) {
+                 this.activePanel = null;
+                 document.body.style.overflow = '';
+                 window.dispatchEvent(new CustomEvent('panel-closed'));
+             }
+         },
+         closeAllPanels() {
+             console.log('Closing all panels');
+             this.activePanel = null;
+             document.body.style.overflow = '';
+             window.dispatchEvent(new CustomEvent('panel-closed'));
+         }
+     }"
+     x-init="init()"
+     @open-panel.window="openPanel($event.detail)"
+     class="bg-lotro-darker">
+    
+    <!-- Include panel components -->
+    {% include "components/panels/legendary_panel.html" %}
+    {% include "components/panels/traits_panel.html" %}
+    {% include "components/panels/buffs_panel.html" %}
+    {% include "components/panels/misc_panel.html" %}
+    {% include "components/panels/optimise_panel.html" %}
+
+    <!-- Main content area -->
+    <div class="max-w-7xl mx-auto px-4 py-4">
+        <!-- Character Sheet Section -->
+        <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border mb-3">
+            <div class="grid grid-cols-12 gap-3 p-3">
+                <!-- Left Column: Legendary Items -->
+                <div class="col-span-3 bg-lotro-darker rounded-lg p-3">
+                    <h3 class="text-lotro-gold font-bold mb-2">Legendary Items</h3>
+                    <div class="text-gray-400 text-sm italic">
+                        Legendary item configuration will appear here
+                    </div>
+                </div>
+
+                <!-- Center Column: Character Info, Equipment, Virtues -->
+                <div class="col-span-6 bg-lotro-darker rounded-lg p-3">
+                    <!-- Character Info -->
+                    <div class="text-center mb-3">
+                        <h3 class="text-lotro-gold font-bold mb-2">Character Information</h3>
+                        <div class="text-gray-300">
+                            <p>Level 140 Human Champion</p>
+                            <p class="text-sm text-gray-400">Character name will appear here</p>
+                        </div>
+                    </div>
+
+                    <!-- Equipment -->
+                    <div class="mb-3">
+                        <h3 class="text-lotro-gold font-bold mb-2">Equipment</h3>
+                        <div class="text-gray-400 text-sm italic">
+                            Equipment slots will appear here
+                        </div>
+                    </div>
+
+                    <!-- Virtues -->
+                    <div>
+                        <h3 class="text-lotro-gold font-bold mb-2">Virtues</h3>
+                        <div class="text-gray-400 text-sm italic">
+                            Virtue slots will appear here
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Stats -->
+                <div class="col-span-3 bg-lotro-darker rounded-lg p-3">
+                    <h3 class="text-lotro-gold font-bold mb-2">Character Stats</h3>
+                    <div class="text-gray-400 text-sm italic">
+                        Character statistics will appear here
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Effects Section -->
+        <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border">
+            <div class="p-3">
+                <h3 class="text-lotro-gold font-bold mb-2">Active Effects</h3>
+                <div class="text-gray-400 text-sm italic">
+                    Active buffs and effects will appear here
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hide elements until Alpine.js is ready -->
+<style>
+    [x-cloak] { display: none !important; }
+</style>
+{% endblock %} 

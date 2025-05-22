@@ -66,6 +66,7 @@ class ItemDefinition(Base):
     quality: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     required_player_level: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     scaling: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    armour_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, index=True)  # e.g. "HEAVY", "MEDIUM", "LIGHT"
     
     # Relationships
     stats: Mapped[List[ItemStat]] = relationship(
@@ -128,6 +129,7 @@ class ItemDefinition(Base):
             'quality': self.quality,
             'required_player_level': self.required_player_level,
             'scaling': self.scaling,
+            'armour_type': self.armour_type,  # Include armour type in output
             'stats': [
                 {
                     'name': stat.stat_name,

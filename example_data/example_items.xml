@@ -22,4 +22,22 @@
 <stat name="EVADE" scaling="1879212001"/>
 </stats>
 </item>
+<item key="1879496207" name="Resplendent Keeper's Cowl" icon="1092906863-1090519044-1091947416" level="525" slot="HEAD" category="ARMOUR" class="7" equipmentCategory="10" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="90" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879050486" scaling="ze_skirmish_level#141-:1879471071;2:0.3" armourType="HEAVY">
+<stats>
+<stat name="VITALITY" scaling="1879347269"/>
+<stat name="CRITICAL_RATING" scaling="1879211605"/>
+<stat name="OUTGOING_HEALING" scaling="1879357906"/>
+<stat name="ICPR" scaling="1879212038"/>
+<stat name="ARMOUR" scaling="1879055441"/>
+</stats>
+</item>
+<item key="1879481271" name="Varnëvëa" icon="1092942407-1090519045-1091947416" level="525" slot="OFF_HAND" category="ARMOUR" class="33" equipmentCategory="17" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="90" sturdiness="TOUGH" quality="LEGENDARY" minLevel="150" maxLevel="159" valueTableId="1879049983" scaling="525-525" armourType="SHIELD">
+<stats>
+<stat name="VITALITY" scaling="1879278090"/>
+<stat name="MIGHT" scaling="1879211532"/>
+<stat name="MORALE" scaling="1879211584"/>
+<stat name="CRITICAL_RATING" scaling="1879211604"/>
+<stat name="ARMOUR" scaling="1879099362"/>
+</stats>
+</item>
 </items>

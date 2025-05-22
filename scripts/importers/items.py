@@ -19,6 +19,7 @@ class ItemDefinitionData:
     required_player_level: int
     scaling: Optional[str]
     value_table_id: Optional[int]  # Keep this for reference but don't use in ItemDefinition
+    armour_type: Optional[str]  # e.g. "HEAVY", "MEDIUM", "LIGHT"
     stats: List[Dict[str, str]]  # List of {name: str, scaling: str}
 
 class ItemImporter(BaseImporter):
@@ -78,6 +79,7 @@ class ItemImporter(BaseImporter):
                 value_table_id = item_elem.get("valueTableId")
                 if value_table_id is not None:
                     value_table_id = int(value_table_id)
+                armour_type = item_elem.get("armourType")  # Get armour type if present
                 
                 # Parse stats
                 stats = []
@@ -101,6 +103,7 @@ class ItemImporter(BaseImporter):
                     required_player_level=required_player_level,
                     scaling=scaling,
                     value_table_id=value_table_id,
+                    armour_type=armour_type,  # Include armour type
                     stats=stats
                 )
                 items.append(item)
@@ -126,7 +129,8 @@ class ItemImporter(BaseImporter):
                 slot=item.slot,
                 quality=item.quality,
                 required_player_level=item.required_player_level,
-                scaling=item.scaling
+                scaling=item.scaling,
+                armour_type=item.armour_type  # Include armour type
             )
             item_defs.append(item_def)
             
@@ -214,3 +218,93 @@ class ItemImporter(BaseImporter):
         
         self.logger.info(f"Found {len(required_tables)} required progression tables")
         return required_tables 
+
+class ExampleItemImporter(ItemImporter):
+    """Custom importer for example items that doesn't apply filtering."""
+    
+    def parse_source(self) -> list[ItemDefinitionData]:
+        """Parse items.xml into ItemDefinitionData objects without filtering."""
+        root = self.parse_xml(self.items_file)
+        items = []
+        
+        for item_elem in root.findall(".//item"):
+            try:
+                # Required attributes
+                key = int(item_elem.get("key", "0"))
+                name = item_elem.get("name", "")
+                min_ilvl = int(item_elem.get("level", "0"))  # Use level attribute for base_ilvl
+                slot = item_elem.get("slot", "")
+                quality = item_elem.get("quality", "")
+                required_player_level = int(item_elem.get("minLevel", "0"))
+                
+                # Optional attributes
+                scaling = item_elem.get("scaling")
+                value_table_id = item_elem.get("valueTableId")
+                if value_table_id is not None:
+                    value_table_id = int(value_table_id)
+                armour_type = item_elem.get("armourType")  # Get armour type if present
+                
+                # Parse stats
+                stats = []
+                stats_elem = item_elem.find("stats")
+                if stats_elem is not None:
+                    for stat_elem in stats_elem.findall("stat"):
+                        stat_name = stat_elem.get("name", "")
+                        stat_scaling = stat_elem.get("scaling", "")
+                        if stat_name and stat_scaling:
+                            stats.append({
+                                "name": stat_name,
+                                "scaling": stat_scaling
+                            })
+                
+                item = ItemDefinitionData(
+                    key=key,
+                    name=name,
+                    min_ilvl=min_ilvl,
+                    slot=slot,
+                    quality=quality,
+                    required_player_level=required_player_level,
+                    scaling=scaling,
+                    value_table_id=value_table_id,
+                    armour_type=armour_type,  # Include armour type
+                    stats=stats
+                )
+                items.append(item)
+                
+            except (ValueError, AttributeError) as e:
+                self.logger.error(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
+                continue
+        
+        self.logger.info(f"Found {len(items)} items in example data")
+        return items
+
+    def transform_data(self, items: List[ItemDefinitionData]) -> Tuple[List[ItemDefinition], List[ItemStat]]:
+        """Transform ItemDefinitionData objects into database models."""
+        item_defs = []
+        item_stats = []
+        
+        for item in items:
+            # Create item definition (without value_table_id)
+            item_def = ItemDefinition(
+                key=item.key,
+                name=item.name,
+                base_ilvl=item.min_ilvl,
+                slot=item.slot,
+                quality=item.quality,
+                required_player_level=item.required_player_level,
+                scaling=item.scaling,
+                armour_type=item.armour_type  # Include armour type
+            )
+            item_defs.append(item_def)
+            
+            # Create item stats
+            for order, stat in enumerate(item.stats):
+                item_stat = ItemStat(
+                    item_key=item.key,
+                    stat_name=stat["name"],
+                    value_table_id=stat["scaling"],  # Use the scaling ID as the value table ID
+                    order=order  # Preserve the order from XML
+                )
+                item_stats.append(item_stat)
+        
+        return item_defs, item_stats 

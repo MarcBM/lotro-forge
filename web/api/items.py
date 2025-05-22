@@ -91,6 +91,7 @@ async def list_items(
                 "quality": item.quality,
                 "required_player_level": item.required_player_level,
                 "scaling": item.scaling,
+                "armour_type": item.armour_type,
                 # Stats with their progression table references
                 "stats": [
                     {
@@ -138,6 +139,7 @@ async def get_item(
             "slot": item.slot,
             "quality": item.quality,
             "required_player_level": item.required_player_level,
+            "armour_type": item.armour_type,
             "stats": [
                 {
                     "stat_name": stat.stat_name,
@@ -188,6 +190,7 @@ async def get_concrete_item(
             "slot": item.slot,
             "quality": item.quality,
             "required_player_level": item.required_player_level,
+            "armour_type": item.armour_type,
             "stat_values": [
                 {
                     "stat_name": stat.stat_name,

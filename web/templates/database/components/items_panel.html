@@ -68,26 +68,38 @@
                         <span>iLvl: </span>
                         <span x-text="selectedItem.base_ilvl"></span>
                     </div>
-                    <div class="text-gray-500" x-text="selectedItem.slot"></div>
+                    <div class="text-gray-500">
+                        <template x-if="selectedItem.armour_type">
+                            <span x-text="selectedItem.slot + ' / ' + selectedItem.armour_type"></span>
+                        </template>
+                        <template x-if="!selectedItem.armour_type">
+                            <span x-text="selectedItem.slot"></span>
+                        </template>
+                    </div>
                     <div x-text="(selectedItem.ev || '0.00')"></div>
                 </div>
+                <!-- ARMOUR stat in main section -->
+                <template x-if="concreteItem && concreteItem.stat_values && concreteItem.stat_values.find(s => s.stat_name === 'ARMOUR')">
+                    <div class="flex justify-between items-center text-sm text-gray-400 mt-2">
+                        <span>ARMOUR</span>
+                        <span class="text-gray-300" x-text="Math.floor(concreteItem.stat_values.find(s => s.stat_name === 'ARMOUR').value)"></span>
+                    </div>
+                </template>
             </div>
         </div>
         
         <!-- Item Stats -->
         <div class="border-t border-lotro-border pt-4">
             <div class="text-sm text-gray-400 space-y-1">
-                <!-- Item Stats List -->
+                <!-- Other stats -->
                 <template x-if="concreteItem && concreteItem.stat_values">
-                    <div>
-                        <div class="space-y-1">
-                            <template x-for="stat in concreteItem.stat_values" :key="stat.stat_name">
-                                <div class="flex justify-between">
-                                    <span x-text="stat.stat_name"></span>
-                                    <span class="text-gray-300" x-text="Math.floor(stat.value)"></span>
-                                </div>
-                            </template>
-                        </div>
+                    <div class="space-y-1">
+                        <template x-for="stat in concreteItem.stat_values.filter(s => s.stat_name !== 'ARMOUR')" :key="stat.stat_name">
+                            <div class="flex justify-between">
+                                <span x-text="stat.stat_name"></span>
+                                <span class="text-gray-300" x-text="Math.floor(stat.value)"></span>
+                            </div>
+                        </template>
                     </div>
                 </template>
             </div>

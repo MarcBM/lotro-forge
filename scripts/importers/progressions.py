@@ -13,17 +13,95 @@ from scripts.importers.base import BaseImporter
 class ProgressionsImporter(BaseImporter):
     """Importer for progression tables."""
     
-    def validate_source(self) -> bool:
-        """Validate that the source data exists and is in the expected format."""
+    def __init__(self, source_path: Path, db_session: Session):
+        """Initialize the importer.
+        
+        Args:
+            source_path: Path to the progressions.xml file
+            db_session: Database session
+        """
+        super().__init__(source_path, db_session)
+        self.progressions_file = source_path  # source_path is now the direct path to progressions.xml
+        
+    def _validate_table(self, table_elem: ElementTree.Element, required_table_ids: set[str] = None) -> bool:
+        """Validate a single progression table element.
+        
+        Args:
+            table_elem: The table element to validate
+            required_table_ids: Optional set of table IDs we care about. If None, validate all tables.
+        """
+        table_id = table_elem.get('identifier')
+        
+        # Skip validation for tables we don't care about
+        if required_table_ids is not None and table_id not in required_table_ids:
+            return True
+            
+        # Check element type
+        if table_elem.tag not in ['linearInterpolationProgression', 'arrayProgression']:
+            self.logger.error(f"Invalid progression type '{table_elem.tag}' for table {table_id}, must be 'linearInterpolationProgression' or 'arrayProgression'")
+            return False
+        
+        # Check required attributes
+        if not table_id:
+            self.logger.error(f"Table missing required 'identifier' attribute")
+            return False
+        
+        # Check points
+        points = table_elem.findall('point')
+        if not points:
+            self.logger.error(f"Table {table_id} has no points")
+            return False
+        
+        # Validate each point
+        for i, point in enumerate(points):
+            try:
+                if table_elem.tag == 'linearInterpolationProgression':
+                    x_val = point.get('x')
+                    y_val = point.get('y')
+                    if not x_val or not y_val:
+                        self.logger.warning(f"Point {i} in table {table_id} missing x/y attributes, skipping")
+                        continue
+                    try:
+                        int(x_val)
+                        float(y_val)  # Allow both int and float values
+                    except ValueError as e:
+                        self.logger.warning(f"Invalid x/y values in point {i} of table {table_id}: x={x_val}, y={y_val}, error: {str(e)}")
+                        continue
+                else:  # arrayProgression
+                    y_val = point.get('y')
+                    if not y_val:
+                        self.logger.warning(f"Point {i} in table {table_id} missing y attribute, skipping")
+                        continue
+                    try:
+                        # Try float first, then int if it's a whole number
+                        float_val = float(y_val)
+                        if float_val.is_integer():
+                            int(float_val)  # Just verify it can be converted to int
+                    except ValueError as e:
+                        self.logger.warning(f"Invalid y value in point {i} of table {table_id}: y={y_val}, error: {str(e)}")
+                        continue
+            except Exception as e:
+                self.logger.warning(f"Error validating point {i} in table {table_id}: {str(e)}")
+                continue
+        
+        # If we got here, the table is valid enough to proceed
+        return True
+
+    def validate_source(self, required_table_ids: set[str] = None) -> bool:
+        """Validate that the source data exists and is in the expected format.
+        
+        Args:
+            required_table_ids: Optional set of table IDs we care about. If None, validate all tables.
+        """
         try:
-            root = self.parse_xml(self.source_path)
+            root = self.parse_xml(self.progressions_file)
             if root.tag != 'progressions':
                 self.logger.error(f"Root element must be 'progressions', got '{root.tag}'")
                 return False
             
             # Validate each progression table
             for table_elem in root.findall('./*'):
-                if not self._validate_table(table_elem):
+                if not self._validate_table(table_elem, required_table_ids):
                     return False
             
             return True
@@ -31,57 +109,26 @@ class ProgressionsImporter(BaseImporter):
             self.logger.error(f"Validation failed: {str(e)}")
             return False
     
-    def _validate_table(self, table_elem: ElementTree.Element) -> bool:
-        """Validate a single progression table element."""
-        # Check element type
-        if table_elem.tag not in ['linearInterpolationProgression', 'arrayProgression']:
-            self.logger.error(f"Invalid progression type '{table_elem.tag}', must be 'linearInterpolationProgression' or 'arrayProgression'")
-            return False
+    def parse_source(self, required_table_ids: set[str] = None) -> Dict[str, Dict]:
+        """Parse the XML data into a dictionary of tables.
         
-        # Check required attributes
-        if not table_elem.get('identifier'):
-            self.logger.error(f"Table missing required 'identifier' attribute")
-            return False
+        Args:
+            required_table_ids: Optional set of table IDs to filter by. If None, all tables are parsed.
         
-        # Check points
-        points = table_elem.findall('point')
-        if not points:
-            self.logger.error(f"Table {table_elem.get('identifier')} has no points")
-            return False
-        
-        # Validate each point
-        for point in points:
-            if table_elem.tag == 'linearInterpolationProgression':
-                if not point.get('x') or not point.get('y'):
-                    self.logger.error(f"Point in table {table_elem.get('identifier')} missing required x/y attributes")
-                    return False
-                try:
-                    int(point.get('x'))
-                    float(point.get('y'))
-                except ValueError:
-                    self.logger.error(f"Invalid x/y values in table {table_elem.get('identifier')}")
-                    return False
-            else:  # arrayProgression
-                if not point.get('y'):
-                    self.logger.error(f"Point in table {table_elem.get('identifier')} missing required y attribute")
-                    return False
-                try:
-                    int(point.get('y'))
-                except ValueError:
-                    self.logger.error(f"Invalid y value in table {table_elem.get('identifier')}")
-                    return False
-        
-        return True
-    
-    def parse_source(self) -> Dict[str, Dict]:
-        """Parse the XML data into a dictionary of tables."""
+        Returns:
+            Dict[str, Dict]: Dictionary of table data keyed by table ID
+        """
         try:
-            root = self.parse_xml(self.source_path)
+            root = self.parse_xml(self.progressions_file)
             tables = {}
             
             for table_elem in root.findall('./*'):
                 table_id = table_elem.get('identifier')
                 if not table_id:
+                    continue
+                    
+                # Skip tables that aren't in the required set
+                if required_table_ids is not None and table_id not in required_table_ids:
                     continue
                 
                 # Parse table metadata
@@ -94,20 +141,44 @@ class ProgressionsImporter(BaseImporter):
                 
                 # Parse points
                 for point in table_elem.findall('point'):
-                    if table_elem.tag == 'linearInterpolationProgression':
-                        tables[table_id]['values'].append({
-                            'level': int(point.get('x')),
-                            'value': float(point.get('y'))
-                        })
-                    else:  # arrayProgression
-                        # For array progressions, use the count attribute or increment from previous point
-                        count = int(point.get('count', '1'))
-                        for i in range(count):
-                            tables[table_id]['values'].append({
-                                'level': len(tables[table_id]['values']) + 1,
-                                'value': float(point.get('y'))
-                            })
+                    try:
+                        if table_elem.tag == 'linearInterpolationProgression':
+                            x_val = point.get('x')
+                            y_val = point.get('y')
+                            if x_val and y_val:
+                                try:
+                                    tables[table_id]['values'].append({
+                                        'level': int(x_val),
+                                        'value': float(y_val)
+                                    })
+                                except ValueError as e:
+                                    self.logger.warning(f"Skipping invalid point in table {table_id}: x={x_val}, y={y_val}, error: {str(e)}")
+                        else:  # arrayProgression
+                            y_val = point.get('y')
+                            if y_val:
+                                try:
+                                    # For array progressions, use the count attribute or increment from previous point
+                                    count = int(point.get('count', '1'))
+                                    float_val = float(y_val)
+                                    for i in range(count):
+                                        tables[table_id]['values'].append({
+                                            'level': len(tables[table_id]['values']) + 1,
+                                            'value': float_val
+                                        })
+                                except ValueError as e:
+                                    self.logger.warning(f"Skipping invalid point in table {table_id}: y={y_val}, error: {str(e)}")
+                    except Exception as e:
+                        self.logger.warning(f"Error parsing point in table {table_id}: {str(e)}")
+                        continue
             
+            if not tables:
+                if required_table_ids:
+                    self.logger.error(f"No valid tables found in progressions.xml matching required IDs: {required_table_ids}")
+                else:
+                    self.logger.error("No valid tables found in progressions.xml")
+                return {}
+                
+            self.logger.info(f"Parsed {len(tables)} tables from progressions.xml")
             return tables
         except Exception as e:
             self.logger.error(f"Parsing failed: {str(e)}")
@@ -169,3 +240,35 @@ class ProgressionsImporter(BaseImporter):
         except Exception as e:
             self.logger.error(f"Import failed: {str(e)}")
             raise 
+
+    def run(self, required_table_ids: set[str] = None) -> bool:
+        """Run the import process.
+        
+        Args:
+            required_table_ids: Optional set of table IDs to import. If None, all tables are imported.
+        
+        Returns:
+            bool: True if import was successful, False otherwise
+        """
+        try:
+            # Validate source
+            if not self.validate_source(required_table_ids):
+                return False
+            
+            # Parse source data
+            data = self.parse_source(required_table_ids)
+            if not data:
+                return False
+            
+            # Transform data
+            transformed_data = self.transform_data(data)
+            
+            # Import data
+            self.import_data(transformed_data)
+            
+            self.logger.info("Import completed successfully")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Import failed: {str(e)}")
+            return False 

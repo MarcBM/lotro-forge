@@ -9,10 +9,14 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-# Only import what we need for the wrapper script
-from base import Base
-from progressions import ProgressionsImporter
-from items import ItemImporter
+# Add the project root to the Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.append(str(project_root))
+
+from database.models.base import Base
+from database.config import get_database_url
+from scripts.importers.progressions import ProgressionsImporter
+from scripts.importers.items import ItemImporter
 
 def setup_logging(log_dir: Path = None):
     """Configure logging for the import script.
@@ -37,17 +41,16 @@ def setup_logging(log_dir: Path = None):
     logging.getLogger(__name__).info(f"Logging to {log_file}")
 
 @contextmanager
-def database_session(db_url: str, create_tables: bool = False):
+def database_session(create_tables: bool = False):
     """Create and manage a database session.
     
     Args:
-        db_url: Database connection URL
         create_tables: Whether to create tables if they don't exist
     
     Yields:
         Session: Database session
     """
-    engine = create_engine(db_url)
+    engine = create_engine(get_database_url())
     if create_tables:
         Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -58,37 +61,50 @@ def database_session(db_url: str, create_tables: bool = False):
         session.close()
         engine.dispose()
 
-def get_importers(import_type: str, source_path: Path, session: Session) -> list:
-    """Get the list of importers to run based on import type.
+def get_importers(import_type: str, session: Session) -> tuple[ItemImporter, ProgressionsImporter]:
+    """Get the importers to run based on import type.
     
     Args:
         import_type: Type of data to import ('all', 'items', or 'progressions')
-        source_path: Path to the source data directory
         session: Database session
     
     Returns:
-        List of importer instances
+        tuple[ItemImporter, ProgressionsImporter]: The item and progression importers
     """
-    importers = []
-    if import_type in ['all', 'items']:
-        importers.append(ItemImporter(source_path, session))
-    if import_type in ['all', 'progressions']:
-        importers.append(ProgressionsImporter(source_path, session))
-    return importers
+    # Define absolute paths for real data
+    items_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-items-db/items.xml')
+    progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
+    
+    # Create both importers
+    item_importer = ItemImporter(items_path, session) if import_type in ['all', 'items'] else None
+    progressions_importer = ProgressionsImporter(progressions_path, session) if import_type in ['all', 'progressions'] else None
+    
+    return item_importer, progressions_importer
+
+def wipe_database(engine):
+    """Drop all tables and recreate them.
+    
+    Args:
+        engine: SQLAlchemy engine instance
+    """
+    logger = logging.getLogger(__name__)
+    logger.info("Dropping all tables...")
+    Base.metadata.drop_all(engine)
+    logger.info("Recreating tables...")
+    Base.metadata.create_all(engine)
+    logger.info("Database wiped successfully")
 
 def main():
     """Main entry point for the import script."""
     parser = argparse.ArgumentParser(description='Import LOTRO data into the database')
-    parser.add_argument('--source', type=str, required=True,
-                      help='Path to the lotro_companion data directory')
-    parser.add_argument('--db-url', type=str, required=True,
-                      help='Database URL (e.g., sqlite:///lotro_forge.db)')
     parser.add_argument('--import-type', type=str, choices=['all', 'items', 'progressions'],
-                      default='all', help='Type of data to import')
+                      default=None, help='Type of data to import')
     parser.add_argument('--log-dir', type=str,
                       help='Directory to store log files (default: current directory)')
     parser.add_argument('--create-tables', action='store_true',
                       help='Create database tables if they don\'t exist')
+    parser.add_argument('--wipe', action='store_true',
+                      help='Drop all tables and recreate them before importing')
     args = parser.parse_args()
     
     # Setup logging
@@ -99,25 +115,67 @@ def main():
     try:
         # Setup database and run importers
         logger.info("Setting up database connection...")
-        with database_session(args.db_url, args.create_tables) as session:
-            # Get importers to run
-            importers = get_importers(args.import_type, Path(args.source), session)
+        engine = create_engine(get_database_url())
+        
+        # Wipe database if requested
+        if args.wipe:
+            wipe_database(engine)
+            # If only wiping was requested (no import type specified), exit here
+            if args.import_type is None:
+                logger.info("Database wiped successfully. No imports requested.")
+                return 0
+        
+        # Default to 'all' if no import type specified
+        import_type = args.import_type or 'all'
+        
+        with database_session(args.create_tables) as session:
+            # Get importers
+            item_importer, progressions_importer = get_importers(import_type, session)
             
-            if not importers:
+            if not item_importer and not progressions_importer:
                 logger.error("No importers selected")
                 return 1
             
-            # Run importers
             success = True
-            for importer in importers:
-                logger.info(f"Starting {importer.__class__.__name__}...")
+            
+            # Step 1: If importing items, get required progression tables
+            required_tables = None
+            if item_importer and progressions_importer:
+                logger.info("Analyzing items to determine required progression tables...")
+                required_tables = item_importer.get_required_progression_tables()
+                if not required_tables:
+                    logger.error("No required progression tables found in items")
+                    return 1
+            
+            # Step 2: Import required progression tables
+            if progressions_importer:
+                logger.info("Starting ProgressionsImporter...")
                 try:
-                    if not importer.run():
+                    if not progressions_importer.run(required_tables):
                         success = False
-                        logger.error(f"{importer.__class__.__name__} failed")
+                        logger.error("ProgressionsImporter failed")
+                        session.rollback()
+                    else:
+                        session.commit()
                 except Exception as e:
                     success = False
-                    logger.error(f"{importer.__class__.__name__} failed with error: {str(e)}", exc_info=True)
+                    logger.error(f"ProgressionsImporter failed with error: {str(e)}", exc_info=True)
+                    session.rollback()
+            
+            # Step 3: Import items
+            if item_importer and success:
+                logger.info("Starting ItemImporter...")
+                try:
+                    if not item_importer.run():
+                        success = False
+                        logger.error("ItemImporter failed")
+                        session.rollback()
+                    else:
+                        session.commit()
+                except Exception as e:
+                    success = False
+                    logger.error(f"ItemImporter failed with error: {str(e)}", exc_info=True)
+                    session.rollback()
             
             if success:
                 logger.info("All imports completed successfully")

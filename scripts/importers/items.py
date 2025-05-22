@@ -25,8 +25,14 @@ class ItemImporter(BaseImporter):
     """Importer for item definitions."""
     
     def __init__(self, source_path: Path, db_session: Session):
+        """Initialize the importer.
+        
+        Args:
+            source_path: Path to the items.xml file
+            db_session: Database session
+        """
         super().__init__(source_path, db_session)
-        self.items_file = source_path
+        self.items_file = source_path  # source_path is now the direct path to items.xml
         
     def validate_source(self) -> bool:
         """Validate that items.xml exists and has the expected structure."""
@@ -62,6 +68,10 @@ class ItemImporter(BaseImporter):
                 slot = item_elem.get("slot", "")
                 quality = item_elem.get("quality", "")
                 required_player_level = int(item_elem.get("minLevel", "0"))
+                
+                # Skip items that don't meet our criteria
+                if min_ilvl < 520 or slot != "NECK":
+                    continue
                 
                 # Optional attributes
                 scaling = item_elem.get("scaling")
@@ -99,6 +109,7 @@ class ItemImporter(BaseImporter):
                 self.logger.error(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
                 continue
         
+        self.logger.info(f"Found {len(items)} items matching criteria (level >= 520 and slot = NECK)")
         return items
     
     def transform_data(self, items: List[ItemDefinitionData]) -> Tuple[List[ItemDefinition], List[ItemStat]]:
@@ -168,3 +179,38 @@ class ItemImporter(BaseImporter):
         except Exception as e:
             self.logger.error(f"Failed to import data: {str(e)}")
             raise 
+
+    def get_required_progression_tables(self) -> set[str]:
+        """Extract the set of progression table IDs required by the items.
+        
+        Returns:
+            set[str]: Set of progression table IDs that are referenced by items
+        """
+        if not self.validate_source():
+            return set()
+            
+        root = self.parse_xml(self.items_file)
+        required_tables = set()
+        
+        for item_elem in root.findall(".//item"):
+            try:
+                # Skip items that don't meet our criteria
+                min_ilvl = int(item_elem.get("level", "0"))
+                slot = item_elem.get("slot", "")
+                if min_ilvl < 520 or slot != "NECK":
+                    continue
+                
+                # Get value table ID from item stats
+                stats_elem = item_elem.find("stats")
+                if stats_elem is not None:
+                    for stat_elem in stats_elem.findall("stat"):
+                        stat_scaling = stat_elem.get("scaling", "")
+                        if stat_scaling:
+                            required_tables.add(stat_scaling)
+                
+            except (ValueError, AttributeError) as e:
+                self.logger.warning(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
+                continue
+        
+        self.logger.info(f"Found {len(required_tables)} required progression tables")
+        return required_tables 

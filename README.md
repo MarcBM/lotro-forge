@@ -149,3 +149,23 @@ lotro_forge/
 ├── RULES.md        # Project rules and terminology
 └── requirements.txt # Project dependencies
 ```
+
+## Database Management
+
+To completely reset and reimport all data:
+
+```bash
+python -m scripts.importers.run_import --wipe --import-type all
+```
+
+This command will:
+1. Drop all existing tables
+2. Recreate the tables with their original schema
+3. Import all progression tables needed by items
+4. Import all items
+
+Other useful commands:
+- `--wipe` alone: Just drops and recreates tables without importing
+- `--import-type items`: Import only items (requires tables to exist)
+- `--import-type progressions`: Import only progression tables
+- `--create-tables`: Create tables if they don't exist (without wiping)

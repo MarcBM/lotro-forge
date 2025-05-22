@@ -42,4 +42,16 @@ class DatabaseConfig:
             return "Database password not set"
         if not self.database:
             return "Database name not set"
-        return None 
+        return None
+
+def get_database_url() -> str:
+    """Get the database URL for Alembic migrations.
+    
+    Returns:
+        str: The database URL in SQLAlchemy format
+    """
+    config = DatabaseConfig.from_env()
+    error = config.validate()
+    if error:
+        raise ValueError(f"Invalid database configuration: {error}")
+    return config.get_connection_url() 

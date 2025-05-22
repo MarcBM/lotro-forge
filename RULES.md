@@ -100,4 +100,26 @@
 2. Use consistent terminology throughout the codebase
 3. Document decisions and rules in code comments
 4. Keep related work in the same chat session when possible
-5. When starting new chats, reference this file for context 
+5. When starting new chats, reference this file for context
+
+## Terminal Commands and Database
+1. Terminal Commands
+   - All terminal commands should be run by the user in their virtual environment
+   - The assistant will provide the commands but not execute them
+   - This ensures commands are run in the correct context and environment
+   - Example commands will be shown in code blocks with explanations
+
+2. Database Migrations
+   - Use Alembic for database migrations
+   - Migration files should be created in the `migrations` directory
+   - Each migration should have a clear, descriptive name
+   - Migrations should be reversible when possible
+   - Test migrations both up and down before committing
+   - Keep migrations focused and atomic (one logical change per migration)
+
+3. Database Setup Steps
+   - Database configuration is stored in `.env` file
+   - Never commit `.env` file to version control
+   - Use `alembic upgrade head` to apply migrations
+   - Use `alembic downgrade -1` to rollback migrations
+   - Always run migrations in the virtual environment 

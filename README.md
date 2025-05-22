@@ -48,12 +48,87 @@ This project uses PostgreSQL as its database. Follow these steps to set up the d
    \q
    ```
 
-4. Verify the installation:
+4. Set up database permissions:
+   ```bash
+   # Switch to postgres user
+   sudo -u postgres psql
+
+   # In the PostgreSQL prompt, grant necessary permissions:
+   # First, make the user a superuser temporarily to change schema ownership
+   ALTER USER your_username WITH SUPERUSER;
+   \q
+
+   # Connect as your user and change schema ownership
+   psql -U your_username lotro_forge
+   ALTER SCHEMA public OWNER TO your_username;
+   \q
+
+   # Switch back to postgres to remove superuser privileges
+   sudo -u postgres psql
+   ALTER USER your_username WITH NOSUPERUSER;
+   \q
+   ```
+
+5. Verify the installation:
    ```bash
    psql -d lotro_forge -U your_username
    ```
 
 Note: Replace `your_username` and `your_password` with your preferred database credentials. Make sure to keep these credentials secure and never commit them to version control.
+
+## Database Migrations
+
+This project uses Alembic for database migrations. Migrations help track and apply database schema changes in a controlled way.
+
+### Initial Setup
+
+1. Install Alembic (should be in requirements.txt):
+   ```bash
+   pip install alembic
+   ```
+
+2. Initialize Alembic in the project:
+   ```bash
+   alembic init migrations
+   ```
+
+3. Configure Alembic:
+   - The `alembic.ini` file is already configured to use environment variables
+   - The `migrations/env.py` file is set up to use our database models
+
+### Working with Migrations
+
+1. Create a new migration:
+   ```bash
+   # After making changes to models
+   alembic revision --autogenerate -m "Description of changes"
+   ```
+
+2. Apply migrations:
+   ```bash
+   # Apply all pending migrations
+   alembic upgrade head
+   
+   # Rollback one migration
+   alembic downgrade -1
+   
+   # Rollback all migrations
+   alembic downgrade base
+   ```
+
+3. Check migration status:
+   ```bash
+   alembic current  # Show current migration
+   alembic history  # Show migration history
+   ```
+
+### Migration Best Practices
+
+- Always review auto-generated migrations before applying them
+- Keep migrations focused and atomic (one logical change per migration)
+- Test migrations both up and down before committing
+- Never modify existing migrations that have been applied to production
+- Document any manual steps required in migration messages
 
 ## Development
 

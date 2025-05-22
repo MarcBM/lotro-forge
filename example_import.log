@@ -1,0 +1,9 @@
+2025-05-22 15:52:03,584 INFO Importing from example data directory: /home/marcb/workspace/lotro/lotro_forge/example_data
+2025-05-22 15:52:03,611 INFO Importing progressions from /home/marcb/workspace/lotro/lotro_forge/example_data/example_progressions.xml
+2025-05-22 15:52:03,663 INFO Successfully imported 12 tables and 493 values
+2025-05-22 15:52:03,663 INFO Import completed successfully
+2025-05-22 15:52:03,664 INFO Progressions import complete.
+2025-05-22 15:52:03,664 INFO Importing items from /home/marcb/workspace/lotro/lotro_forge/example_data/example_items.xml
+2025-05-22 15:52:03,701 INFO Successfully imported 3 items and 11 stats
+2025-05-22 15:52:03,701 INFO Import completed successfully
+2025-05-22 15:52:03,701 INFO Items import complete.

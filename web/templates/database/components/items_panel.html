@@ -11,7 +11,7 @@
 <!-- Item Grid -->
 <template x-for="item in items" :key="item.key">
     <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
-         @click="selectedItem = item">
+         @click="selectItem(item)">
         <!-- Item Key -->
         <div class="absolute top-1 left-1 text-xs text-gray-500" 
              x-text="item.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
@@ -51,28 +51,43 @@
             
             <!-- Item Info -->
             <div class="flex-1 min-w-0">
-                <h3 class="text-xl font-bold text-lotro-gold mb-1" x-text="selectedItem.name"></h3>
-                <div class="text-sm text-gray-400 space-y-1">
-                    <div class="flex items-center gap-2">
-                        <span class="quality-rare" x-text="selectedItem.quality"></span>
-                        <span x-text="'Level ' + selectedItem.required_player_level"></span>
+                <h3 class="text-xl font-bold mb-1"
+                    :class="{
+                        'text-white': selectedItem.quality === 'COMMON',
+                        'text-yellow-300': selectedItem.quality === 'UNCOMMON',
+                        'text-purple-400': selectedItem.quality === 'RARE',
+                        'text-teal-400': selectedItem.quality === 'INCOMPARABLE',
+                        'text-orange-400': selectedItem.quality === 'LEGENDARY'
+                    }"
+                    x-text="selectedItem.name"></h3>
+                <!-- Stats Row -->
+                <div class="flex justify-between items-center text-sm text-gray-400 mt-1">
+                    <div>
+                        <span>iLvl: </span>
+                        <span x-text="selectedItem.base_ilvl"></span>
                     </div>
                     <div class="text-gray-500" x-text="selectedItem.slot"></div>
+                    <div x-text="(selectedItem.ev || '0.00')"></div>
                 </div>
             </div>
         </div>
         
         <!-- Item Stats -->
         <div class="border-t border-lotro-border pt-4">
-            <div class="text-sm text-gray-400">
-                <div class="flex justify-between mb-1">
-                    <span>Item Level:</span>
-                    <span x-text="selectedItem.base_ilvl"></span>
-                </div>
-                <div class="flex justify-between mb-1">
-                    <span>Scaling:</span>
-                    <span x-text="selectedItem.scaling"></span>
-                </div>
+            <div class="text-sm text-gray-400 space-y-1">
+                <!-- Item Stats List -->
+                <template x-if="concreteItem && concreteItem.stat_values">
+                    <div>
+                        <div class="space-y-1">
+                            <template x-for="stat in concreteItem.stat_values" :key="stat.stat_name">
+                                <div class="flex justify-between">
+                                    <span x-text="stat.stat_name"></span>
+                                    <span class="text-gray-300" x-text="Math.floor(stat.value)"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
@@ -94,6 +109,7 @@ document.addEventListener('alpine:init', () => {
         searchQuery: '',
         items: [],
         selectedItem: null,
+        concreteItem: null,
         
         init() {
             this.loadItems();
@@ -112,6 +128,20 @@ document.addEventListener('alpine:init', () => {
             } catch (error) {
                 console.error('Error loading items:', error);
                 this.items = [];
+            }
+        },
+
+        async selectItem(item) {
+            this.selectedItem = item;
+            try {
+                const response = await fetch(`/api/items/${item.key}/concrete?ilvl=${item.base_ilvl}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load concrete item');
+                }
+                this.concreteItem = await response.json();
+            } catch (error) {
+                console.error('Error loading concrete item:', error);
+                this.concreteItem = null;
             }
         }
     }));

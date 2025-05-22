@@ -10,13 +10,14 @@
      }"
      @open-panel.window="activePanel = $event.detail"
      class="bg-lotro-darker">
-    
+
     <!-- Main content area -->
     <div class="max-w-7xl mx-auto px-4 py-4">
         <!-- Panel Content -->
         <div>
             {% include "database/components/items_panel.html" %}
             {% include "database/components/traceries_panel.html" %}
+            {% include "database/components/sets_panel.html" %}
             {% include "database/components/essences_panel.html" %}
             {% include "database/components/traits_panel.html" %}
             {% include "database/components/buffs_panel.html" %}

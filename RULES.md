@@ -1,6 +1,25 @@
 # LOTRO Forge Project Rules and Guidelines
 
-## Item System Design Rules
+## Data Processing Rules
+
+### Import vs Runtime Processing
+1. Data Import (scripts/import/)
+   - Used for one-time or rare database operations
+   - Imports data from lotro_companion into our database
+   - Run manually or during deployment
+   - Examples: initial setup, game updates, data fixes
+   - Must follow the import framework architecture
+   - Must include validation and error handling
+   - Must use transactions for database operations
+
+2. Runtime Parsing (parsers/)
+   - Used during application runtime
+   - Processes game data for immediate use
+   - Converts XML/raw data into domain objects
+   - Examples: item stats, character data, UI updates
+   - Must be efficient and lightweight
+   - Should cache results when appropriate
+   - Should handle errors gracefully
 
 ### Source Data Rules
 1. XML data files (e.g., `items.xml`) are source data files and should be treated as read-only
@@ -29,6 +48,18 @@
      - Stat scaling parsers
      - Value table parsers
      - Any future parsers added to the project
+
+2. Importer Maintenance
+   - Any changes to importer files must be accompanied by:
+     - Updated documentation in scripts/import/README.md
+     - Test cases for the import process
+     - Validation of data integrity
+   - Importers must:
+     - Use transactions for database operations
+     - Include proper error handling
+     - Log all operations
+     - Validate source data
+   - This rule applies to all importers in the project
 
 ### Terminology
 - Use `ilvl` (item level) to refer to an item's level, not "level"

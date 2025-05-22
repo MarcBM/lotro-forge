@@ -1,18 +1,29 @@
 """
 Main FastAPI application for the LOTRO Forge web interface.
 """
+import logging
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pathlib import Path
+import traceback
 
 from .config.config import (
     APP_NAME, APP_VERSION, APP_DESCRIPTION,
-    CORS_ORIGINS, STATIC_DIR, TEMPLATES_DIR
+    CORS_ORIGINS, STATIC_DIR, TEMPLATES_DIR,
+    DEBUG
 )
 from .middleware.security import add_security_middleware
 from .api.items import router as items_router
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG else logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
@@ -30,6 +41,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add error handler for development
+@app.exception_handler(Exception)
+async def debug_exception_handler(request: Request, exc: Exception):
+    if DEBUG:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": str(exc),
+                "traceback": traceback.format_exc()
+            }
+        )
+    raise exc
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

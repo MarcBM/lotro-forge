@@ -5,6 +5,8 @@ Handles loading and validating database connection settings from environment var
 import os
 from typing import Optional
 from dataclasses import dataclass
+from pathlib import Path
+from dotenv import load_dotenv
 
 @dataclass
 class DatabaseConfig:
@@ -51,6 +53,13 @@ def get_database_url() -> str:
     Returns:
         str: The database URL in SQLAlchemy format
     """
+    # Load environment variables from .env file
+    env_path = Path(__file__).parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+    else:
+        raise ValueError(f".env file not found at {env_path}")
+
     config = DatabaseConfig.from_env()
     error = config.validate()
     if error:

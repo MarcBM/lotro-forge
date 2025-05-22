@@ -6,3 +6,15 @@ python-dotenv>=1.0.0  # For environment variable management
 psycopg2-binary>=2.9.9  # PostgreSQL adapter
 SQLAlchemy>=2.0.0  # SQL toolkit and ORM
 alembic>=1.13.0  # Database migration tool 
+
+# Web Framework
+fastapi>=0.104.0  # Modern web framework
+uvicorn>=0.24.0  # ASGI server
+jinja2>=3.1.0  # Template engine
+python-multipart>=0.0.6  # Form data parsing
+aiofiles>=23.2.0  # Async file operations
+
+# Development
+pytest>=7.4.0  # Testing
+black>=23.10.0  # Code formatting
+ruff>=0.1.0  # Linting 

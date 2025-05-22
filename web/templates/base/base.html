@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LOTRO Forge{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'lotro-gold': '#E6D5AC',
+                        'lotro-blue': '#1E3A8A',
+                        'lotro-dark': '#1F2937',
+                        'lotro-darker': '#111827',
+                        'lotro-border': '#2D3748'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-lotro-darker min-h-screen flex flex-col text-white">
+    {% include "components/nav.html" %}
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% include "components/footer.html" %}
+
+    <!-- Custom scripts -->
+    <script src="{{ url_for('static', path='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html> 

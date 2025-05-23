@@ -225,19 +225,17 @@
             </template>
             
             <!-- Missing Features Placeholder -->
-            <div class="border-t border-orange-600/30 pt-3 mt-4">
-                <div class="bg-orange-900/20 border border-orange-600/30 rounded-lg p-3">
-                    <h4 class="text-sm font-medium text-orange-400 mb-2">⚠️ Missing Features</h4>
-                    <div class="text-xs text-orange-300/80 space-y-1">
-                        <div>• Class restrictions (Guardian, Captain, etc.)</div>
-                        <div>• Set bonuses and set piece references</div>
-                        <div>• Source information (where to obtain)</div>
-                    </div>
-                    <div class="text-xs text-orange-400/60 mt-2 italic">
-                        These features will be added in future development phases
+            <template x-if="!isBuilderMode()">
+                <div class="border-t border-orange-600/30 pt-2 mt-3">
+                    <div class="bg-orange-900/20 border border-orange-600/30 rounded-lg p-2">
+                        <h4 class="text-xs font-medium text-orange-400 mb-1">⚠️ Missing Features</h4>
+                        <div class="text-xs text-orange-300/80 space-y-0.5">
+                            <div>• Class restrictions & Set bonuses</div>
+                            <div>• Source information</div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
         </div>
     </div>
 </template>
@@ -271,6 +269,15 @@ document.addEventListener('alpine:init', () => {
         // Test mode
         testMode: false,
         
+        // Pagination state for builder mode
+        hasMore: true,
+        items: [],
+        totalResults: null,
+        sortBy: 'ev',
+        
+        // New state for pre-selecting
+        itemToPreselect: null,
+        
         init() {
             // Initialize with empty array to ensure reactivity
             this.equipment = [];
@@ -293,6 +300,8 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('load-more', this.handleLoadMore.bind(this));
             // Listen for sort-change events from the base panel
             window.addEventListener('sort-change', this.handleSortChange.bind(this));
+            // Listen for load-slot-items events from the builder
+            window.addEventListener('load-slot-items', this.handleLoadSlotItems.bind(this));
             
             // Debug: Add keyboard shortcut to toggle test mode (Press 'T' key)
             // Use a flag to prevent multiple listeners
@@ -316,6 +325,12 @@ document.addEventListener('alpine:init', () => {
                             ev: item.ev
                         }))
                     );
+                    
+                    // Check if we need to pre-select an item
+                    if (this.itemToPreselect) {
+                        console.log('Equipment loaded, attempting to pre-select:', this.itemToPreselect.name);
+                        this.preselectCurrentItem(this.itemToPreselect);
+                    }
                 }
             });
         },
@@ -365,23 +380,59 @@ document.addEventListener('alpine:init', () => {
             this.applyFilters(); // Reload with new sort
         },
         
-        buildApiUrl(offset, limit) {
-            const params = new URLSearchParams({
-                limit: limit.toString(),
-                skip: offset.toString()
-            });
+        handleLoadSlotItems(event) {
+            console.log('handleLoadSlotItems called:', event.detail);
+            const { slotType, currentlyEquipped } = event.detail;
             
-            // Add filter parameters
-            if (this.selectedSlot) {
-                params.append('slot', this.selectedSlot);
+            // Debug: Log the currently equipped item details
+            if (currentlyEquipped) {
+                console.log('Currently equipped item details:', {
+                    name: currentlyEquipped.name,
+                    slot: currentlyEquipped.slot,
+                    requestedSlot: slotType,
+                    key: currentlyEquipped.key
+                });
             }
             
-            // Add sort parameter - always include it since EV is now the default
-            if (this.currentSort) {
-                params.append('sort', this.currentSort);
+            // Don't set slot filter when in builder mode since any item can go anywhere
+            // Only set it in regular database mode
+            if (!this.isBuilderMode()) {
+                this.selectedSlot = slotType;
+            } else {
+                // In builder mode, clear the slot filter to show all equipment
+                this.selectedSlot = '';
+                console.log('Builder mode: loading all equipment regardless of slot');
             }
             
-            return `/api/items/equipment?${params.toString()}`;
+            // Clear current selection first
+            this.clearSelection();
+            
+            // Store the item to pre-select for later
+            this.itemToPreselect = currentlyEquipped;
+            
+            // Reload equipment for this slot
+            this.equipment = [];
+            this.$dispatch('reset-pagination-equipment');
+            this.loadEquipment(0, 99);
+        },
+        
+        async preselectCurrentItem(currentItem) {
+            // Find the item in the loaded equipment by key
+            const matchingItem = this.equipment.find(item => item.key === currentItem.key);
+            console.log('Searching for item with key:', currentItem.key);
+            console.log('Available items keys:', this.equipment.slice(0, 5).map(item => item.key));
+            
+            if (matchingItem) {
+                console.log('Pre-selecting currently equipped item:', matchingItem.name);
+                await this.selectEquipment(matchingItem);
+                // Clear the flag after pre-selecting
+                this.itemToPreselect = null;
+            } else {
+                console.log('Currently equipped item not found in loaded equipment');
+                console.log('Item slot mismatch? Equipped item slot:', currentItem.slot, 'Requested slot:', this.selectedSlot);
+                // Clear the flag even if not found
+                this.itemToPreselect = null;
+            }
         },
 
         async loadEquipment(offset, limit) {
@@ -536,6 +587,32 @@ document.addEventListener('alpine:init', () => {
         getTestColorClass(index) {
             const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400', 'text-teal-400'];
             return colors[index % colors.length];
+        },
+        
+        // Builder-specific method for the Missing Features section
+        isBuilderMode() {
+            // Check if we're in the builder by looking for the builder component
+            const builderComponent = document.getElementById('builder-component');
+            return builderComponent && this.$el && builderComponent.contains(this.$el);
+        },
+        
+        buildApiUrl(offset, limit) {
+            const params = new URLSearchParams({
+                limit: limit.toString(),
+                skip: offset.toString()
+            });
+            
+            // Add filter parameters
+            if (this.selectedSlot) {
+                params.append('slot', this.selectedSlot);
+            }
+            
+            // Add sort parameter - always include it since EV is now the default
+            if (this.currentSort) {
+                params.append('sort', this.currentSort);
+            }
+            
+            return `/api/items/equipment?${params.toString()}`;
         }
     }));
 });

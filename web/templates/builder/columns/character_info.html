@@ -90,31 +90,52 @@
                 <div class="grid grid-cols-2 gap-1.5">
                     <!-- Left armour column (skip second row) -->
                     <div class="space-y-2">
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- HEAD slot -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="HEAD"
+                             @click="openEquipmentSlot('HEAD')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.HEAD"></div>
                         </div>
                         <!-- Skip second row -->
                         <div class="w-12 h-12"></div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- SHOULDERS slot -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="SHOULDERS"
+                             @click="openEquipmentSlot('SHOULDERS')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.SHOULDERS"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- GLOVES slot -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="GLOVES"
+                             @click="openEquipmentSlot('GLOVES')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.GLOVES"></div>
                         </div>
                     </div>
                     <!-- Right armour column -->
                     <div class="space-y-2">
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- BACK slot -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="BACK"
+                             @click="openEquipmentSlot('BACK')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.BACK"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- CHEST slot -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="CHEST"
+                             @click="openEquipmentSlot('CHEST')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.CHEST"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- LEGS slot -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="LEGS"
+                             @click="openEquipmentSlot('LEGS')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.LEGS"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- BOOTS slot -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="BOOTS"
+                             @click="openEquipmentSlot('BOOTS')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.BOOTS"></div>
                         </div>
                     </div>
                 </div>

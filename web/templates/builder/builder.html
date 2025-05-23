@@ -13,8 +13,21 @@
 <div id="builder-component" 
      x-data="{ 
          activePanel: null,
+         selectedSlot: '',
+         equippedItems: {},
+         build: {},
          init() {
              console.log('Builder component initialized with ID:', this.$el.id);
+             
+             // Listen for item selection events
+             window.addEventListener('item-selected', (event) => {
+                 this.handleItemSelection(event.detail);
+             });
+             
+             // Listen for panel close events
+             window.addEventListener('close-panel', (event) => {
+                 this.closePanel(event.detail);
+             });
          },
          openPanel(panel) {
              console.log('Opening panel:', panel);
@@ -34,6 +47,104 @@
              this.activePanel = null;
              document.body.style.overflow = '';
              window.dispatchEvent(new CustomEvent('panel-closed'));
+         },
+         openEquipmentSlot(slotType) {
+             console.log('Opening equipment slot:', slotType);
+             this.selectedSlot = slotType;
+             
+             // Load items for this slot type
+             this.loadItemsForSlot(slotType);
+             
+             // Open the equipment panel
+             this.openPanel('equipment');
+         },
+         async loadItemsForSlot(slotType) {
+             // Check if there's currently an item equipped in this slot
+             const currentlyEquipped = this.build && this.build[slotType] ? this.build[slotType].item : null;
+             
+             // Dispatch event to equipment panel to load items
+             window.dispatchEvent(new CustomEvent('load-slot-items', {
+                 detail: { 
+                     slotType: slotType,
+                     currentlyEquipped: currentlyEquipped
+                 }
+             }));
+         },
+         handleItemSelection(selection) {
+             console.log('Item selected:', selection);
+             
+             // Store the equipped item in the build object
+             if (!this.build) {
+                 this.build = {};
+             }
+             this.build[selection.slot] = {
+                 item: selection.item,
+                 concreteItem: selection.concreteItem
+             };
+             
+             // Update the slot display
+             this.updateSlotDisplay(selection.slot, selection.item);
+             
+             // Recalculate stats (placeholder for now)
+             this.recalculateStats();
+         },
+         updateSlotDisplay(slotType, item) {
+             // Find the slot element and update its display
+             const slotElement = document.querySelector(`[data-slot='${slotType}']`);
+             if (slotElement) {
+                 // Remove any existing item icon (but preserve the placeholder dot)
+                 const existingIcon = slotElement.querySelector('.item-icon');
+                 if (existingIcon) {
+                     existingIcon.remove();
+                 }
+                 
+                 // Create icon container with proper layering
+                 const iconContainer = document.createElement('div');
+                 iconContainer.className = 'item-icon w-full h-full relative rounded-lg overflow-hidden';
+                 
+                 if (item.icon_urls && item.icon_urls.length > 0) {
+                     // Add layered icons using the same approach as database panels
+                     // Reverse the array to layer correctly (last in array appears on top)
+                     const reversedUrls = [...item.icon_urls].reverse();
+                     
+                     reversedUrls.forEach((url, i) => {
+                         const img = document.createElement('img');
+                         img.src = url;
+                         img.alt = `${item.name} icon layer ${i + 1}`;
+                         img.className = 'absolute inset-0 w-full h-full object-contain';
+                         img.onerror = function() { this.style.display = 'none'; };
+                         iconContainer.appendChild(img);
+                     });
+                 } else {
+                     // Fallback to green dot when equipped
+                     const fallback = document.createElement('div');
+                     fallback.className = 'w-full h-full bg-gray-700 rounded-lg flex items-center justify-center';
+                     const dot = document.createElement('div');
+                     dot.className = 'w-2 h-2 bg-green-500 rounded';
+                     fallback.appendChild(dot);
+                     iconContainer.appendChild(fallback);
+                 }
+                 
+                 slotElement.appendChild(iconContainer);
+                 
+                 // Remove border and update styling for equipped items
+                 slotElement.classList.remove('border', 'border-lotro-border', 'border-green-500');
+                 slotElement.classList.add('border-0');
+                 slotElement.title = `${item.name} (Level ${item.base_ilvl})`;
+                 
+                 // Update click handler to allow replacement
+                 slotElement.onclick = () => this.openEquipmentSlot(slotType);
+             }
+         },
+         recalculateStats() {
+             // Placeholder for stat recalculation
+             console.log('Recalculating stats with build:', this.build);
+             
+             // This would:
+             // 1. Sum up all stats from equipped items in this.build
+             // 2. Apply any set bonuses
+             // 3. Update the stats display
+             // 4. Recalculate build score
          }
      }"
      x-init="init()"
@@ -46,6 +157,7 @@
     {% include "components/panels/buffs_panel.html" %}
     {% include "components/panels/misc_panel.html" %}
     {% include "components/panels/optimise_panel.html" %}
+    {% include "components/panels/equipment_selection.html" %}
 
             <!-- Main content area with outside spacers -->
             <div class="w-full px-[5%] py-4 h-full flex items-start justify-center gap-0 -mt-12">

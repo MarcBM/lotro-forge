@@ -1,0 +1,83 @@
+<!-- Equipment Selection Modal for Builder -->
+<div x-show="activePanel === 'equipment'" 
+     x-transition:enter="transition-all duration-300 ease-out"
+     x-transition:enter-start="opacity-0 transform scale-95"
+     x-transition:enter-end="opacity-100 transform scale-100"
+     x-transition:leave="transition-all duration-200 ease-in"
+     x-transition:leave-start="opacity-100 transform scale-100"
+     x-transition:leave-end="opacity-0 transform scale-95"
+     @click.away="closePanel('equipment')"
+     @keydown.escape.window="closePanel('equipment')"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2"
+     style="display: none;">
+    
+    <div class="bg-lotro-dark rounded-lg shadow-xl border border-lotro-border w-full max-w-[75vw] h-[75vh] flex flex-col"
+         @click.stop
+         x-data="builderEquipmentSelection()">
+        
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b border-lotro-border flex-shrink-0">
+            <div class="flex items-center space-x-4">
+                <h3 class="text-lotro-gold font-bold text-xl">Select Equipment</h3>
+                <div x-show="selectedSlot" class="text-gray-300 text-sm">
+                    Slot: <span x-text="selectedSlot" class="text-lotro-gold font-medium capitalize"></span>
+                </div>
+            </div>
+            <button @click="closeSelection()" 
+                    class="text-gray-400 hover:text-lotro-gold transition-colors duration-200 p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Equipment Panel Content -->
+        <div class="flex-1 overflow-hidden p-2">
+            <!-- Use the original database equipment panel -->
+            <div class="h-full" x-data="{ activePanel: 'equipment' }">
+                {% include "database/components/equipment_panel.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('builderEquipmentSelection', () => ({
+        selectedSlot: '',
+        
+        init() {
+            // Listen for slot loading events from builder
+            window.addEventListener('load-slot-items', (event) => {
+                this.selectedSlot = event.detail.slotType;
+                // Set the slot filter in the equipment panel with a slight delay
+                setTimeout(() => {
+                    this.setSlotFilter(event.detail.slotType);
+                }, 100);
+            });
+        },
+        
+        setSlotFilter(slotType) {
+            // Find the equipment data component and set its slot filter
+            const equipmentPanelEl = this.$el.querySelector('[x-data*="equipmentData"]');
+            if (equipmentPanelEl) {
+                // Access Alpine data through the element
+                const equipmentComponent = Alpine.$data(equipmentPanelEl);
+                if (equipmentComponent) {
+                    equipmentComponent.selectedSlot = slotType;
+                    if (equipmentComponent.applyFilters) {
+                        equipmentComponent.applyFilters();
+                    }
+                }
+            }
+        },
+        
+        closeSelection() {
+            // Close the equipment panel
+            window.dispatchEvent(new CustomEvent('close-panel', {
+                detail: 'equipment'
+            }));
+        }
+    }));
+});
+</script> 

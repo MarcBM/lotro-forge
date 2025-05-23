@@ -8,13 +8,13 @@
         <!-- Middle: Build Score -->
         <div class="text-center">
             <h3 class="text-lotro-gold font-bold text-sm mb-0.5">Build Score</h3>
-            <div class="text-4xl font-bold text-green-400">8,542</div>
+            <div class="text-4xl font-bold" :class="buildScoreColor" x-text="buildEvDisplay"></div>
         </div>
         
         <!-- Right: Goal Score -->
         <div class="text-center">
             <h3 class="text-lotro-gold font-bold text-sm mb-0.5">Goal Score</h3>
-            <div class="text-4xl font-bold text-blue-400">9,200</div>
+            <div class="text-4xl font-bold" :class="goalScoreColor" x-text="goalEvDisplay"></div>
         </div>
     </div>
 
@@ -25,21 +25,21 @@
             <!-- Morale -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Morale</div>
-                <div class="text-left text-white font-medium text-sm">45,892</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="morale">0</div>
                 <div class="text-left text-blue-400 text-sm">50,000</div>
             </div>
             
             <!-- Power -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Power</div>
-                <div class="text-left text-white font-medium text-sm">18,543</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="power">0</div>
                 <div class="text-left text-blue-400 text-sm">20,000</div>
             </div>
             
             <!-- Armour -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Armour</div>
-                <div class="text-left text-white font-medium text-sm">95,234</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="armour">0</div>
                 <div class="text-left text-gray-500 text-sm">—</div>
             </div>
         </div>
@@ -49,35 +49,35 @@
             <!-- Might -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Might</div>
-                <div class="text-left text-white font-medium text-sm">3,245</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="might">0</div>
                 <div class="text-left text-gray-500 text-sm">—</div>
             </div>
             
             <!-- Agility -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Agility</div>
-                <div class="text-left text-white font-medium text-sm">2,876</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="agility">0</div>
                 <div class="text-left text-gray-500 text-sm">—</div>
             </div>
             
             <!-- Vitality -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Vitality</div>
-                <div class="text-left text-white font-medium text-sm">4,123</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="vitality">0</div>
                 <div class="text-left text-gray-500 text-sm">—</div>
             </div>
             
             <!-- Will -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Will</div>
-                <div class="text-left text-white font-medium text-sm">1,987</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="will">0</div>
                 <div class="text-left text-gray-500 text-sm">—</div>
             </div>
             
             <!-- Fate -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Fate</div>
-                <div class="text-left text-white font-medium text-sm">2,345</div>
+                <div class="text-left text-white font-medium text-sm" data-stat="fate">0</div>
                 <div class="text-left text-gray-500 text-sm">—</div>
             </div>
         </div>
@@ -87,10 +87,10 @@
             <!-- Critical Rating -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Critical Rating</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="critical_rating">
                     <div class="flex justify-between items-center">
-                        <span>524,892</span>
-                        <span class="text-xs text-gray-400">(45.2%)</span>
+                        <span>0</span>
+                        <span class="text-xs text-gray-400">(0.0%)</span>
                     </div>
                 </div>
                 <div class="text-left text-blue-400 text-sm">
@@ -104,10 +104,10 @@
             <!-- Finesse -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Finesse</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="finesse">
                     <div class="flex justify-between items-center">
-                        <span>687,234</span>
-                        <span class="text-xs text-gray-400">(58.9%)</span>
+                        <span>0</span>
+                        <span class="text-xs text-gray-400">(0.0%)</span>
                     </div>
                 </div>
                 <div class="text-left text-blue-400 text-sm">
@@ -121,10 +121,10 @@
             <!-- Physical Mastery -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Physical Mastery</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="physical_mastery">
                     <div class="flex justify-between items-center">
-                        <span>756,123</span>
-                        <span class="text-xs text-gray-400">(64.8%)</span>
+                        <span>0</span>
+                        <span class="text-xs text-gray-400">(0.0%)</span>
                     </div>
                 </div>
                 <div class="text-left text-blue-400 text-sm">
@@ -138,10 +138,10 @@
             <!-- Tactical Mastery -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Tactical Mastery</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="tactical_mastery">
                     <div class="flex justify-between items-center">
-                        <span>234,567</span>
-                        <span class="text-xs text-gray-400">(20.1%)</span>
+                        <span>0</span>
+                        <span class="text-xs text-gray-400">(0.0%)</span>
                     </div>
                 </div>
                 <div class="text-left text-blue-400 text-sm">
@@ -155,10 +155,10 @@
             <!-- Outgoing Healing -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Outgoing Healing</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="outgoing_healing">
                     <div class="flex justify-between items-center">
-                        <span>345,678</span>
-                        <span class="text-xs text-gray-400">(29.6%)</span>
+                        <span>0</span>
+                        <span class="text-xs text-gray-400">(0.0%)</span>
                     </div>
                 </div>
                 <div class="text-left text-blue-400 text-sm">
@@ -175,7 +175,7 @@
             <!-- Resistance -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Resistance</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="resistance">
                     <div class="flex justify-between items-center">
                         <span>456,789</span>
                         <span class="text-xs text-gray-400">(39.2%)</span>
@@ -192,7 +192,7 @@
             <!-- Critical Defence -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Critical Defence</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="critical_defence">
                     <div class="flex justify-between items-center">
                         <span>398,456</span>
                         <span class="text-xs text-gray-400">(34.2%)</span>
@@ -209,7 +209,7 @@
             <!-- Incoming Healing -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Incoming Healing</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="incoming_healing">
                     <div class="flex justify-between items-center">
                         <span>234,891</span>
                         <span class="text-xs text-gray-400">(20.1%)</span>
@@ -226,7 +226,7 @@
             <!-- Block -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Block</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="block">
                     <div class="flex justify-between items-center">
                         <span>187,234</span>
                         <span class="text-xs text-gray-400">(16.1%)</span>
@@ -243,7 +243,7 @@
             <!-- Parry -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Parry</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="parry">
                     <div class="flex justify-between items-center">
                         <span>156,789</span>
                         <span class="text-xs text-gray-400">(13.5%)</span>
@@ -260,7 +260,7 @@
             <!-- Evade -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Evade</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="evade">
                     <div class="flex justify-between items-center">
                         <span>198,567</span>
                         <span class="text-xs text-gray-400">(17.0%)</span>
@@ -280,7 +280,7 @@
             <!-- Physical Mitigation -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Physical Mitigation</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="physical_mitigation">
                     <div class="flex justify-between items-center">
                         <span>234,567</span>
                         <span class="text-xs text-gray-400">(67.8%)</span>
@@ -297,7 +297,7 @@
             <!-- Tactical Mitigation -->
             <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
                 <div class="text-gray-300 text-sm text-right">Tactical Mitigation</div>
-                <div class="text-left text-white font-medium text-sm">
+                <div class="text-left text-white font-medium text-sm" data-stat="tactical_mitigation">
                     <div class="flex justify-between items-center">
                         <span>198,456</span>
                         <span class="text-xs text-gray-400">(65.2%)</span>

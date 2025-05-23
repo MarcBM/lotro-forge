@@ -261,6 +261,33 @@ document.addEventListener('alpine:init', () => {
             
             const builderSlot = this.getBuilderSlot();
             
+            // Validate that the item can be equipped in this slot (for equipment only)
+            if (panelId === 'equipment' && parentData.canItemBeEquippedInSlot) {
+                const isValid = parentData.canItemBeEquippedInSlot(selectedItem, builderSlot);
+                if (!isValid) {
+                    console.warn('Item validation failed:', {
+                        item: selectedItem.name,
+                        itemSlot: selectedItem.slot,
+                        builderSlot: builderSlot
+                    });
+                    
+                    // Show error message
+                    alert(`Cannot equip "${selectedItem.name}" in ${builderSlot} slot. This item can only be equipped in slots compatible with ${selectedItem.slot}.`);
+                    
+                    // Reopen equipment panel with correct filter
+                    setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent('load-slot-items', {
+                            detail: { 
+                                slotType: builderSlot,
+                                currentlyEquipped: null
+                            }
+                        }));
+                    }, 100);
+                    
+                    return; // Prevent equipping
+                }
+            }
+            
             // Dispatch event to builder with selected item
             window.dispatchEvent(new CustomEvent('item-selected', {
                 detail: {

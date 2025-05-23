@@ -6,11 +6,14 @@
     <!-- Slot Filter -->
     <div>
         <label class="block text-sm font-medium text-gray-300 mb-2">
-            Slot
+            <span>Slot</span>
+            <span x-show="isSlotFilterLocked" class="text-xs text-yellow-400 ml-2">🔒 Locked for this slot</span>
         </label>
         <select x-model="selectedSlot" 
                 @change="applyFilters()"
-                class="w-full bg-lotro-darker border border-lotro-border rounded-lg px-3 py-2 text-gray-300 focus:border-lotro-gold focus:outline-none">
+                :disabled="isSlotFilterLocked"
+                :class="isSlotFilterLocked ? 'bg-lotro-darker border border-gray-600 text-gray-500 cursor-not-allowed' : 'bg-lotro-darker border border-lotro-border text-gray-300 focus:border-lotro-gold focus:outline-none'"
+                class="w-full rounded-lg px-3 py-2">
             <option value="">All Slots</option>
             <template x-for="filterOption in filterOptions" :key="filterOption.key">
                 <option :value="filterOption.key" x-text="filterOption.label"></option>
@@ -34,7 +37,7 @@
             <div class="flex items-center gap-3 h-full pt-2">
                 <!-- Equipment Icon (layered) -->
                 <div class="w-10 h-10 flex-shrink-0 relative">
-                    <template x-if="item.icon_urls">
+                    <template x-if="item.icon_urls && Array.isArray(item.icon_urls)">
                         <template x-for="(url, i) in [...item.icon_urls].reverse()" :key="i">
                             <img :src="url" 
                                  :alt="'Equipment icon layer ' + (i + 1)"
@@ -42,7 +45,7 @@
                                  @error="$el.style.display='none'">
                         </template>
                     </template>
-                    <template x-if="!item.icon_urls">
+                    <template x-if="!item.icon_urls || !Array.isArray(item.icon_urls)">
                         <div class="w-full h-full bg-gray-700 rounded"></div>
                     </template>
                 </div>
@@ -79,15 +82,17 @@
             <div class="flex items-start gap-4">
                 <!-- Equipment Icon (layered) -->
                 <div class="w-16 h-16 flex-shrink-0 relative">
-                    <template x-if="selectedEquipment.icon_urls">
-                        <template x-for="(url, i) in [...selectedEquipment.icon_urls].reverse()" :key="i">
-                            <img :src="url" 
-                                 :alt="'Equipment icon layer ' + (i + 1)"
-                                 class="absolute inset-0 w-full h-full object-contain"
-                                 @error="$el.style.display='none'">
-                        </template>
+                    <template x-if="selectedEquipment && selectedEquipment.icon_urls && Array.isArray(selectedEquipment.icon_urls)">
+                        <div>
+                            <template x-for="(url, i) in selectedEquipmentIconUrls" :key="i">
+                                <img :src="url" 
+                                     :alt="'Equipment icon layer ' + (i + 1)"
+                                     class="absolute inset-0 w-full h-full object-contain"
+                                     @error="$el.style.display='none'">
+                            </template>
+                        </div>
                     </template>
-                    <template x-if="!selectedEquipment.icon_urls">
+                    <template x-if="!selectedEquipment || !selectedEquipment.icon_urls || !Array.isArray(selectedEquipment.icon_urls)">
                         <div class="w-full h-full bg-gray-700 rounded"></div>
                     </template>
                 </div>
@@ -98,13 +103,13 @@
                     <div class="h-16 flex items-center">
                         <h3 class="text-xl font-bold line-clamp-2"
                             :class="{
-                                'text-white': selectedEquipment.quality === 'COMMON',
-                                'text-yellow-300': selectedEquipment.quality === 'UNCOMMON',
-                                'text-purple-400': selectedEquipment.quality === 'RARE',
-                                'text-teal-400': selectedEquipment.quality === 'INCOMPARABLE',
-                                'text-orange-400': selectedEquipment.quality === 'LEGENDARY'
+                                'text-white': selectedEquipment && selectedEquipment.quality === 'COMMON',
+                                'text-yellow-300': selectedEquipment && selectedEquipment.quality === 'UNCOMMON',
+                                'text-purple-400': selectedEquipment && selectedEquipment.quality === 'RARE',
+                                'text-teal-400': selectedEquipment && selectedEquipment.quality === 'INCOMPARABLE',
+                                'text-orange-400': selectedEquipment && selectedEquipment.quality === 'LEGENDARY'
                             }"
-                            x-text="selectedEquipment.name"></h3>
+                            x-text="selectedEquipmentName"></h3>
                     </div>
                 </div>
             </div>
@@ -113,42 +118,42 @@
             <div class="flex justify-between items-center text-sm text-gray-400 -mt-1">
                 <div>
                     <span>iLvl: </span>
-                    <span x-text="selectedEquipment.base_ilvl"></span>
+                    <span x-text="selectedEquipmentBaseIlvl"></span>
                 </div>
                 <div class="text-gray-500">
                     <!-- Weapon display logic -->
-                    <template x-if="selectedEquipment.weapon_type">
-                        <span x-text="selectedEquipment.weapon_type"></span>
+                    <template x-if="selectedEquipment && selectedEquipment.weapon_type">
+                        <span x-text="selectedEquipment ? selectedEquipment.weapon_type : ''"></span>
                     </template>
                     <!-- Regular equipment display logic -->
-                    <template x-if="!selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot === 'OFF_HAND'">
-                        <span x-text="selectedEquipment.armour_type"></span>
+                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot === 'OFF_HAND'">
+                        <span x-text="selectedEquipment ? selectedEquipment.armour_type : ''"></span>
                     </template>
-                    <template x-if="!selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot !== 'OFF_HAND'">
-                        <span x-text="selectedEquipment.slot + ' / ' + selectedEquipment.armour_type"></span>
+                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot !== 'OFF_HAND'">
+                        <span x-text="selectedEquipment ? (selectedEquipment.slot + ' / ' + selectedEquipment.armour_type) : ''"></span>
                     </template>
-                    <template x-if="!selectedEquipment.weapon_type && !selectedEquipment.armour_type">
-                        <span x-text="selectedEquipment.slot"></span>
+                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && !selectedEquipment.armour_type">
+                        <span x-text="selectedEquipment ? selectedEquipment.slot : ''"></span>
                     </template>
                 </div>
                 <div class="text-gray-500 font-medium"
-                     :class="testMode ? 'text-purple-400' : getEvColorClass(selectedEquipment.ev)"
-                     x-text="(selectedEquipment.ev || '0.00')"></div>
+                     :class="testMode ? 'text-purple-400' : (selectedEquipment ? getEvColorClass(selectedEquipment.ev) : 'text-gray-400')"
+                     x-text="selectedEquipmentEv"></div>
             </div>
             
             <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
             <template x-if="concreteEquipment && concreteEquipment.weapon_type && concreteEquipment.calculated_dps">
                 <div class="flex justify-between text-sm text-gray-400 mb-2">
                     <span>DPS</span>
-                    <span class="text-gray-300" x-text="concreteEquipment.calculated_dps.toFixed(1)"></span>
+                    <span class="text-gray-300" x-text="concreteEquipment && concreteEquipment.calculated_dps ? concreteEquipment.calculated_dps.toFixed(1) : '0.0'"></span>
                 </div>
             </template>
             
             <!-- ARMOUR stat above the line (only for non-weapons) -->
-            <template x-if="concreteEquipment && !concreteEquipment.weapon_type && concreteEquipment.stat_values && concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR')">
+            <template x-if="concreteEquipment && !concreteEquipment.weapon_type && concreteEquipment.stat_values && Array.isArray(concreteEquipment.stat_values) && concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR')">
                 <div class="flex justify-between text-sm text-gray-400 mb-2">
                     <span>ARMOUR</span>
-                    <span class="text-gray-300" x-text="Math.floor(concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR').value)"></span>
+                    <span class="text-gray-300" x-text="concreteEquipment && Array.isArray(concreteEquipment.stat_values) ? Math.floor(concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR').value) : 0"></span>
                 </div>
             </template>
             
@@ -156,9 +161,9 @@
             <div class="border-t border-lotro-border pt-3">
                 <div class="text-sm text-gray-400 space-y-1">
                     <!-- Other stats -->
-                    <template x-if="concreteEquipment && concreteEquipment.stat_values">
+                    <template x-if="concreteEquipment && concreteEquipment.stat_values && Array.isArray(concreteEquipment.stat_values)">
                         <div class="space-y-1">
-                            <template x-for="stat in concreteEquipment.stat_values.filter(s => s.stat_name !== 'ARMOUR')" :key="stat.stat_name">
+                            <template x-for="stat in concreteEquipmentStats" :key="stat.stat_name">
                                 <div class="flex justify-between">
                                     <span x-text="stat.stat_name"></span>
                                     <span class="text-gray-300" x-text="Math.floor(stat.value)"></span>
@@ -175,7 +180,7 @@
                     <!-- Socket icons in order: Necklace > Cloak > Primary > Vital > Basic > PVP -->
                     
                     <!-- Necklace sockets (type 20) -->
-                    <template x-for="i in selectedEquipment.sockets.necklace || 0" :key="'necklace-' + i">
+                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.necklace) || 0" :key="'necklace-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-20.png" alt="Necklace socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-20.png" alt="Necklace socket overlay" class="absolute inset-0 w-full h-full">
@@ -183,7 +188,7 @@
                     </template>
                     
                     <!-- Cloak sockets (type 19) -->
-                    <template x-for="i in selectedEquipment.sockets.cloak || 0" :key="'cloak-' + i">
+                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.cloak) || 0" :key="'cloak-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-19.png" alt="Cloak socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-19.png" alt="Cloak socket overlay" class="absolute inset-0 w-full h-full">
@@ -191,7 +196,7 @@
                     </template>
                     
                     <!-- Primary sockets (type 22) -->
-                    <template x-for="i in selectedEquipment.sockets.primary || 0" :key="'primary-' + i">
+                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.primary) || 0" :key="'primary-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-22.png" alt="Primary socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-22.png" alt="Primary socket overlay" class="absolute inset-0 w-full h-full">
@@ -199,7 +204,7 @@
                     </template>
                     
                     <!-- Vital sockets (type 23) -->
-                    <template x-for="i in selectedEquipment.sockets.vital || 0" :key="'vital-' + i">
+                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.vital) || 0" :key="'vital-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-23.png" alt="Vital socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-23.png" alt="Vital socket overlay" class="absolute inset-0 w-full h-full">
@@ -207,7 +212,7 @@
                     </template>
                     
                     <!-- Basic sockets (type 1) -->
-                    <template x-for="i in selectedEquipment.sockets.basic || 0" :key="'basic-' + i">
+                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.basic) || 0" :key="'basic-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-1.png" alt="Basic socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-1.png" alt="Basic socket overlay" class="absolute inset-0 w-full h-full">
@@ -215,7 +220,7 @@
                     </template>
                     
                     <!-- PVP sockets (type 18) -->
-                    <template x-for="i in selectedEquipment.sockets.pvp || 0" :key="'pvp-' + i">
+                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.pvp) || 0" :key="'pvp-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-18.png" alt="PVP socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-18.png" alt="PVP socket overlay" class="absolute inset-0 w-full h-full">
@@ -255,8 +260,8 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('equipmentPanel', () => ({
         searchQuery: '',
         equipment: [],
-        selectedEquipment: false,
-        concreteEquipment: false,
+        selectedEquipment: null,
+        concreteEquipment: null,
         loading: false,
         
         // Filter state
@@ -278,12 +283,47 @@ document.addEventListener('alpine:init', () => {
         // New state for pre-selecting
         itemToPreselect: null,
         
+        // New state for slot filter lock
+        isSlotFilterLocked: false,
+        
+        // Computed getters for safe template access
+        get selectedEquipmentIconUrls() {
+            return this.selectedEquipment && Array.isArray(this.selectedEquipment.icon_urls) 
+                ? this.selectedEquipment.icon_urls.slice().reverse() 
+                : [];
+        },
+        
+        get selectedEquipmentName() {
+            return this.selectedEquipment ? this.selectedEquipment.name : '';
+        },
+        
+        get selectedEquipmentBaseIlvl() {
+            return this.selectedEquipment ? this.selectedEquipment.base_ilvl : '';
+        },
+        
+        get selectedEquipmentEv() {
+            return this.selectedEquipment ? (this.selectedEquipment.ev || '0.00') : '0.00';
+        },
+        
+        get concreteEquipmentStats() {
+            return this.concreteEquipment && Array.isArray(this.concreteEquipment.stat_values)
+                ? this.concreteEquipment.stat_values.filter(s => s.stat_name !== 'ARMOUR')
+                : [];
+        },
+        
         init() {
             // Initialize with empty array to ensure reactivity
             this.equipment = [];
             
+            // Initialize with null instead of false to prevent template errors
+            this.selectedEquipment = null;
+            this.concreteEquipment = null;
+            
             // Force reset selectedSlot to prevent browser form persistence
             this.selectedSlot = '';
+            
+            // Initialize filter lock state
+            this.isSlotFilterLocked = false;
             
             // Load available slots for filter dropdown
             this.loadAvailableSlots();
@@ -293,8 +333,14 @@ document.addEventListener('alpine:init', () => {
             
             console.log('Equipment panel init - selectedSlot:', this.selectedSlot);
             
-            // Initial load with a fixed limit of 99 (multiple of 3)
-            this.loadEquipment(0, 99);
+            // Only load equipment if we're NOT in builder mode
+            // Builder mode will load equipment when handleLoadSlotItems is called
+            if (!this.isBuilderMode()) {
+                console.log('Database mode: loading initial equipment');
+                this.loadEquipment(0, 99);
+            } else {
+                console.log('Builder mode: waiting for slot selection before loading equipment');
+            }
             
             // Listen for load-more events from the base panel
             window.addEventListener('load-more', this.handleLoadMore.bind(this));
@@ -364,8 +410,8 @@ document.addEventListener('alpine:init', () => {
 
         clearSelection() {
             // Gracefully clear selection to avoid template errors
-            this.selectedEquipment = false;
-            this.concreteEquipment = false;
+            this.selectedEquipment = null;
+            this.concreteEquipment = null;
         },
 
         handleLoadMore(event) {
@@ -395,14 +441,17 @@ document.addEventListener('alpine:init', () => {
                 });
             }
             
-            // Don't set slot filter when in builder mode since any item can go anywhere
-            // Only set it in regular database mode
-            if (!this.isBuilderMode()) {
-                this.selectedSlot = slotType;
+            // In builder mode, SET the slot filter to restrict to valid items for this slot
+            // In regular database mode, also set the filter for convenience
+            this.selectedSlot = slotType;
+            
+            // Lock the filter dropdown when in builder mode
+            if (this.isBuilderMode()) {
+                this.isSlotFilterLocked = true;
+                console.log('Builder mode: locking filter to slot:', slotType);
             } else {
-                // In builder mode, clear the slot filter to show all equipment
-                this.selectedSlot = '';
-                console.log('Builder mode: loading all equipment regardless of slot');
+                this.isSlotFilterLocked = false;
+                console.log('Database mode: filter unlocked, set to slot:', slotType);
             }
             
             // Clear current selection first
@@ -515,6 +564,14 @@ document.addEventListener('alpine:init', () => {
         },
 
         async selectEquipment(equipment) {
+            // Safety check: ensure we have a valid equipment item
+            if (!equipment || !equipment.key) {
+                console.warn('Invalid equipment item:', equipment);
+                this.selectedEquipment = null;
+                this.concreteEquipment = null;
+                return;
+            }
+            
             this.selectedEquipment = equipment;
             try {
                 const response = await fetch(`/api/items/equipment/${equipment.key}/concrete?ilvl=${equipment.base_ilvl}`);
@@ -522,9 +579,14 @@ document.addEventListener('alpine:init', () => {
                     throw new Error('Failed to load concrete equipment');
                 }
                 this.concreteEquipment = await response.json();
+                
+                // Additional safety check for the concrete item data
+                if (!this.concreteEquipment) {
+                    console.warn('No concrete equipment data received for item:', equipment.key);
+                }
             } catch (error) {
                 console.error('Error loading concrete equipment:', error);
-                this.concreteEquipment = false;
+                this.concreteEquipment = null;
             }
         },
 
@@ -595,6 +657,51 @@ document.addEventListener('alpine:init', () => {
             // Check if we're in the builder by looking for the builder component
             const builderComponent = document.getElementById('builder-component');
             return builderComponent && this.$el && builderComponent.contains(this.$el);
+        },
+        
+        // Validation function to check if an item can be equipped in a builder slot
+        canItemBeEquippedInSlot(item, builderSlot) {
+            if (!item || !item.slot || !builderSlot) return false;
+            
+            // Database slot to builder slot mapping (from API logic)
+            const slotMapping = {
+                'EAR': ['LEFT_EAR', 'RIGHT_EAR'],
+                'LEFT_EAR': ['LEFT_EAR'],
+                'RIGHT_EAR': ['RIGHT_EAR'],
+                'NECK': ['NECK'],
+                'WRIST': ['LEFT_WRIST', 'RIGHT_WRIST'],
+                'LEFT_WRIST': ['LEFT_WRIST'],
+                'RIGHT_WRIST': ['RIGHT_WRIST'],
+                'FINGER': ['LEFT_FINGER', 'RIGHT_FINGER'],
+                'LEFT_FINGER': ['LEFT_FINGER'],
+                'RIGHT_FINGER': ['RIGHT_FINGER'],
+                'POCKET': ['POCKET'],
+                'HEAD': ['HEAD'],
+                'SHOULDER': ['SHOULDERS'],
+                'BACK': ['BACK'],
+                'CHEST': ['CHEST'],
+                'HAND': ['HANDS'],
+                'LEGS': ['LEGS'],
+                'FEET': ['FEET'],
+                'EITHER_HAND': ['MAIN_HAND', 'OFF_HAND'],
+                'MAIN_HAND': ['MAIN_HAND'],
+                'OFF_HAND': ['OFF_HAND'],
+                'RANGED_ITEM': ['RANGED'],
+                'CLASS_SLOT': ['CLASS']
+            };
+            
+            const compatibleSlots = slotMapping[item.slot] || [];
+            const canEquip = compatibleSlots.includes(builderSlot);
+            
+            console.log('Validation check:', {
+                itemName: item.name,
+                itemSlot: item.slot,
+                builderSlot: builderSlot,
+                compatibleSlots: compatibleSlots,
+                canEquip: canEquip
+            });
+            
+            return canEquip;
         },
         
         buildApiUrl(offset, limit) {

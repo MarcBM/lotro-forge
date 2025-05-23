@@ -53,4 +53,9 @@ build/
 # Generated files
 web/static/icons/
 web/static/images/
+
+# Logs
 *.log
+*.log/
+import_items_*.log/
+example_import.log

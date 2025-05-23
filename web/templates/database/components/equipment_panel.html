@@ -1,0 +1,258 @@
+{% from "database/components/base_panel.html" import database_panel %}
+
+{% set filters_content %}
+<!-- Filters placeholder -->
+<div class="text-gray-400 text-center py-4">
+    Filters coming soon
+</div>
+{% endset %}
+
+{% set results_content %}
+<!-- Equipment Grid -->
+<div class="grid grid-cols-3 gap-4">
+    <template x-for="(equipment, index) in equipment" :key="equipment.key">
+        <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
+             @click="selectEquipment(equipment)">
+            <!-- Equipment Key -->
+            <div class="absolute top-1 left-1 text-xs text-gray-500" 
+                 x-text="equipment.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
+            
+            <!-- Main Content -->
+            <div class="flex items-center gap-3 h-full pt-2">
+                <!-- Equipment Icon (layered) -->
+                <div class="w-10 h-10 flex-shrink-0 relative">
+                    <template x-if="equipment.icon_urls">
+                        <template x-for="(url, i) in [...equipment.icon_urls].reverse()" :key="i">
+                            <img :src="url" 
+                                 :alt="'Equipment icon layer ' + (i + 1)"
+                                 class="absolute inset-0 w-full h-full object-contain"
+                                 @error="$el.style.display='none'">
+                        </template>
+                    </template>
+                    <template x-if="!equipment.icon_urls">
+                        <div class="w-full h-full bg-gray-700 rounded"></div>
+                    </template>
+                </div>
+                
+                <!-- Equipment Name -->
+                <h3 class="text-sm font-medium line-clamp-2 leading-tight flex-1"
+                    :class="{
+                        'text-white': equipment.quality === 'COMMON',
+                        'text-yellow-300': equipment.quality === 'UNCOMMON',
+                        'text-purple-400': equipment.quality === 'RARE',
+                        'text-teal-400': equipment.quality === 'INCOMPARABLE',
+                        'text-orange-400': equipment.quality === 'LEGENDARY'
+                    }"
+                    x-text="equipment.name"></h3>
+            </div>
+            
+            <!-- EV Value -->
+            <div class="absolute bottom-1 right-2 text-sm text-gray-400">
+                <span x-text="(equipment.ev || '0.00')"></span>
+            </div>
+        </div>
+    </template>
+</div>
+{% endset %}
+
+{% set details_content %}
+<!-- Equipment Details -->
+<template x-if="selectedEquipment">
+    <div class="space-y-4">
+        <!-- Icon and Title -->
+        <div class="space-y-2">
+            <!-- Icon and Title -->
+            <div class="flex items-start gap-4">
+                <!-- Equipment Icon (layered) -->
+                <div class="w-16 h-16 flex-shrink-0 relative">
+                    <template x-if="selectedEquipment.icon_urls">
+                        <template x-for="(url, i) in [...selectedEquipment.icon_urls].reverse()" :key="i">
+                            <img :src="url" 
+                                 :alt="'Equipment icon layer ' + (i + 1)"
+                                 class="absolute inset-0 w-full h-full object-contain"
+                                 @error="$el.style.display='none'">
+                        </template>
+                    </template>
+                    <template x-if="!selectedEquipment.icon_urls">
+                        <div class="w-full h-full bg-gray-700 rounded"></div>
+                    </template>
+                </div>
+                
+                <!-- Equipment Info -->
+                <div class="flex-1 min-w-0">
+                    <!-- Title area with fixed height -->
+                    <div class="h-16 flex items-center">
+                        <h3 class="text-xl font-bold line-clamp-2"
+                            :class="{
+                                'text-white': selectedEquipment.quality === 'COMMON',
+                                'text-yellow-300': selectedEquipment.quality === 'UNCOMMON',
+                                'text-purple-400': selectedEquipment.quality === 'RARE',
+                                'text-teal-400': selectedEquipment.quality === 'INCOMPARABLE',
+                                'text-orange-400': selectedEquipment.quality === 'LEGENDARY'
+                            }"
+                            x-text="selectedEquipment.name"></h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baseline Stats Row -->
+            <div class="flex justify-between items-center text-sm text-gray-400 -mt-1">
+                <div>
+                    <span>iLvl: </span>
+                    <span x-text="selectedEquipment.base_ilvl"></span>
+                </div>
+                <div class="text-gray-500">
+                    <template x-if="selectedEquipment.armour_type && selectedEquipment.slot === 'OFF_HAND'">
+                        <span x-text="selectedEquipment.armour_type"></span>
+                    </template>
+                    <template x-if="selectedEquipment.armour_type && selectedEquipment.slot !== 'OFF_HAND'">
+                        <span x-text="selectedEquipment.slot + ' / ' + selectedEquipment.armour_type"></span>
+                    </template>
+                    <template x-if="!selectedEquipment.armour_type">
+                        <span x-text="selectedEquipment.slot"></span>
+                    </template>
+                </div>
+                <div x-text="(selectedEquipment.ev || '0.00')"></div>
+            </div>
+            
+            <!-- ARMOUR stat above the line -->
+            <template x-if="concreteEquipment && concreteEquipment.stat_values && concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR')">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
+                    <span>ARMOUR</span>
+                    <span class="text-gray-300" x-text="Math.floor(concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR').value)"></span>
+                </div>
+            </template>
+            
+            <!-- Equipment Stats -->
+            <div class="border-t border-lotro-border pt-3">
+                <div class="text-sm text-gray-400 space-y-1">
+                    <!-- Other stats -->
+                    <template x-if="concreteEquipment && concreteEquipment.stat_values">
+                        <div class="space-y-1">
+                            <template x-for="stat in concreteEquipment.stat_values.filter(s => s.stat_name !== 'ARMOUR')" :key="stat.stat_name">
+                                <div class="flex justify-between">
+                                    <span x-text="stat.stat_name"></span>
+                                    <span class="text-gray-300" x-text="Math.floor(stat.value)"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+<template x-if="!selectedEquipment">
+    <div class="text-gray-400 text-center py-4">
+        Select equipment to view details
+    </div>
+</template>
+{% endset %}
+
+<div x-data="equipmentPanel" x-init="$nextTick(() => init())">
+    {{ database_panel('equipment', 'Equipment Database', filters_content, results_content, details_content) }}
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('equipmentPanel', () => ({
+        searchQuery: '',
+        equipment: [],
+        selectedEquipment: null,
+        concreteEquipment: null,
+        loading: false,
+        
+        init() {
+            // Initialize with empty array to ensure reactivity
+            this.equipment = [];
+            // Initial load with a fixed limit of 99 (multiple of 3)
+            this.loadEquipment(0, 99);
+            
+            // Listen for load-more events from the base panel
+            window.addEventListener('load-more', this.handleLoadMore.bind(this));
+        },
+
+        handleLoadMore(event) {
+            if (event.detail.panelId !== 'equipment') return;
+            this.loadMoreEquipment(event.detail.offset, event.detail.limit);
+        },
+        
+        async loadEquipment(offset, limit) {
+            if (this.loading) return;
+            
+            try {
+                this.loading = true;
+                const response = await fetch(`/api/items/equipment?limit=${limit}&skip=${offset}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load equipment');
+                }
+                
+                const data = await response.json();
+                // Use Alpine's reactive array update
+                this.equipment = data;
+                // Update pagination state in the base panel
+                this.$dispatch('update-pagination', { 
+                    hasMore: data.length === limit,
+                    offset: offset + limit,
+                    newItems: data
+                });
+            } catch (error) {
+                console.error('Error loading equipment:', error);
+                this.equipment = [];
+                this.$dispatch('update-pagination', { 
+                    hasMore: false,
+                    offset: offset,
+                    newItems: []
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async loadMoreEquipment(offset, limit) {
+            if (this.loading) return;
+            
+            try {
+                this.loading = true;
+                const response = await fetch(`/api/items/equipment?limit=${limit}&skip=${offset}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load more equipment');
+                }
+                
+                const data = await response.json();
+                // Use Alpine's reactive array update
+                this.equipment = [...this.equipment, ...data];
+                // Update pagination state in the base panel
+                this.$dispatch('update-pagination', { 
+                    hasMore: data.length === limit,
+                    offset: offset + limit,
+                    newItems: data
+                });
+            } catch (error) {
+                console.error('Error loading more equipment:', error);
+                this.$dispatch('update-pagination', { 
+                    hasMore: false,
+                    offset: offset,
+                    newItems: []
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async selectEquipment(equipment) {
+            this.selectedEquipment = equipment;
+            try {
+                const response = await fetch(`/api/items/equipment/${equipment.key}/concrete?ilvl=${equipment.base_ilvl}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load concrete equipment');
+                }
+                this.concreteEquipment = await response.json();
+            } catch (error) {
+                console.error('Error loading concrete equipment:', error);
+                this.concreteEquipment = null;
+            }
+        }
+    }));
+});
+</script> 

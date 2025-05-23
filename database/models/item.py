@@ -3,25 +3,34 @@ Database models for LOTRO items and their stats.
 These models represent both the database structure and domain logic for items.
 """
 from typing import Optional, List, Dict, Tuple
-from sqlalchemy import String, Integer, Float, ForeignKey, UniqueConstraint
+from sqlalchemy import String, Integer, Float, ForeignKey, UniqueConstraint, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.ext.hybrid import hybrid_property
+from enum import Enum as PythonEnum
 
 from .base import Base
 from .progressions import ProgressionTable, ProgressionType
+
+class ItemQuality(PythonEnum):
+    """Enum for item quality levels."""
+    COMMON = "common"
+    UNCOMMON = "uncommon"
+    RARE = "rare"
+    INCOMPARABLE = "incomparable"
+    LEGENDARY = "legendary"
 
 class ItemStat(Base):
     """Model for stats on an item, including their value table references."""
     __tablename__ = "item_stats"
     
     # Composite primary key of item and stat name
-    item_key: Mapped[int] = mapped_column(ForeignKey("item_definitions.key"), primary_key=True)
+    item_key: Mapped[int] = mapped_column(ForeignKey("items.key"), primary_key=True)
     stat_name: Mapped[str] = mapped_column(String(50), primary_key=True)
     value_table_id: Mapped[str] = mapped_column(ForeignKey("progression_tables.table_id"), nullable=False)
     order: Mapped[int] = mapped_column(Integer, nullable=False)  # Preserve XML order
     
     # Relationships
-    item: Mapped["ItemDefinition"] = relationship("ItemDefinition", back_populates="stats")
+    item: Mapped["Item"] = relationship("Item", back_populates="stats")
     value_table: Mapped[ProgressionTable] = relationship("ProgressionTable")
     
     def __repr__(self) -> str:
@@ -52,21 +61,17 @@ class ItemStat(Base):
             ratio = (item_level - lower.item_level) / (upper.item_level - lower.item_level)
             return lower.value + (upper.value - lower.value) * ratio
 
-class ItemDefinition(Base):
+class Item(Base):
     """
-    Model for LOTRO items, including both database structure and domain logic.
-    This represents both the primitive form (from XML) and the concrete form (with item level).
+    Base model for all LOTRO items.
+    This represents the common fields and functionality shared by all item types.
     """
-    __tablename__ = "item_definitions"
+    __tablename__ = "items"
     
     key: Mapped[int] = mapped_column(Integer, primary_key=True)  # XML item identifier
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     base_ilvl: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    slot: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
-    quality: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
-    required_player_level: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    scaling: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    armour_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, index=True)  # e.g. "HEAVY", "MEDIUM", "LIGHT"
+    quality: Mapped[str] = mapped_column(Enum(ItemQuality), nullable=False, index=True)
     icon: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Hyphen-separated icon IDs
     
     # Relationships
@@ -77,45 +82,30 @@ class ItemDefinition(Base):
         order_by="ItemStat.order"  # Use the order from XML
     )
     
+    # Discriminator column for inheritance
+    item_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'item',
+        'polymorphic_on': item_type
+    }
+    
     def __repr__(self) -> str:
-        return f"<ItemDefinition(key={self.key}, name='{self.name}')>" 
+        return f"<Item(key={self.key}, name='{self.name}')>"
     
-    @validates('required_player_level')
-    def validate_player_level(self, key: str, value: int) -> int:
-        """Validate that the required player level is within valid range."""
-        if value < 1 or value > 150:
-            raise ValueError("Required player level must be between 1 and 150")
-        return value
-    
-    def get_valid_ilvls(self) -> Tuple[int, Optional[int]]:
-        """
-        Returns a tuple of (min_ilvl, max_ilvl) for this item.
-        The max_ilvl may be None if there is no upper bound.
-        """
-        # TODO: Implement proper scaling parsing
-        # For now, return a simple range based on the base_ilvl
-        return (self.base_ilvl, self.base_ilvl + 10)  # Example range
-    
-    def get_stats_at_ilvl(self, ilvl: int) -> Dict[str, float]:
+    def get_stats_at_ilvl(self, ilvl: Optional[int] = None) -> Dict[str, float]:
         """
         Get the concrete stat values for this item at a specific item level.
+        If no item level is provided, uses the base item level.
         Returns a dictionary mapping stat names to their values.
         """
-        min_ilvl, max_ilvl = self.get_valid_ilvls()
-        if ilvl < min_ilvl:
-            raise ValueError(f"Item level {ilvl} is below minimum {min_ilvl}")
-        if max_ilvl is not None and ilvl > max_ilvl:
-            raise ValueError(f"Item level {ilvl} is above maximum {max_ilvl}")
-        
+        if ilvl is None:
+            ilvl = self.base_ilvl
+            
         return {
             stat.stat_name: stat.get_value(ilvl)
             for stat in self.stats
         }
-    
-    @hybrid_property
-    def is_legendary(self) -> bool:
-        """Check if this item is legendary quality."""
-        return self.quality.lower() == 'legendary'
     
     def to_dict(self, ilvl: Optional[int] = None) -> Dict:
         """
@@ -126,12 +116,9 @@ class ItemDefinition(Base):
             'key': self.key,
             'name': self.name,
             'base_ilvl': self.base_ilvl,
-            'slot': self.slot,
-            'quality': self.quality,
-            'required_player_level': self.required_player_level,
-            'scaling': self.scaling,
-            'armour_type': self.armour_type,  # Include armour type in output
-            'icon': self.icon,  # Include icon IDs in output
+            'quality': self.quality.value,
+            'icon': self.icon,
+            'item_type': self.item_type,
             'stats': [
                 {
                     'name': stat.stat_name,
@@ -145,4 +132,39 @@ class ItemDefinition(Base):
             result['ilvl'] = ilvl
             result['stat_values'] = self.get_stats_at_ilvl(ilvl)
         
+        return result
+
+class EquipmentItem(Item):
+    """
+    Model for equipment items (weapons, armor, etc.).
+    Extends the base Item class with equipment-specific fields and functionality.
+    """
+    __tablename__ = "equipment_items"
+    
+    # Primary key is inherited from Item
+    key: Mapped[int] = mapped_column(ForeignKey("items.key"), primary_key=True)
+    
+    # Equipment-specific fields
+    slot: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    armour_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, index=True)  # e.g. "HEAVY", "MEDIUM", "LIGHT"
+    scaling: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'equipment',
+    }
+    
+    def __repr__(self) -> str:
+        return f"<EquipmentItem(key={self.key}, name='{self.name}')>"
+    
+    def to_dict(self, ilvl: Optional[int] = None) -> Dict:
+        """
+        Convert the equipment item to a dictionary representation.
+        Extends the base to_dict with equipment-specific fields.
+        """
+        result = super().to_dict(ilvl)
+        result.update({
+            'slot': self.slot,
+            'armour_type': self.armour_type,
+            'scaling': self.scaling,
+        })
         return result 

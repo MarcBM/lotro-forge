@@ -5,23 +5,22 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from sqlalchemy.orm import Session
-from database.models.item import ItemDefinition, ItemStat
+from database.models.item import EquipmentItem, ItemStat
 from scripts.importers.base import BaseImporter
+from lxml import etree
 
 @dataclass
-class ItemDefinitionData:
-    """Represents an item definition from XML."""
+class ItemData:
+    """Data class for raw item data from XML."""
     key: int
     name: str
-    min_ilvl: int  # This is the level attribute from XML
+    base_ilvl: int
     slot: str
     quality: str
-    required_player_level: int
+    icon: Optional[str]
+    armour_type: Optional[str]
     scaling: Optional[str]
-    value_table_id: Optional[int]  # Keep this for reference but don't use in ItemDefinition
-    armour_type: Optional[str]  # e.g. "HEAVY", "MEDIUM", "LIGHT"
-    icon: Optional[str]  # Hyphen-separated icon IDs
-    stats: List[Dict[str, str]]  # List of {name: str, scaling: str}
+    stats: List[Tuple[str, str, int]]  # (stat_name, value_table_id, order)
 
 class ItemImporter(BaseImporter):
     """Importer for item definitions."""
@@ -59,173 +58,163 @@ class ItemImporter(BaseImporter):
             self.logger.error(f"Failed to validate items.xml: {str(e)}")
             return False
     
-    def parse_source(self) -> List[ItemDefinitionData]:
-        """Parse items.xml into ItemDefinitionData objects."""
-        root = self.parse_xml(self.items_file)
+    def parse_source(self) -> List[ItemData]:
+        """Parse items.xml into ItemData objects."""
+        tree = etree.parse(self.items_file)
+        root = tree.getroot()
+        
         items = []
+        total_parsed = 0
         
         for item_elem in root.findall(".//item"):
-            try:
-                # Required attributes
-                key = int(item_elem.get("key", "0"))
-                name = item_elem.get("name", "")
-                min_ilvl = int(item_elem.get("level", "0"))  # Use level attribute for base_ilvl
-                slot = item_elem.get("slot", "")
-                quality = item_elem.get("quality", "")
-                required_player_level = int(item_elem.get("minLevel", "0"))
-                
-                # Skip items that don't meet our criteria (unless skip_filters is True)
-                if not self.skip_filters and (min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]):
+            total_parsed += 1
+            
+            # Apply filtering during parsing (unless skip_filters is True)
+            if not self.skip_filters:
+                try:
+                    level = int(item_elem.get("level", "1"))
+                    slot = item_elem.get("slot", "")
+                    
+                    # For progression table analysis, focus on high-level equipment items
+                    # Skip items that don't meet our criteria
+                    if level < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
+                        continue
+                except (ValueError, TypeError):
+                    # Skip items with invalid level data
                     continue
-                
-                # Optional attributes
-                scaling = item_elem.get("scaling")
-                value_table_id = item_elem.get("valueTableId")
-                if value_table_id is not None:
-                    value_table_id = int(value_table_id)
-                armour_type = item_elem.get("armourType")  # Get armour type if present
-                icon = item_elem.get("icon")  # Get icon IDs if present
-                
-                # Add icon IDs to required set if present
-                if icon:
-                    self.required_icons.update(icon.split('-'))
-                
-                # Parse stats
-                stats = []
-                stats_elem = item_elem.find("stats")
-                if stats_elem is not None:
-                    for stat_elem in stats_elem.findall("stat"):
-                        stat_name = stat_elem.get("name", "")
-                        stat_scaling = stat_elem.get("scaling", "")
-                        if stat_name and stat_scaling:
-                            stats.append({
-                                "name": stat_name,
-                                "scaling": stat_scaling
-                            })
-                
-                item = ItemDefinitionData(
-                    key=key,
-                    name=name,
-                    min_ilvl=min_ilvl,
-                    slot=slot,
-                    quality=quality,
-                    required_player_level=required_player_level,
-                    scaling=scaling,
-                    value_table_id=value_table_id,
-                    armour_type=armour_type,  # Include armour type
-                    icon=icon,  # Include icon IDs
-                    stats=stats
-                )
-                items.append(item)
-                
-            except (ValueError, AttributeError) as e:
-                self.logger.error(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
-                continue
+            
+            # Parse stats first
+            stats = []
+            for stat_elem in item_elem.findall(".//stat"):
+                stat_name = stat_elem.get("name")
+                scaling = stat_elem.get("scaling")  # Changed from value_table_id to scaling
+                order = int(stat_elem.get("order", "0"))
+                if stat_name and scaling:
+                    stats.append((stat_name, scaling, order))
+            
+            # Parse item data
+            item = ItemData(
+                key=int(item_elem.get("key")),
+                name=item_elem.get("name", ""),
+                base_ilvl=int(item_elem.get("level", "1")),  # Changed from base_ilvl to level
+                slot=item_elem.get("slot", ""),
+                quality=item_elem.get("quality", "common"),
+                icon=item_elem.get("icon"),
+                armour_type=item_elem.get("armourType"),  # Note: might be armourType in XML
+                scaling=item_elem.get("scaling"),
+                stats=stats
+            )
+            items.append(item)
         
-        self.logger.info(f"Found {len(items)} items matching criteria (level >= 510 and slot in [NECK, FINGER, POCKET, EAR, WRIST])")
+        self.logger.info(f"Parsed {total_parsed} total items, filtered to {len(items)} equipment items for progression analysis")
         return items
     
-    def transform_data(self, items: List[ItemDefinitionData]) -> Tuple[List[ItemDefinition], List[ItemStat]]:
-        """Transform ItemDefinitionData objects into database models."""
-        item_defs = []
+    def transform_data(self, items: List[ItemData]) -> Tuple[List[EquipmentItem], List[ItemStat]]:
+        """Transform ItemData objects into database models."""
+        equipment_items = []
         item_stats = []
         
         for item in items:
-            # Create item definition (without value_table_id)
-            item_def = ItemDefinition(
+            # Create equipment item (all imported items are equipment)
+            equipment_item = EquipmentItem(
                 key=item.key,
                 name=item.name,
-                base_ilvl=item.min_ilvl,
-                slot=item.slot,
+                base_ilvl=item.base_ilvl,
                 quality=item.quality,
-                required_player_level=item.required_player_level,
-                scaling=item.scaling,
-                armour_type=item.armour_type,  # Include armour type
-                icon=item.icon  # Include icon IDs
+                icon=item.icon,
+                slot=item.slot,
+                armour_type=item.armour_type,
+                scaling=item.scaling
             )
-            item_defs.append(item_def)
+            equipment_items.append(equipment_item)
             
             # Create item stats
-            for order, stat in enumerate(item.stats):
-                item_stat = ItemStat(
+            for stat_name, value_table_id, order in item.stats:
+                stat = ItemStat(
                     item_key=item.key,
-                    stat_name=stat["name"],
-                    value_table_id=stat["scaling"],  # Use the scaling ID as the value table ID
-                    order=order  # Preserve the order from XML
+                    stat_name=stat_name,
+                    value_table_id=value_table_id,
+                    order=order
                 )
-                item_stats.append(item_stat)
+                item_stats.append(stat)
         
-        return item_defs, item_stats
+        return equipment_items, item_stats
     
-    def import_data(self, data: Tuple[List[ItemDefinition], List[ItemStat]]) -> None:
+    def import_data(self, data: Tuple[List[EquipmentItem], List[ItemStat]]) -> None:
         """Import the transformed data into the database."""
-        item_defs, item_stats = data
+        equipment_items, item_stats = data
         
         try:
-            # Update or insert item definitions
-            for item_def in item_defs:
-                existing = self.db.query(ItemDefinition).get(item_def.key)
+            # Import items
+            for equipment_item in equipment_items:
+                # Check if item already exists
+                existing = self.db.query(EquipmentItem).get(equipment_item.key)
                 if existing:
-                    # Update existing item definition
-                    for key, value in vars(item_def).items():
+                    # Update existing item
+                    for key, value in equipment_item.__dict__.items():
                         if not key.startswith('_'):
                             setattr(existing, key, value)
                 else:
-                    # Insert new item definition
-                    self.db.add(item_def)
+                    # Add new item
+                    self.db.add(equipment_item)
             
-            # Update or insert item stats
-            for item_stat in item_stats:
+            # Import stats
+            for stat in item_stats:
+                # Check if stat already exists
                 existing = self.db.query(ItemStat).filter_by(
-                    item_key=item_stat.item_key,
-                    stat_name=item_stat.stat_name
+                    item_key=stat.item_key,
+                    stat_name=stat.stat_name
                 ).first()
-                
                 if existing:
                     # Update existing stat
-                    existing.value_table_id = item_stat.value_table_id
-                    existing.order = item_stat.order
+                    existing.value_table_id = stat.value_table_id
+                    existing.order = stat.order
                 else:
-                    # Insert new stat
-                    self.db.add(item_stat)
+                    # Add new stat
+                    self.db.add(stat)
             
-            self.logger.info(f"Successfully imported {len(item_defs)} items and {len(item_stats)} stats")
+            self.logger.info(f"Successfully imported {len(equipment_items)} equipment items and {len(item_stats)} stats")
             
         except Exception as e:
             self.logger.error(f"Failed to import data: {str(e)}")
-            raise 
+            raise
 
     def get_required_progression_tables(self) -> set[str]:
         """Extract the set of progression table IDs required by the items."""
         if not self.validate_source():
             return set()
             
-        root = self.parse_xml(self.items_file)
+        # Parse items using our new logic (already filtered)
+        items = self.parse_source()
         required_tables = set()
         
-        for item_elem in root.findall(".//item"):
+        items_with_scaling = 0
+        items_with_stats = 0
+        
+        for item in items:
             try:
-                # Skip items that don't meet our criteria (unless skip_filters is True)
-                if not self.skip_filters:
-                    min_ilvl = int(item_elem.get("level", "0"))
-                    slot = item_elem.get("slot", "")
-                    if min_ilvl < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
-                        continue
+                # Get scaling from item level
+                if item.scaling:
+                    required_tables.add(item.scaling)
+                    items_with_scaling += 1
                 
-                # Get value table ID from item stats
-                stats_elem = item_elem.find("stats")
-                if stats_elem is not None:
-                    for stat_elem in stats_elem.findall("stat"):
-                        stat_scaling = stat_elem.get("scaling", "")
-                        if stat_scaling:
-                            required_tables.add(stat_scaling)
+                # Get value_table_ids from item stats
+                for stat_name, value_table_id, order in item.stats:
+                    if value_table_id:
+                        required_tables.add(value_table_id)
+                
+                if item.stats:
+                    items_with_stats += 1
                 
             except (ValueError, AttributeError) as e:
-                self.logger.warning(f"Failed to parse item element {item_elem.get('key', 'unknown')}: {str(e)}")
+                self.logger.warning(f"Failed to parse item {item.key}: {str(e)}")
                 continue
         
+        self.logger.info(f"Processed {len(items)} filtered items:")
+        self.logger.info(f"  Items with scaling: {items_with_scaling}")
+        self.logger.info(f"  Items with stats: {items_with_stats}")
         self.logger.info(f"Found {len(required_tables)} required progression tables")
-        return required_tables 
+        return required_tables
 
     def get_required_icons(self) -> set[str]:
         """Get the set of unique icon IDs required by the imported items.
@@ -234,3 +223,31 @@ class ItemImporter(BaseImporter):
             set[str]: Set of icon IDs that need to be copied
         """
         return self.required_icons 
+
+    def run(self, required_tables: Optional[set[str]] = None) -> bool:
+        """Override the base run method to use filtered parsing."""
+        try:
+            self.logger.info("Starting import process...")
+            
+            if not self.validate_source():
+                self.logger.error("Source validation failed")
+                return False
+            
+            # Parse filtered items based on project requirements
+            raw_data = self.parse_source()
+            if not raw_data:
+                self.logger.error("No data to import")
+                return False
+            
+            self.logger.info("Transforming data...")
+            transformed_data = self.transform_data(raw_data)
+            
+            self.logger.info("Importing data...")
+            self.import_data(transformed_data)
+            
+            self.logger.info("Import completed successfully")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Import failed: {str(e)}")
+            return False 

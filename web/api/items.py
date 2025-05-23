@@ -6,10 +6,10 @@ from typing import List, Optional, Dict
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select, create_engine
 
-from database.models.item import ItemDefinition, ItemStat
+from database.models.item import Item, EquipmentItem, ItemStat
 from database.config import get_database_url
-from sqlalchemy import create_engine, select
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 # Create router
 router = APIRouter()
 
-# Create a single engine instance
+# Create database engine and session factory
 try:
     logger.info("Initializing database connection...")
-    engine = create_engine(get_database_url())
-    # Create a session factory
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    database_url = get_database_url()
+    engine = create_engine(database_url)
+    SessionLocal = sessionmaker(bind=engine)
     logger.info("Database connection initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize database connection: {e}")
@@ -31,11 +31,8 @@ except Exception as e:
 # Database session dependency
 def get_db():
     """Get a database session."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    with SessionLocal() as session:
+        yield session
 
 def get_icon_urls(request: Request, icon_ids: Optional[str]) -> Optional[List[str]]:
     """Convert icon IDs to full URLs.
@@ -57,186 +54,204 @@ def get_icon_urls(request: Request, icon_ids: Optional[str]) -> Optional[List[st
     ]
 
 @router.get("/")
+async def list_all_items(
+    request: Request,
+    item_type: Optional[str] = Query(None, description="Filter by item type (e.g., 'equipment')"),
+    slot: Optional[str] = None,
+    quality: Optional[str] = None,
+    min_level: Optional[int] = None,
+    max_level: Optional[int] = None,
+    limit: int = Query(99, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+) -> List[dict]:
+    """
+    List all items with optional filtering by type and other parameters.
+    Use item_type='equipment' to get only equipment items.
+    """
+    # Choose the model based on item_type filter
+    if item_type == "equipment":
+        model = EquipmentItem
+        stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats))
+        
+        # Apply equipment-specific filters
+        if slot:
+            stmt = stmt.where(EquipmentItem.slot == slot)
+    else:
+        # Default to base Item model for now, but in future can handle other types
+        model = Item
+        stmt = select(Item)
+        
+        # Apply item_type filter if specified
+        if item_type:
+            stmt = stmt.where(Item.item_type == item_type)
+    
+    # Apply common filters
+    if quality:
+        stmt = stmt.where(model.quality == quality)
+    if min_level:
+        stmt = stmt.where(model.base_ilvl >= min_level)
+    if max_level:
+        stmt = stmt.where(model.base_ilvl <= max_level)
+    
+    # Order by key descending (newest first)
+    stmt = stmt.order_by(model.key.desc())
+    
+    # Apply pagination
+    stmt = stmt.offset(skip).limit(limit)
+    
+    # Execute query
+    result = db.execute(stmt)
+    items = result.unique().scalars().all()
+    
+    # Convert to dict and process for frontend
+    processed_items = []
+    for item in items:
+        item_dict = item.to_dict()
+        # Convert quality to uppercase for frontend
+        item_dict['quality'] = item_dict['quality'].upper()
+        # Convert icon to icon_urls
+        item_dict['icon_urls'] = get_icon_urls(request, item_dict.get('icon'))
+        # Remove the raw icon field
+        item_dict.pop('icon', None)
+        processed_items.append(item_dict)
+    
+    return processed_items
+
+@router.get("/equipment")
 async def list_items(
     request: Request,
-    db: Session = Depends(get_db),
-    skip: int = Query(0, ge=0, description="Skip N items"),
-    limit: int = Query(10, ge=1, le=100, description="Limit to N items"),
-    slot: Optional[str] = Query(None, description="Filter by equipment slot"),
-    quality: Optional[str] = Query(None, description="Filter by item quality"),
-    min_level: Optional[int] = Query(None, ge=1, description="Minimum required level"),
-    max_level: Optional[int] = Query(None, ge=1, description="Maximum required level")
+    slot: Optional[str] = None,
+    quality: Optional[str] = None,
+    min_level: Optional[int] = None,
+    max_level: Optional[int] = None,
+    limit: int = Query(99, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
 ) -> List[dict]:
-    """List items with optional filtering."""
-    try:
-        logger.info("Building items query...")
-        # Build query with joinedload for item stats
-        stmt = select(ItemDefinition).options(joinedload(ItemDefinition.stats))
-        
-        # Apply filters
-        if slot:
-            logger.debug(f"Filtering by slot: {slot}")
-            stmt = stmt.where(ItemDefinition.slot == slot)
-        if quality:
-            logger.debug(f"Filtering by quality: {quality}")
-            stmt = stmt.where(ItemDefinition.quality == quality)
-        if min_level:
-            logger.debug(f"Filtering by min_level: {min_level}")
-            stmt = stmt.where(ItemDefinition.required_player_level >= min_level)
-        if max_level:
-            logger.debug(f"Filtering by max_level: {max_level}")
-            stmt = stmt.where(ItemDefinition.required_player_level <= max_level)
-        
-        # Sort by key in descending order
-        stmt = stmt.order_by(ItemDefinition.key.desc())
-        
-        # Apply pagination
-        logger.debug(f"Applying pagination: skip={skip}, limit={limit}")
-        stmt = stmt.offset(skip).limit(limit)
-        
-        # Execute query
-        logger.info("Executing items query...")
-        items = db.execute(stmt).unique().scalars().all()
-        logger.info(f"Found {len(items)} items")
-        
-        # Convert to dict for JSON response
-        logger.debug("Converting items to dict...")
-        result = [
-            {
-                # Item definition (base data)
-                "key": item.key,
-                "name": item.name,
-                "base_ilvl": item.base_ilvl,
-                "slot": item.slot,
-                "quality": item.quality,
-                "required_player_level": item.required_player_level,
-                "scaling": item.scaling,
-                "armour_type": item.armour_type,
-                "icon": item.icon,
-                "icon_urls": get_icon_urls(request, item.icon),
-                # Stats with their progression table references
-                "stats": [
-                    {
-                        "stat_name": stat.stat_name,
-                        "value_table_id": stat.value_table_id
-                    }
-                    for stat in item.stats  # This preserves order
-                ]
-            }
-            for item in items
-        ]
-        logger.info("Successfully converted items to dict")
-        return result
-        
-    except SQLAlchemyError as e:
-        logger.error(f"Database error occurred: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Database error occurred: {str(e)}"
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error occurred: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error occurred: {str(e)}"
-        )
+    """
+    List equipment items with optional filtering and pagination.
+    """
+    # Start with base query
+    stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats))
+    
+    # Apply filters
+    if slot:
+        stmt = stmt.where(EquipmentItem.slot == slot)
+    if quality:
+        stmt = stmt.where(EquipmentItem.quality == quality)
+    if min_level:
+        stmt = stmt.where(EquipmentItem.base_ilvl >= min_level)
+    if max_level:
+        stmt = stmt.where(EquipmentItem.base_ilvl <= max_level)
+    
+    # Order by key descending (newest first)
+    stmt = stmt.order_by(EquipmentItem.key.desc())
+    
+    # Apply pagination
+    stmt = stmt.offset(skip).limit(limit)
+    
+    # Execute query
+    result = db.execute(stmt)
+    items = result.unique().scalars().all()
+    
+    # Convert to dict and process for frontend
+    processed_items = []
+    for item in items:
+        item_dict = item.to_dict()
+        # Convert quality to uppercase for frontend
+        item_dict['quality'] = item_dict['quality'].upper()
+        # Convert icon to icon_urls
+        item_dict['icon_urls'] = get_icon_urls(request, item_dict.get('icon'))
+        # Remove the raw icon field
+        item_dict.pop('icon', None)
+        processed_items.append(item_dict)
+    
+    return processed_items
 
-@router.get("/{item_key}")
+@router.get("/equipment/{item_key}")
 async def get_item(
-    request: Request,
     item_key: int,
+    request: Request,
+    ilvl: Optional[int] = None,
     db: Session = Depends(get_db)
 ) -> dict:
-    """Get a specific item by its key."""
-    try:
-        stmt = select(ItemDefinition).options(joinedload(ItemDefinition.stats)).where(ItemDefinition.key == item_key)
-        item = db.execute(stmt).scalar_one_or_none()
-        
-        if not item:
-            raise HTTPException(status_code=404, detail="Item not found")
-        
-        return {
-            "key": item.key,
-            "name": item.name,
-            "base_ilvl": item.base_ilvl,
-            "slot": item.slot,
-            "quality": item.quality,
-            "required_player_level": item.required_player_level,
-            "armour_type": item.armour_type,
-            "icon": item.icon,
-            "icon_urls": get_icon_urls(request, item.icon),
-            "stats": [
-                {
-                    "stat_name": stat.stat_name,
-                    "value": stat.get_value(item.base_ilvl)
-                }
-                for stat in item.stats
-            ]
-        }
-    except SQLAlchemyError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Database error occurred: {str(e)}"
-        )
+    """
+    Get a specific equipment item by its key.
+    Optionally specify an item level to get concrete stat values.
+    """
+    stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats)).where(EquipmentItem.key == item_key)
+    result = db.execute(stmt)
+    item = result.unique().scalar_one_or_none()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    item_dict = item.to_dict(ilvl)
+    # Convert quality to uppercase for frontend
+    item_dict['quality'] = item_dict['quality'].upper()
+    # Convert icon to icon_urls
+    item_dict['icon_urls'] = get_icon_urls(request, item_dict.get('icon'))
+    # Remove the raw icon field
+    item_dict.pop('icon', None)
+    
+    return item_dict
 
-@router.get("/{item_key}/concrete")
-async def get_concrete_item(
-    request: Request,
+@router.get("/equipment/{item_key}/stats")
+async def get_item_stats(
     item_key: int,
-    ilvl: int = Query(..., ge=1, description="Item level to get concrete stats for"),
+    ilvl: Optional[int] = None,
     db: Session = Depends(get_db)
 ) -> dict:
-    """Get a concrete version of an item at a specific item level."""
-    try:
-        # Get the item definition
-        stmt = select(ItemDefinition).options(joinedload(ItemDefinition.stats)).where(ItemDefinition.key == item_key)
-        item = db.execute(stmt).unique().scalar_one_or_none()
-        
-        if not item:
-            raise HTTPException(status_code=404, detail="Item not found")
-            
-        # Validate the item level
-        min_ilvl, max_ilvl = item.get_valid_ilvls()
-        if ilvl < min_ilvl:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Item level {ilvl} is below minimum {min_ilvl}"
-            )
-        if max_ilvl is not None and ilvl > max_ilvl:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Item level {ilvl} is above maximum {max_ilvl}"
-            )
-        
-        # Get concrete stats at the requested level
-        return {
-            "key": item.key,
-            "name": item.name,
-            "ilvl": ilvl,
-            "slot": item.slot,
-            "quality": item.quality,
-            "required_player_level": item.required_player_level,
-            "armour_type": item.armour_type,
-            "icon": item.icon,
-            "icon_urls": get_icon_urls(request, item.icon),
-            "stat_values": [
-                {
-                    "stat_name": stat.stat_name,
-                    "value": stat.get_value(ilvl)
-                }
-                for stat in item.stats  # This preserves order
-            ]
-        }
-        
-    except SQLAlchemyError as e:
-        logger.error(f"Database error occurred: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Database error occurred: {str(e)}"
-        )
-    except Exception as e:
-        logger.error(f"Unexpected error occurred: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error occurred: {str(e)}"
-        ) 
+    """
+    Get the stats for a specific equipment item at a given item level.
+    If no item level is provided, uses the base item level.
+    """
+    stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats)).where(EquipmentItem.key == item_key)
+    result = db.execute(stmt)
+    item = result.unique().scalar_one_or_none()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    return {
+        'key': item.key,
+        'name': item.name,
+        'ilvl': ilvl if ilvl is not None else item.base_ilvl,
+        'stats': item.get_stats_at_ilvl(ilvl)
+    }
+
+@router.get("/equipment/{item_key}/concrete")
+async def get_concrete_item(
+    item_key: int,
+    ilvl: Optional[int] = None,
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Get a specific equipment item with concrete stat values at a given item level.
+    Returns the item with stat_values array containing actual calculated values.
+    """
+    stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats)).where(EquipmentItem.key == item_key)
+    result = db.execute(stmt)
+    item = result.unique().scalar_one_or_none()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    # Get the concrete stat values at the specified level
+    effective_ilvl = ilvl if ilvl is not None else item.base_ilvl
+    stat_values = item.get_stats_at_ilvl(ilvl)
+    
+    # Format the response to match what the frontend expects
+    return {
+        'key': item.key,
+        'name': item.name,
+        'ilvl': effective_ilvl,
+        'stat_values': [
+            {
+                'stat_name': stat_name,
+                'value': value
+            }
+            for stat_name, value in stat_values.items()
+        ]
+    } 

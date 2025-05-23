@@ -3,7 +3,7 @@
      x-data="{ 
          buildName: 'New Build',
          isEditingName: false,
-         activePanel: window.location.pathname === '/database' ? 'items' : null,
+         activePanel: window.location.pathname === '/database' ? 'equipment' : null,
          isBuilderPage: window.location.pathname === '/builder',
          isDatabasePage: window.location.pathname === '/database',
          isBuildsPage: window.location.pathname === '/builds',
@@ -22,7 +22,7 @@
               $watch('isDatabasePage', value => {
                   console.log('Database page:', value);
                   if (value) {
-                      this.activePanel = 'items';
+                      this.activePanel = 'equipment';
                   }
               });
               $watch('isBuildsPage', value => console.log('Builds page:', value))"
@@ -118,10 +118,10 @@
         <!-- Database Navigation (shown on database page) -->
         <template x-if="isDatabasePage">
             <div class="flex justify-center space-x-4 py-2 border-t border-lotro-border">
-                <button @click="openPanel('items')" 
+                <button @click="openPanel('equipment')" 
                         class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"
-                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'items'}">
-                    Items
+                        :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'equipment'}">
+                    Equipment
                 </button>
                 <button @click="openPanel('traceries')"
                         class="text-gray-300 hover:text-lotro-gold px-3 py-1 rounded transition-colors duration-200"

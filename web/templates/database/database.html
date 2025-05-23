@@ -6,7 +6,7 @@
 <!-- Database Component -->
 <div id="database-component" 
      x-data="{ 
-         activePanel: window.location.pathname === '/database' ? 'items' : null
+         activePanel: window.location.pathname === '/database' ? 'equipment' : null
      }"
      @open-panel.window="activePanel = $event.detail"
      class="bg-lotro-darker">
@@ -15,7 +15,7 @@
     <div class="max-w-7xl mx-auto px-4 py-4">
         <!-- Panel Content -->
         <div>
-            {% include "database/components/items_panel.html" %}
+            {% include "database/components/equipment_panel.html" %}
             {% include "database/components/traceries_panel.html" %}
             {% include "database/components/sets_panel.html" %}
             {% include "database/components/essences_panel.html" %}

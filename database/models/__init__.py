@@ -2,13 +2,15 @@
 Database models package.
 """
 from .base import Base
-from .item import ItemDefinition, ItemStat
-from .progressions import ProgressionTable, TableValue
+from .progressions import ProgressionTable, TableValue, ProgressionType
+from .item import Item, EquipmentItem, ItemStat
 
 __all__ = [
     'Base',
-    'ItemDefinition',
-    'ItemStat',
     'ProgressionTable',
-    'TableValue'
+    'TableValue',
+    'ProgressionType',
+    'Item',
+    'EquipmentItem',
+    'ItemStat',
 ] 

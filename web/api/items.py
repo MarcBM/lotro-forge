@@ -7,11 +7,170 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, create_engine, func
+from enum import Enum
 
 from database.models.item import Item, EquipmentItem, Essence, ItemStat
 from database.models.dps import DpsTable
 from database.config import get_database_url
 from .services.ev_calculator import EVCalculator
+
+class EquipmentSlot(Enum):
+    """Equipment slot definitions for the builder and filtering."""
+    
+    # Jewelry Slots (top-left to bottom-right)
+    LEFT_EAR = "LEFT_EAR"
+    RIGHT_EAR = "RIGHT_EAR"
+    NECK = "NECK"
+    POCKET = "POCKET"
+    LEFT_WRIST = "LEFT_WRIST"
+    RIGHT_WRIST = "RIGHT_WRIST"
+    LEFT_FINGER = "LEFT_FINGER"
+    RIGHT_FINGER = "RIGHT_FINGER"
+    
+    # Armor Slots (top-left to bottom-right)
+    HEAD = "HEAD"
+    SHOULDERS = "SHOULDERS"
+    BACK = "BACK"
+    CHEST = "CHEST"
+    HANDS = "HANDS"
+    LEGS = "LEGS"
+    FEET = "FEET"
+    
+    # Bottom Row Slots
+    MAIN_HAND = "MAIN_HAND"
+    OFF_HAND = "OFF_HAND"
+    RANGED = "RANGED"
+    CLASS = "CLASS"
+
+# Equipment slot groupings for intelligent filtering
+JEWELRY_SLOTS = {
+    EquipmentSlot.LEFT_EAR.value, EquipmentSlot.RIGHT_EAR.value,
+    EquipmentSlot.NECK.value, EquipmentSlot.POCKET.value,
+    EquipmentSlot.LEFT_WRIST.value, EquipmentSlot.RIGHT_WRIST.value,
+    EquipmentSlot.LEFT_FINGER.value, EquipmentSlot.RIGHT_FINGER.value
+}
+
+ARMOR_SLOTS = {
+    EquipmentSlot.HEAD.value, EquipmentSlot.SHOULDERS.value,
+    EquipmentSlot.BACK.value, EquipmentSlot.CHEST.value,
+    EquipmentSlot.HANDS.value, EquipmentSlot.LEGS.value,
+    EquipmentSlot.FEET.value
+}
+
+WEAPON_SLOTS = {
+    EquipmentSlot.MAIN_HAND.value, EquipmentSlot.OFF_HAND.value,
+    EquipmentSlot.RANGED.value
+}
+
+CLASS_SLOTS = {
+    EquipmentSlot.CLASS.value
+}
+
+# Database slot to builder slot mapping
+# Maps what slot value exists in the database to which builder slots it can equip in
+DATABASE_TO_BUILDER_SLOTS = {
+    'EAR': [EquipmentSlot.LEFT_EAR.value, EquipmentSlot.RIGHT_EAR.value],
+    'NECK': [EquipmentSlot.NECK.value],
+    'WRIST': [EquipmentSlot.LEFT_WRIST.value, EquipmentSlot.RIGHT_WRIST.value],
+    'FINGER': [EquipmentSlot.LEFT_FINGER.value, EquipmentSlot.RIGHT_FINGER.value],
+    'POCKET': [EquipmentSlot.POCKET.value],
+    'HEAD': [EquipmentSlot.HEAD.value],
+    'SHOULDER': [EquipmentSlot.SHOULDERS.value],
+    'BACK': [EquipmentSlot.BACK.value],
+    'CHEST': [EquipmentSlot.CHEST.value],
+    'HAND': [EquipmentSlot.HANDS.value],
+    'LEGS': [EquipmentSlot.LEGS.value],
+    'FEET': [EquipmentSlot.FEET.value],
+    'EITHER_HAND': [EquipmentSlot.MAIN_HAND.value, EquipmentSlot.OFF_HAND.value],
+    'MAIN_HAND': [EquipmentSlot.MAIN_HAND.value],
+    'OFF_HAND': [EquipmentSlot.OFF_HAND.value],
+    'RANGED_ITEM': [EquipmentSlot.RANGED.value],
+    'CLASS_SLOT': [EquipmentSlot.CLASS.value]
+}
+
+# Filter bucket definitions - maps builder slot filters to database slots they should include
+# This determines what database slots to query when filtering by a builder slot
+FILTER_BUCKETS = {
+    # General buckets (show items that can equip in either specific slot)
+    'EAR': ['EAR', 'LEFT_EAR', 'RIGHT_EAR'],
+    'WRIST': ['WRIST', 'LEFT_WRIST', 'RIGHT_WRIST'], 
+    'FINGER': ['FINGER', 'LEFT_FINGER', 'RIGHT_FINGER'],
+    
+    # Specific builder slots
+    EquipmentSlot.LEFT_EAR.value: ['EAR', 'LEFT_EAR'],  # Items with EAR or LEFT_EAR can go in left ear
+    EquipmentSlot.RIGHT_EAR.value: ['EAR', 'RIGHT_EAR'],  # Items with EAR or RIGHT_EAR can go in right ear
+    EquipmentSlot.NECK.value: ['NECK'],
+    EquipmentSlot.LEFT_WRIST.value: ['WRIST', 'LEFT_WRIST'],  # Items with WRIST or LEFT_WRIST can go in left wrist
+    EquipmentSlot.RIGHT_WRIST.value: ['WRIST', 'RIGHT_WRIST'],  # Items with WRIST or RIGHT_WRIST can go in right wrist
+    EquipmentSlot.LEFT_FINGER.value: ['FINGER', 'LEFT_FINGER'],  # Items with FINGER or LEFT_FINGER can go in left finger
+    EquipmentSlot.RIGHT_FINGER.value: ['FINGER', 'RIGHT_FINGER'],  # Items with FINGER or RIGHT_FINGER can go in right finger
+    EquipmentSlot.POCKET.value: ['POCKET'],
+    EquipmentSlot.HEAD.value: ['HEAD'],
+    EquipmentSlot.SHOULDERS.value: ['SHOULDER'],
+    EquipmentSlot.BACK.value: ['BACK'],
+    EquipmentSlot.CHEST.value: ['CHEST'],
+    EquipmentSlot.HANDS.value: ['HAND'],
+    EquipmentSlot.LEGS.value: ['LEGS'],
+    EquipmentSlot.FEET.value: ['FEET'],
+    EquipmentSlot.MAIN_HAND.value: ['EITHER_HAND', 'MAIN_HAND'],  # Items with either slot can go in main hand
+    EquipmentSlot.OFF_HAND.value: ['EITHER_HAND', 'OFF_HAND'],  # Items with either slot can go in off hand
+    EquipmentSlot.RANGED.value: ['RANGED_ITEM'],
+    EquipmentSlot.CLASS.value: ['CLASS_SLOT']
+}
+
+# Ordered filter options for the equipment panel dropdown
+FILTER_OPTIONS = [
+    {'key': 'EAR', 'label': 'Ear'},
+    {'key': EquipmentSlot.LEFT_EAR.value, 'label': 'Left Ear'},
+    {'key': EquipmentSlot.RIGHT_EAR.value, 'label': 'Right Ear'},
+    {'key': EquipmentSlot.NECK.value, 'label': 'Neck'},
+    {'key': 'WRIST', 'label': 'Wrist'},
+    {'key': EquipmentSlot.LEFT_WRIST.value, 'label': 'Left Wrist'},
+    {'key': EquipmentSlot.RIGHT_WRIST.value, 'label': 'Right Wrist'},
+    {'key': 'FINGER', 'label': 'Finger'},
+    {'key': EquipmentSlot.LEFT_FINGER.value, 'label': 'Left Finger'},
+    {'key': EquipmentSlot.RIGHT_FINGER.value, 'label': 'Right Finger'},
+    {'key': EquipmentSlot.POCKET.value, 'label': 'Pocket'},
+    {'key': EquipmentSlot.HEAD.value, 'label': 'Head'},
+    {'key': EquipmentSlot.SHOULDERS.value, 'label': 'Shoulders'},
+    {'key': EquipmentSlot.BACK.value, 'label': 'Back'},
+    {'key': EquipmentSlot.CHEST.value, 'label': 'Chest'},
+    {'key': EquipmentSlot.HANDS.value, 'label': 'Hands'},
+    {'key': EquipmentSlot.LEGS.value, 'label': 'Legs'},
+    {'key': EquipmentSlot.FEET.value, 'label': 'Feet'},
+    {'key': EquipmentSlot.MAIN_HAND.value, 'label': 'Main Hand'},
+    {'key': EquipmentSlot.OFF_HAND.value, 'label': 'Off Hand'},
+    {'key': EquipmentSlot.RANGED.value, 'label': 'Ranged'},
+    {'key': EquipmentSlot.CLASS.value, 'label': 'Class'}
+]
+
+def get_compatible_database_slots(builder_slot: str) -> List[str]:
+    """
+    Get the database slot values that are compatible with a given builder slot.
+    
+    Args:
+        builder_slot: The builder slot name (e.g., 'LEFT_EAR', 'MAIN_HAND')
+        
+    Returns:
+        List of database slot values that can equip in the builder slot
+    """
+    compatible_slots = FILTER_BUCKETS.get(builder_slot, [])
+    logger.debug(f"Builder slot '{builder_slot}' maps to database slots: {compatible_slots}")
+    return compatible_slots
+
+def get_builder_slots_for_item(database_slot: str) -> List[str]:
+    """
+    Get the builder slot values where an item with the given database slot can be equipped.
+    
+    Args:
+        database_slot: The database slot value (e.g., 'EAR', 'EITHER_HAND')
+        
+    Returns:
+        List of builder slot values where the item can be equipped
+    """
+    builder_slots = DATABASE_TO_BUILDER_SLOTS.get(database_slot, [])
+    logger.debug(f"Database slot '{database_slot}' can equip in builder slots: {builder_slots}")
+    return builder_slots
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -127,7 +286,15 @@ async def list_items(
     
     # Apply filters to base query
     if slot:
-        base_query = base_query.where(EquipmentItem.slot == slot)
+        # Use intelligent filtering - get database slots compatible with the requested builder slot
+        compatible_slots = get_compatible_database_slots(slot)
+        if compatible_slots:
+            logger.debug(f"Filtering equipment for builder slot '{slot}' using database slots: {compatible_slots}")
+            base_query = base_query.where(EquipmentItem.slot.in_(compatible_slots))
+        else:
+            # Fallback to direct slot matching if no mapping found
+            logger.debug(f"No mapping found for slot '{slot}', using direct slot match")
+            base_query = base_query.where(EquipmentItem.slot == slot)
     if quality:
         base_query = base_query.where(EquipmentItem.quality == quality)
     if min_level:
@@ -276,6 +443,16 @@ async def get_equipment_slots(db: Session = Depends(get_db)) -> dict:
     except SQLAlchemyError as e:
         logger.error(f"Database error getting equipment slots: {e}")
         raise HTTPException(status_code=500, detail="Database error") 
+
+@router.get("/equipment/filter-options")
+async def get_equipment_filter_options() -> dict:
+    """
+    Get the ordered filter options for the equipment panel dropdown.
+    Returns filter buckets with their keys and display labels.
+    """
+    return {
+        "filter_options": FILTER_OPTIONS
+    }
 
 @router.get("/equipment/{item_key}")
 async def get_item(

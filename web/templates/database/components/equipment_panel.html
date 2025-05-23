@@ -12,8 +12,8 @@
                 @change="applyFilters()"
                 class="w-full bg-lotro-darker border border-lotro-border rounded-lg px-3 py-2 text-gray-300 focus:border-lotro-gold focus:outline-none">
             <option value="">All Slots</option>
-            <template x-for="slot in availableSlots" :key="slot">
-                <option :value="slot" x-text="slot"></option>
+            <template x-for="filterOption in filterOptions" :key="filterOption.key">
+                <option :value="filterOption.key" x-text="filterOption.label"></option>
             </template>
         </select>
     </div>
@@ -261,7 +261,7 @@ document.addEventListener('alpine:init', () => {
         
         // Filter state
         selectedSlot: '',
-        availableSlots: [],
+        filterOptions: [],
         
         // Sort state
         currentSort: 'ev',
@@ -337,15 +337,16 @@ document.addEventListener('alpine:init', () => {
 
         async loadAvailableSlots() {
             try {
-                const response = await fetch('/api/items/equipment/slots');
+                const response = await fetch('/api/items/equipment/filter-options');
                 if (!response.ok) {
-                    throw new Error('Failed to load slots');
+                    throw new Error('Failed to load filter options');
                 }
                 const data = await response.json();
-                this.availableSlots = data.slots;
+                this.filterOptions = data.filter_options;
+                console.log('Loaded filter options:', this.filterOptions);
             } catch (error) {
-                console.error('Error loading available slots:', error);
-                this.availableSlots = [];
+                console.error('Error loading filter options:', error);
+                this.filterOptions = [];
             }
         },
 

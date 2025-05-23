@@ -44,32 +44,56 @@
                 <div class="grid grid-cols-2 gap-1.5">
                     <!-- Left jewellery column -->
                     <div class="space-y-2">
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Left Ear -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="LEFT_EAR"
+                             @click="openEquipmentSlot('LEFT_EAR')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.LEFT_EAR"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Neck -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="NECK"
+                             @click="openEquipmentSlot('NECK')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.NECK"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Left Wrist -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="LEFT_WRIST"
+                             @click="openEquipmentSlot('LEFT_WRIST')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.LEFT_WRIST"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Left Finger -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="LEFT_FINGER"
+                             @click="openEquipmentSlot('LEFT_FINGER')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.LEFT_FINGER"></div>
                         </div>
                     </div>
                     <!-- Right jewellery column -->
                     <div class="space-y-2">
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Right Ear -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="RIGHT_EAR"
+                             @click="openEquipmentSlot('RIGHT_EAR')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.RIGHT_EAR"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Pocket -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="POCKET"
+                             @click="openEquipmentSlot('POCKET')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.POCKET"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Right Wrist -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="RIGHT_WRIST"
+                             @click="openEquipmentSlot('RIGHT_WRIST')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.RIGHT_WRIST"></div>
                         </div>
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                        <!-- Right Finger -->
+                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                             data-slot="RIGHT_FINGER"
+                             @click="openEquipmentSlot('RIGHT_FINGER')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.RIGHT_FINGER"></div>
                         </div>
                     </div>
                 </div>
@@ -90,7 +114,7 @@
                 <div class="grid grid-cols-2 gap-1.5">
                     <!-- Left armour column (skip second row) -->
                     <div class="space-y-2">
-                        <!-- HEAD slot -->
+                        <!-- Head slot -->
                         <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
                              data-slot="HEAD"
                              @click="openEquipmentSlot('HEAD')">
@@ -98,44 +122,44 @@
                         </div>
                         <!-- Skip second row -->
                         <div class="w-12 h-12"></div>
-                        <!-- SHOULDERS slot -->
+                        <!-- Shoulders slot -->
                         <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
                              data-slot="SHOULDERS"
                              @click="openEquipmentSlot('SHOULDERS')">
                             <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.SHOULDERS"></div>
                         </div>
-                        <!-- GLOVES slot -->
+                        <!-- Hands slot -->
                         <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                             data-slot="GLOVES"
-                             @click="openEquipmentSlot('GLOVES')">
-                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.GLOVES"></div>
+                             data-slot="HANDS"
+                             @click="openEquipmentSlot('HANDS')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.HANDS"></div>
                         </div>
                     </div>
                     <!-- Right armour column -->
                     <div class="space-y-2">
-                        <!-- BACK slot -->
+                        <!-- Back slot -->
                         <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
                              data-slot="BACK"
                              @click="openEquipmentSlot('BACK')">
                             <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.BACK"></div>
                         </div>
-                        <!-- CHEST slot -->
+                        <!-- Chest slot -->
                         <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
                              data-slot="CHEST"
                              @click="openEquipmentSlot('CHEST')">
                             <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.CHEST"></div>
                         </div>
-                        <!-- LEGS slot -->
+                        <!-- Legs slot -->
                         <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
                              data-slot="LEGS"
                              @click="openEquipmentSlot('LEGS')">
                             <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.LEGS"></div>
                         </div>
-                        <!-- BOOTS slot -->
+                        <!-- Feet slot -->
                         <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                             data-slot="BOOTS"
-                             @click="openEquipmentSlot('BOOTS')">
-                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.BOOTS"></div>
+                             data-slot="FEET"
+                             @click="openEquipmentSlot('FEET')">
+                            <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.FEET"></div>
                         </div>
                     </div>
                 </div>
@@ -145,17 +169,29 @@
         <!-- Bottom Row: Weapons and Class Items -->
         <div class="flex justify-center">
             <div class="flex gap-4">
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                <!-- Main Hand -->
+                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                     data-slot="MAIN_HAND"
+                     @click="openEquipmentSlot('MAIN_HAND')">
+                    <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.MAIN_HAND"></div>
                 </div>
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                <!-- Off Hand -->
+                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                     data-slot="OFF_HAND"
+                     @click="openEquipmentSlot('OFF_HAND')">
+                    <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.OFF_HAND"></div>
                 </div>
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                <!-- Ranged -->
+                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                     data-slot="RANGED"
+                     @click="openEquipmentSlot('RANGED')">
+                    <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.RANGED"></div>
                 </div>
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
+                <!-- Class -->
+                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+                     data-slot="CLASS"
+                     @click="openEquipmentSlot('CLASS')">
+                    <div class="w-2 h-2 bg-gray-600 rounded" x-show="!build.CLASS"></div>
                 </div>
             </div>
         </div>

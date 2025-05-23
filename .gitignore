@@ -53,3 +53,4 @@ build/
 # Generated files
 web/static/icons/
 web/static/images/
+*.log

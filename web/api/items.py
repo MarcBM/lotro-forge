@@ -11,6 +11,7 @@ from sqlalchemy import select, create_engine, func
 from database.models.item import Item, EquipmentItem, Essence, ItemStat
 from database.models.dps import DpsTable
 from database.config import get_database_url
+from .services.ev_calculator import EVCalculator
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -112,7 +113,7 @@ async def list_items(
     quality: Optional[str] = None,
     min_level: Optional[int] = None,
     max_level: Optional[int] = None,
-    sort: Optional[str] = Query(None, description="Sort by: name, base_ilvl (default: recent/reverse key)"),
+    sort: Optional[str] = Query(None, description="Sort by: name, base_ilvl, ev (default: recent/reverse key)"),
     limit: int = Query(99, ge=1, le=200),
     skip: int = Query(0, ge=0),
     db: Session = Depends(get_db)
@@ -139,42 +140,123 @@ async def list_items(
     total_result = db.execute(count_query)
     total_count = total_result.scalar()
     
-    # Build query for items with pagination and joins
+    # Build query for items with joins
     items_query = base_query.options(joinedload(EquipmentItem.stats))
     
-    # Apply sorting
-    if sort == "name":
-        items_query = items_query.order_by(EquipmentItem.name)
-    elif sort == "base_ilvl":
-        items_query = items_query.order_by(EquipmentItem.base_ilvl.desc())
+    # For EV sorting, we need to get ALL matching items to sort properly
+    if sort == "ev":
+        # Get all matching items (no pagination yet)
+        all_items_result = db.execute(items_query)
+        all_items = all_items_result.unique().scalars().all()
+        
+        # Initialize EV calculator
+        ev_calculator = EVCalculator(db)
+        
+        # Calculate EV for all items and create processed items list
+        processed_items = []
+        for item in all_items:
+            item_dict = item.to_dict()
+            # Convert quality to uppercase for frontend
+            item_dict['quality'] = item_dict['quality'].upper()
+            # Convert icon to icon_urls
+            item_dict['icon_urls'] = get_icon_urls(request, item_dict.get('icon'))
+            # Remove the raw icon field
+            item_dict.pop('icon', None)
+            
+            # Calculate EV for this item at its base level
+            try:
+                # Get concrete stat values at base level
+                stat_values = []
+                for stat in item.stats:
+                    stat_values.append({
+                        'stat_name': stat.stat_name,
+                        'value': stat.get_value(item.base_ilvl)
+                    })
+                
+                # Calculate EV including sockets
+                ev_score = ev_calculator.calculate_equipment_ev(stat_values, item.socket_summary)
+                item_dict['ev'] = f"{ev_score:.2f}"
+                item_dict['ev_numeric'] = ev_score  # For sorting
+            except Exception as e:
+                logger.warning(f"Failed to calculate EV for item {item.key}: {e}")
+                item_dict['ev'] = "0.00"
+                item_dict['ev_numeric'] = 0.0
+            
+            processed_items.append(item_dict)
+        
+        # Sort all items by EV
+        processed_items.sort(key=lambda x: x['ev_numeric'], reverse=True)
+        
+        # Apply pagination to the sorted results
+        paginated_items = processed_items[skip:skip + limit]
+        
+        # Remove the temporary ev_numeric field
+        for item in paginated_items:
+            item.pop('ev_numeric', None)
+            
+        return {
+            "items": paginated_items,
+            "total": total_count,
+            "limit": limit,
+            "skip": skip
+        }
+    
     else:
-        # Default: recent (reverse key order)
-        items_query = items_query.order_by(EquipmentItem.key.desc())
-    
-    items_query = items_query.offset(skip).limit(limit)
-    
-    # Execute items query - this will return EquipmentItem or Weapon objects based on polymorphism
-    result = db.execute(items_query)
-    items = result.unique().scalars().all()
-    
-    # Convert to dict and process for frontend
-    processed_items = []
-    for item in items:
-        item_dict = item.to_dict()
-        # Convert quality to uppercase for frontend
-        item_dict['quality'] = item_dict['quality'].upper()
-        # Convert icon to icon_urls
-        item_dict['icon_urls'] = get_icon_urls(request, item_dict.get('icon'))
-        # Remove the raw icon field
-        item_dict.pop('icon', None)
-        processed_items.append(item_dict)
-    
-    return {
-        "items": processed_items,
-        "total": total_count,
-        "limit": limit,
-        "skip": skip
-    }
+        # For non-EV sorting, use database-level sorting and pagination as before
+        # Apply database-level sorting
+        if sort == "name":
+            items_query = items_query.order_by(EquipmentItem.name)
+        elif sort == "base_ilvl":
+            items_query = items_query.order_by(EquipmentItem.base_ilvl.desc())
+        else:
+            # Default: recent (reverse key order)
+            items_query = items_query.order_by(EquipmentItem.key.desc())
+        
+        items_query = items_query.offset(skip).limit(limit)
+        
+        # Execute items query
+        result = db.execute(items_query)
+        items = result.unique().scalars().all()
+        
+        # Initialize EV calculator
+        ev_calculator = EVCalculator(db)
+        
+        # Convert to dict and process for frontend
+        processed_items = []
+        for item in items:
+            item_dict = item.to_dict()
+            # Convert quality to uppercase for frontend
+            item_dict['quality'] = item_dict['quality'].upper()
+            # Convert icon to icon_urls
+            item_dict['icon_urls'] = get_icon_urls(request, item_dict.get('icon'))
+            # Remove the raw icon field
+            item_dict.pop('icon', None)
+            
+            # Calculate EV for this item at its base level
+            try:
+                # Get concrete stat values at base level
+                stat_values = []
+                for stat in item.stats:
+                    stat_values.append({
+                        'stat_name': stat.stat_name,
+                        'value': stat.get_value(item.base_ilvl)
+                    })
+                
+                # Calculate EV including sockets
+                ev_score = ev_calculator.calculate_equipment_ev(stat_values, item.socket_summary)
+                item_dict['ev'] = f"{ev_score:.2f}"
+            except Exception as e:
+                logger.warning(f"Failed to calculate EV for item {item.key}: {e}")
+                item_dict['ev'] = "0.00"
+            
+            processed_items.append(item_dict)
+        
+        return {
+            "items": processed_items,
+            "total": total_count,
+            "limit": limit,
+            "skip": skip
+        }
 
 @router.get("/equipment/slots")
 async def get_equipment_slots(db: Session = Depends(get_db)) -> dict:
@@ -292,13 +374,24 @@ async def get_concrete_item(
             'value': stat.get_value(effective_ilvl)
         })
     
+    # Calculate EV for this item at the effective level
+    ev_calculator = EVCalculator(db)
+    try:
+        ev_score = ev_calculator.calculate_equipment_ev(stat_values, item.socket_summary)
+        ev_string = f"{ev_score:.2f}"
+    except Exception as e:
+        logger.warning(f"Failed to calculate EV for item {item.key} at ilvl {effective_ilvl}: {e}")
+        ev_string = "0.00"
+    
     # Format the response to match what the frontend expects
     response = {
         'key': item.key,
         'name': item.name,
         'ilvl': effective_ilvl,
         'stat_values': stat_values,
-        'item_type': item.item_type
+        'item_type': item.item_type,
+        'sockets': item.socket_summary,  # Add socket information
+        'ev': ev_string  # Add calculated EV
     }
     
     # If this is a weapon, add weapon-specific data

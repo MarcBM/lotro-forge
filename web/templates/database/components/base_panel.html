@@ -33,8 +33,8 @@
 
 <div x-data="databasePanel('{{ panel_id }}')"
      x-show="activePanel === '{{ panel_id }}'" 
-     @update-pagination.window="handlePaginationUpdate($event.detail)"
-     @reset-pagination.window="handlePaginationReset()"
+     @update-pagination-{{ panel_id }}.window="handlePaginationUpdate($event.detail)"
+     @reset-pagination-{{ panel_id }}.window="handlePaginationReset()"
      @set-sort.window="if($event.detail.panelId === undefined || $event.detail.panelId === '{{ panel_id }}') { sortBy = $event.detail.sortBy }"
      class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
     
@@ -66,6 +66,7 @@
                             <option value="recent">Recent</option>
                             <option value="name">Name</option>
                             <option value="base_ilvl">Base iLvl</option>
+                            <option value="ev" x-show="'{{ panel_id }}' === 'equipment'">Essence Value</option>
                         </select>
                     </div>
                 </div>
@@ -128,7 +129,7 @@ document.addEventListener('alpine:init', () => {
         limit: 99,
         items: [], // Add items array to track total items
         totalResults: null, // Track total results count
-        sortBy: 'recent', // Default sort option
+        sortBy: panelId === 'equipment' ? 'ev' : 'recent', // Default sort option
 
         handlePaginationUpdate(detail) {
             this.hasMore = detail.hasMore;

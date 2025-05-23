@@ -153,12 +153,87 @@ class EquipmentItem(Item):
     armour_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, index=True)  # e.g. "HEAVY", "MEDIUM", "LIGHT"
     scaling: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     
+    # Socket counts - count of each socket type on this equipment
+    sockets_basic: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    sockets_primary: Mapped[int] = mapped_column(Integer, nullable=False, default=0) 
+    sockets_vital: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    sockets_cloak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    sockets_necklace: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    sockets_pvp: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    
+    # Socket type mapping for parsing XML strings
+    SOCKET_TYPE_MAPPING = {
+        'S': 'basic',
+        'P': 'primary', 
+        'V': 'vital',
+        'C': 'cloak',
+        'N': 'necklace',
+        'W': 'pvp'
+    }
+    
     __mapper_args__ = {
         'polymorphic_identity': 'equipment',
     }
     
     def __repr__(self) -> str:
         return f"<EquipmentItem(key={self.key}, name='{self.name}')>"
+    
+    @classmethod
+    def parse_socket_string(cls, socket_string: Optional[str]) -> Dict[str, int]:
+        """
+        Parse a socket string from XML into socket counts.
+        
+        Args:
+            socket_string: String like "PVS", "PVSSS", "3", or "P2V" representing socket types
+                          - Letters represent specific socket types (P=Primary, V=Vital, etc.)
+                          - Numbers represent that many basic sockets
+            
+        Returns:
+            Dict mapping socket type names to their counts
+        """
+        socket_counts = {
+            'basic': 0,
+            'primary': 0,
+            'vital': 0,
+            'cloak': 0,
+            'necklace': 0,
+            'pvp': 0
+        }
+        
+        if not socket_string:
+            return socket_counts
+            
+        # Count each socket type
+        for socket_char in socket_string:
+            if socket_char.isdigit():
+                # Numbers represent basic sockets
+                socket_counts['basic'] += int(socket_char)
+            else:
+                # Letters represent specific socket types
+                socket_type = cls.SOCKET_TYPE_MAPPING.get(socket_char)
+                if socket_type:
+                    socket_counts[socket_type] += 1
+                
+        return socket_counts
+    
+    @property
+    def total_sockets(self) -> int:
+        """Get the total number of sockets on this equipment."""
+        return (self.sockets_basic + self.sockets_primary + self.sockets_vital +
+                self.sockets_cloak + self.sockets_necklace + self.sockets_pvp)
+    
+    @property
+    def socket_summary(self) -> Dict[str, int]:
+        """Get a summary of all sockets on this equipment."""
+        return {
+            'basic': self.sockets_basic,
+            'primary': self.sockets_primary,
+            'vital': self.sockets_vital,
+            'cloak': self.sockets_cloak,
+            'necklace': self.sockets_necklace,
+            'pvp': self.sockets_pvp,
+            'total': self.total_sockets
+        }
     
     def to_dict(self, ilvl: Optional[int] = None) -> Dict:
         """
@@ -170,8 +245,9 @@ class EquipmentItem(Item):
             'slot': self.slot,
             'armour_type': self.armour_type,
             'scaling': self.scaling,
+            'sockets': self.socket_summary
         })
-        return result 
+        return result
 
 class Weapon(EquipmentItem):
     """

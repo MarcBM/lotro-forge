@@ -85,4 +85,36 @@
 <stat name="CRITICAL_RATING" scaling="1879211992"/>
 </stats>
 </item>
+<item key="1879481272" name="The Drowned Remnant" icon="1092941306-1090519045-1091947416" level="525" slot="BACK" category="ARMOUR" class="45" equipmentCategory="18" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="40" sturdiness="NORMAL" quality="LEGENDARY" minLevel="150" maxLevel="159" valueTableId="1879049501" slots="C" scaling="Item_Level#150-150" armourType="LIGHT">
+<stats>
+<stat name="VITALITY" scaling="1879278090"/>
+<stat name="CRITICAL_RATING" scaling="1879211605"/>
+<stat name="AGILITY" scaling="1879211555"/>
+<stat name="FINESSE" scaling="1879211722"/>
+<stat name="ARMOUR" scaling="1879099343"/>
+</stats>
+</item>
+<item key="1879483076" name="Keen Jet-studded Necklace" icon="1092942413-1090519044-1091947416" level="522" slot="NECK" category="ITEM" class="49" equipmentCategory="23" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="80" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879050115" slots="PN">
+<stats>
+<stat name="VITALITY" scaling="1879211544"/>
+<stat name="CRITICAL_RATING" scaling="1879344810"/>
+</stats>
+</item>
+<item key="1879476626" name="Guardsman's Reinforced Shoes of the Moors" icon="1091718009-1090519043-1091947416" level="510" slot="FEET" category="ARMOUR" class="23" equipmentCategory="18" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="30" sturdiness="NORMAL" quality="RARE" minLevel="150" requiredGloryRank="1" valueTableId="1879050219" slots="W" scaling="Advancement_Level#150-" armourType="LIGHT">
+<stats>
+<stat name="VITALITY" scaling="1879211533"/>
+<stat name="PHYSICAL_MITIGATION" scaling="1879215069"/>
+<stat name="TACTICAL_MITIGATION" scaling="1879215053"/>
+<stat name="ARMOUR" scaling="1879054353"/>
+</stats>
+<effect type="ON_EQUIP" id="1879231349" name="DNT - Audacity - 1"/>
+</item>
+<item key="1879496530" name="Glimmering Silver Bracelet" icon="1093003775-1090519044-1091947416" level="530" slot="WRIST" category="ITEM" class="49" equipmentCategory="30" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="80" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879049907" slots="1" scaling="ze_skirmish_level#141-:1879471069">
+<stats>
+<stat name="VITALITY" scaling="1879347269"/>
+<stat name="MIGHT" scaling="1879211573"/>
+<stat name="FATE" scaling="1879211541"/>
+<stat name="FINESSE" scaling="1879211720"/>
+</stats>
+</item>
 </items>

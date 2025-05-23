@@ -23,26 +23,26 @@
 {% set results_content %}
 <!-- Equipment Grid -->
 <div class="grid grid-cols-3 gap-4">
-    <template x-for="(equipment, index) in equipment" :key="equipment.key">
+    <template x-for="(item, index) in equipment" :key="item.key">
         <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
-             @click="selectEquipment(equipment)">
+             @click="selectEquipment(item)">
             <!-- Equipment Key -->
             <div class="absolute top-1 left-1 text-xs text-gray-500" 
-                 x-text="equipment.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
+                 x-text="item.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
             
             <!-- Main Content -->
             <div class="flex items-center gap-3 h-full pt-2">
                 <!-- Equipment Icon (layered) -->
                 <div class="w-10 h-10 flex-shrink-0 relative">
-                    <template x-if="equipment.icon_urls">
-                        <template x-for="(url, i) in [...equipment.icon_urls].reverse()" :key="i">
+                    <template x-if="item.icon_urls">
+                        <template x-for="(url, i) in [...item.icon_urls].reverse()" :key="i">
                             <img :src="url" 
                                  :alt="'Equipment icon layer ' + (i + 1)"
                                  class="absolute inset-0 w-full h-full object-contain"
                                  @error="$el.style.display='none'">
                         </template>
                     </template>
-                    <template x-if="!equipment.icon_urls">
+                    <template x-if="!item.icon_urls">
                         <div class="w-full h-full bg-gray-700 rounded"></div>
                     </template>
                 </div>
@@ -50,18 +50,19 @@
                 <!-- Equipment Name -->
                 <h3 class="text-sm font-medium line-clamp-2 leading-tight flex-1"
                     :class="{
-                        'text-white': equipment.quality === 'COMMON',
-                        'text-yellow-300': equipment.quality === 'UNCOMMON',
-                        'text-purple-400': equipment.quality === 'RARE',
-                        'text-teal-400': equipment.quality === 'INCOMPARABLE',
-                        'text-orange-400': equipment.quality === 'LEGENDARY'
+                        'text-white': item.quality === 'COMMON',
+                        'text-yellow-300': item.quality === 'UNCOMMON',
+                        'text-purple-400': item.quality === 'RARE',
+                        'text-teal-400': item.quality === 'INCOMPARABLE',
+                        'text-orange-400': item.quality === 'LEGENDARY'
                     }"
-                    x-text="equipment.name"></h3>
+                    x-text="item.name"></h3>
             </div>
             
             <!-- EV Value -->
-            <div class="absolute bottom-1 right-2 text-sm text-gray-400">
-                <span x-text="(equipment.ev || '0.00')"></span>
+            <div class="absolute bottom-1 right-2 text-sm font-medium"
+                 :class="testMode ? getTestColorClass(index) : getEvColorClass(item.ev)">
+                <span x-text="(item.ev || '0.00')"></span>
             </div>
         </div>
     </template>
@@ -130,7 +131,9 @@
                         <span x-text="selectedEquipment.slot"></span>
                     </template>
                 </div>
-                <div x-text="(selectedEquipment.ev || '0.00')"></div>
+                <div class="text-gray-500 font-medium"
+                     :class="testMode ? 'text-purple-400' : getEvColorClass(selectedEquipment.ev)"
+                     x-text="(selectedEquipment.ev || '0.00')"></div>
             </div>
             
             <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
@@ -166,12 +169,66 @@
                 </div>
             </div>
             
+            <!-- Socket Information -->
+            <template x-if="selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.total > 0">
+                <div class="flex flex-wrap gap-2 mt-2 justify-end">
+                    <!-- Socket icons in order: Necklace > Cloak > Primary > Vital > Basic > PVP -->
+                    
+                    <!-- Necklace sockets (type 20) -->
+                    <template x-for="i in selectedEquipment.sockets.necklace || 0" :key="'necklace-' + i">
+                        <div class="w-8 h-8 relative flex-shrink-0">
+                            <img src="/static/icons/sockets/background-20.png" alt="Necklace socket background" class="absolute inset-0 w-full h-full">
+                            <img src="/static/icons/sockets/overlay-20.png" alt="Necklace socket overlay" class="absolute inset-0 w-full h-full">
+                        </div>
+                    </template>
+                    
+                    <!-- Cloak sockets (type 19) -->
+                    <template x-for="i in selectedEquipment.sockets.cloak || 0" :key="'cloak-' + i">
+                        <div class="w-8 h-8 relative flex-shrink-0">
+                            <img src="/static/icons/sockets/background-19.png" alt="Cloak socket background" class="absolute inset-0 w-full h-full">
+                            <img src="/static/icons/sockets/overlay-19.png" alt="Cloak socket overlay" class="absolute inset-0 w-full h-full">
+                        </div>
+                    </template>
+                    
+                    <!-- Primary sockets (type 22) -->
+                    <template x-for="i in selectedEquipment.sockets.primary || 0" :key="'primary-' + i">
+                        <div class="w-8 h-8 relative flex-shrink-0">
+                            <img src="/static/icons/sockets/background-22.png" alt="Primary socket background" class="absolute inset-0 w-full h-full">
+                            <img src="/static/icons/sockets/overlay-22.png" alt="Primary socket overlay" class="absolute inset-0 w-full h-full">
+                        </div>
+                    </template>
+                    
+                    <!-- Vital sockets (type 23) -->
+                    <template x-for="i in selectedEquipment.sockets.vital || 0" :key="'vital-' + i">
+                        <div class="w-8 h-8 relative flex-shrink-0">
+                            <img src="/static/icons/sockets/background-23.png" alt="Vital socket background" class="absolute inset-0 w-full h-full">
+                            <img src="/static/icons/sockets/overlay-23.png" alt="Vital socket overlay" class="absolute inset-0 w-full h-full">
+                        </div>
+                    </template>
+                    
+                    <!-- Basic sockets (type 1) -->
+                    <template x-for="i in selectedEquipment.sockets.basic || 0" :key="'basic-' + i">
+                        <div class="w-8 h-8 relative flex-shrink-0">
+                            <img src="/static/icons/sockets/background-1.png" alt="Basic socket background" class="absolute inset-0 w-full h-full">
+                            <img src="/static/icons/sockets/overlay-1.png" alt="Basic socket overlay" class="absolute inset-0 w-full h-full">
+                        </div>
+                    </template>
+                    
+                    <!-- PVP sockets (type 18) -->
+                    <template x-for="i in selectedEquipment.sockets.pvp || 0" :key="'pvp-' + i">
+                        <div class="w-8 h-8 relative flex-shrink-0">
+                            <img src="/static/icons/sockets/background-18.png" alt="PVP socket background" class="absolute inset-0 w-full h-full">
+                            <img src="/static/icons/sockets/overlay-18.png" alt="PVP socket overlay" class="absolute inset-0 w-full h-full">
+                        </div>
+                    </template>
+                </div>
+            </template>
+            
             <!-- Missing Features Placeholder -->
             <div class="border-t border-orange-600/30 pt-3 mt-4">
                 <div class="bg-orange-900/20 border border-orange-600/30 rounded-lg p-3">
                     <h4 class="text-sm font-medium text-orange-400 mb-2">⚠️ Missing Features</h4>
                     <div class="text-xs text-orange-300/80 space-y-1">
-                        <div>• Socket support (essence slots)</div>
                         <div>• Class restrictions (Guardian, Captain, etc.)</div>
                         <div>• Set bonuses and set piece references</div>
                         <div>• Source information (where to obtain)</div>
@@ -200,8 +257,8 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('equipmentPanel', () => ({
         searchQuery: '',
         equipment: [],
-        selectedEquipment: null,
-        concreteEquipment: null,
+        selectedEquipment: false,
+        concreteEquipment: false,
         loading: false,
         
         // Filter state
@@ -209,13 +266,26 @@ document.addEventListener('alpine:init', () => {
         availableSlots: [],
         
         // Sort state
-        currentSort: 'recent',
+        currentSort: 'ev',
+        
+        // Test mode
+        testMode: false,
         
         init() {
             // Initialize with empty array to ensure reactivity
             this.equipment = [];
+            
+            // Force reset selectedSlot to prevent browser form persistence
+            this.selectedSlot = '';
+            
             // Load available slots for filter dropdown
             this.loadAvailableSlots();
+            
+            // Initialize currentSort to 'ev' (default for equipment)
+            this.currentSort = 'ev';
+            
+            console.log('Equipment panel init - selectedSlot:', this.selectedSlot);
+            
             // Initial load with a fixed limit of 99 (multiple of 3)
             this.loadEquipment(0, 99);
             
@@ -223,6 +293,31 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('load-more', this.handleLoadMore.bind(this));
             // Listen for sort-change events from the base panel
             window.addEventListener('sort-change', this.handleSortChange.bind(this));
+            
+            // Debug: Add keyboard shortcut to toggle test mode (Press 'T' key)
+            // Use a flag to prevent multiple listeners
+            if (!window.evTestModeListenerAttached) {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 't' || e.key === 'T') {
+                        e.preventDefault(); // Prevent any default behavior
+                        this.testMode = !this.testMode;
+                        console.log('EV Color Test Mode:', this.testMode ? 'ENABLED' : 'DISABLED');
+                    }
+                });
+                window.evTestModeListenerAttached = true;
+            }
+            
+            // Debug: Log EV values after loading
+            this.$watch('equipment', (newEquipment) => {
+                if (newEquipment.length > 0) {
+                    console.log('Equipment loaded with EV values:', 
+                        newEquipment.slice(0, 5).map(item => ({
+                            name: item.name.substring(0, 20),
+                            ev: item.ev
+                        }))
+                    );
+                }
+            });
         },
 
         async loadAvailableSlots() {
@@ -240,19 +335,31 @@ document.addEventListener('alpine:init', () => {
         },
 
         applyFilters() {
+            console.log('applyFilters called - selectedSlot:', this.selectedSlot);
+            
             // Reset to first page and reload with filters
             this.equipment = [];
+            // Clear selected equipment when filters change
+            this.clearSelection();
             // Reset pagination state to indicate this is a fresh search
-            this.$dispatch('reset-pagination');
+            this.$dispatch('reset-pagination-equipment');
             this.loadEquipment(0, 99);
         },
 
+        clearSelection() {
+            // Gracefully clear selection to avoid template errors
+            this.selectedEquipment = false;
+            this.concreteEquipment = false;
+        },
+
         handleLoadMore(event) {
+            console.log('handleLoadMore called for panelId:', event.detail.panelId);
             if (event.detail.panelId !== 'equipment') return;
             this.loadMoreEquipment(event.detail.offset, event.detail.limit);
         },
 
         handleSortChange(event) {
+            console.log('handleSortChange called for panelId:', event.detail.panelId, 'sortBy:', event.detail.sortBy);
             if (event.detail.panelId !== 'equipment') return;
             this.currentSort = event.detail.sortBy;
             this.applyFilters(); // Reload with new sort
@@ -269,8 +376,8 @@ document.addEventListener('alpine:init', () => {
                 params.append('slot', this.selectedSlot);
             }
             
-            // Add sort parameter
-            if (this.currentSort && this.currentSort !== 'recent') {
+            // Add sort parameter - always include it since EV is now the default
+            if (this.currentSort) {
                 params.append('sort', this.currentSort);
             }
             
@@ -280,18 +387,26 @@ document.addEventListener('alpine:init', () => {
         async loadEquipment(offset, limit) {
             if (this.loading) return;
             
+            console.log('loadEquipment called with offset:', offset, 'limit:', limit, 'selectedSlot:', this.selectedSlot, 'currentSort:', this.currentSort);
+            
             try {
                 this.loading = true;
-                const response = await fetch(this.buildApiUrl(offset, limit));
+                const url = this.buildApiUrl(offset, limit);
+                console.log('Making API call to:', url);
+                
+                const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error('Failed to load equipment');
                 }
                 
                 const data = await response.json();
+                console.log('API response - items count:', data.items.length, 'total:', data.total);
+                
                 // Use Alpine's reactive array update
                 this.equipment = data.items;
                 // Update pagination state in the base panel
-                this.$dispatch('update-pagination', { 
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
                     hasMore: data.items.length === limit,
                     offset: offset + limit,
                     newItems: data.items,
@@ -300,7 +415,8 @@ document.addEventListener('alpine:init', () => {
             } catch (error) {
                 console.error('Error loading equipment:', error);
                 this.equipment = [];
-                this.$dispatch('update-pagination', { 
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
                     hasMore: false,
                     offset: offset,
                     newItems: [],
@@ -325,7 +441,8 @@ document.addEventListener('alpine:init', () => {
                 // Use Alpine's reactive array update
                 this.equipment = [...this.equipment, ...data.items];
                 // Update pagination state in the base panel
-                this.$dispatch('update-pagination', { 
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
                     hasMore: data.items.length === limit,
                     offset: offset + limit,
                     newItems: data.items,
@@ -333,7 +450,8 @@ document.addEventListener('alpine:init', () => {
                 });
             } catch (error) {
                 console.error('Error loading more equipment:', error);
-                this.$dispatch('update-pagination', { 
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
                     hasMore: false,
                     offset: offset,
                     newItems: [],
@@ -354,8 +472,70 @@ document.addEventListener('alpine:init', () => {
                 this.concreteEquipment = await response.json();
             } catch (error) {
                 console.error('Error loading concrete equipment:', error);
-                this.concreteEquipment = null;
+                this.concreteEquipment = false;
             }
+        },
+
+        getEvColorClass(ev) {
+            // Safety checks first
+            if (!ev) return 'text-gray-400';
+            if (!this.equipment || !Array.isArray(this.equipment) || this.equipment.length === 0) {
+                return 'text-gray-400';
+            }
+            
+            const evValue = parseFloat(ev);
+            if (isNaN(evValue)) return 'text-gray-400';
+            
+            // Get all EV values from current equipment set to determine range
+            const evValues = this.equipment
+                .map(item => parseFloat(item.ev || 0))
+                .filter(value => !isNaN(value) && value > 0);
+            
+            if (evValues.length === 0) return 'text-gray-400';
+            
+            // Get min and max values for range calculation
+            const minEV = Math.min(...evValues);
+            const maxEV = Math.max(...evValues);
+            const range = maxEV - minEV;
+            
+            // Reduced debug logging
+            if (Math.random() < 0.005) {
+                console.log('EV Color Debug (Range-based):', {
+                    currentEV: evValue,
+                    min: minEV,
+                    max: maxEV,
+                    range: range,
+                    position: range > 0 ? (evValue - minEV) / range : 0
+                });
+            }
+            
+            // If range is too small, all items get neutral color
+            if (range < 0.1) {
+                return 'text-yellow-500';
+            }
+            
+            // Calculate where this value falls in the range (0.0 to 1.0)
+            const position = (evValue - minEV) / range;
+            
+            // Apply colors based on position in range
+            if (position < 0.1) {
+                return 'text-red-500';      // Bottom 10% of range
+            } else if (position < 0.3) {
+                return 'text-orange-500';   // 10-30% of range
+            } else if (position < 0.5) {
+                return 'text-yellow-500';   // 30-50% of range
+            } else if (position < 0.7) {
+                return 'text-lime-500';     // 50-70% of range
+            } else if (position < 0.9) {
+                return 'text-green-500';    // 70-90% of range
+            } else {
+                return 'text-teal-500';     // Top 10% of range
+            }
+        },
+
+        getTestColorClass(index) {
+            const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400', 'text-teal-400'];
+            return colors[index % colors.length];
         }
     }));
 });

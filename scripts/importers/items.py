@@ -22,6 +22,8 @@ class ItemData:
     armour_type: Optional[str]
     scaling: Optional[str]
     stats: List[Tuple[str, str, int]]  # (stat_name, value_table_id, order)
+    # Socket string from XML
+    sockets: Optional[str] = None  # e.g. "PVS" or "PVSSS"
     # Weapon-specific fields
     category: Optional[str] = None  # "WEAPON" vs "ARMOUR" vs "ITEM" vs "ESSENCE"
     dps: Optional[float] = None
@@ -129,6 +131,8 @@ class ItemImporter(BaseImporter):
                 armour_type=item_elem.get("armourType"),  # Note: might be armourType in XML
                 scaling=item_elem.get("scaling"),
                 stats=stats,
+                # Socket string from XML
+                sockets=item_elem.get("slots"),  # XML attribute is "slots"
                 # Weapon-specific fields
                 category=item_elem.get("category"),
                 dps=float(item_elem.get("dps")) if item_elem.get("dps") else None,
@@ -178,6 +182,9 @@ class ItemImporter(BaseImporter):
                     item_stats.append(stat)
                     
             elif item.category == "WEAPON":
+                # Parse socket counts from socket string
+                socket_counts = EquipmentItem.parse_socket_string(item.sockets)
+                
                 # Create weapon item
                 equipment_item = Weapon(
                     key=item.key,
@@ -188,6 +195,13 @@ class ItemImporter(BaseImporter):
                     slot=item.slot,
                     armour_type=item.armour_type,
                     scaling=item.scaling,
+                    # Socket counts
+                    sockets_basic=socket_counts['basic'],
+                    sockets_primary=socket_counts['primary'],
+                    sockets_vital=socket_counts['vital'],
+                    sockets_cloak=socket_counts['cloak'],
+                    sockets_necklace=socket_counts['necklace'],
+                    sockets_pvp=socket_counts['pvp'],
                     # Weapon-specific fields
                     dps=item.dps,
                     dps_table_id=item.dps_table_id,
@@ -209,6 +223,9 @@ class ItemImporter(BaseImporter):
                     item_stats.append(stat)
                     
             else:
+                # Parse socket counts from socket string
+                socket_counts = EquipmentItem.parse_socket_string(item.sockets)
+                
                 # Create regular equipment item
                 equipment_item = EquipmentItem(
                     key=item.key,
@@ -218,7 +235,14 @@ class ItemImporter(BaseImporter):
                     icon=item.icon,
                     slot=item.slot,
                     armour_type=item.armour_type,
-                    scaling=item.scaling
+                    scaling=item.scaling,
+                    # Socket counts
+                    sockets_basic=socket_counts['basic'],
+                    sockets_primary=socket_counts['primary'],
+                    sockets_vital=socket_counts['vital'],
+                    sockets_cloak=socket_counts['cloak'],
+                    sockets_necklace=socket_counts['necklace'],
+                    sockets_pvp=socket_counts['pvp']
                 )
                 equipment_items.append(equipment_item)
                 

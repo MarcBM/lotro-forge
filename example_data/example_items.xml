@@ -47,7 +47,6 @@
 <stat name="FINESSE" scaling="1879211722"/>
 </stats>
 </item>
-</item>
 <item key="1879496416" name="Silver Leaf Earring" icon="1091564991-1090519044-1091947416" level="530" slot="EAR" category="ITEM" class="49" equipmentCategory="1" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="60" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879050475" slots="PS" scaling="ze_skirmish_level#141-:1879471069;2:0.3">
 <stats>
 <stat name="VITALITY" scaling="1879211544"/>
@@ -63,6 +62,22 @@
 <item key="1879477437" name="Fortifying Pearl Necklace" icon="1092915095-1090519044-1091947416" level="517" slot="NECK" category="ITEM" class="49" equipmentCategory="23" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="80" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="150" valueTableId="1879050115" slots="PVSSS">
 <stats>
 <stat name="VITALITY" scaling="1879211535"/>
+</stats>
+</item>
+<item key="1879481269" name="Vaiciris" icon="1092934371-1090519045" level="525" slot="EITHER_HAND" category="WEAPON" class="44" equipmentCategory="28" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="100" sturdiness="TOUGH" quality="LEGENDARY" minLevel="150" maxLevel="159" valueTableId="1879049944" slots="P" scaling="525-525" dps="566.784" dpsTableId="1879049778" minDamage="486" maxDamage="648" damageType="WESTERNESSE" weaponType="ONE_HANDED_SWORD">
+<stats>
+<stat name="VITALITY" scaling="1879211972"/>
+<stat name="CRITICAL_RATING" scaling="1879211605"/>
+<stat name="FINESSE" scaling="1879211717"/>
+<stat name="ICPR" scaling="1879212021"/>
+</stats>
+</item>
+<item key="1879496544" name="Warrior's Helm-breaker" icon="1090524706-1090519044-1090524707-1090524708" level="518" slot="EITHER_HAND" category="WEAPON" class="24" equipmentCategory="12" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" durability="100" sturdiness="NORMAL" quality="INCOMPARABLE" minLevel="141" valueTableId="1879049777" scaling="ze_skirmish_level#-150:1879471071;2:0.3" dps="523.21375" dpsTableId="1879049778" minDamage="448" maxDamage="598" damageType="ANCIENT_DWARF" weaponType="ONE_HANDED_HAMMER">
+<stats>
+<stat name="VITALITY" scaling="1879211544"/>
+<stat name="MIGHT" scaling="1879211573"/>
+<stat name="CRITICAL_RATING" scaling="1879211602"/>
+<stat name="FINESSE" scaling="1879211719"/>
 </stats>
 </item>
 </items>

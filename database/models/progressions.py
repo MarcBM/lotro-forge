@@ -25,7 +25,7 @@ class ProgressionTable(Base):
     
     # For array type, we store exact values
     # For linear type, we store control points for interpolation
-    values: Mapped[List["TableValue"]] = relationship("TableValue", back_populates="table", cascade="all, delete-orphan")
+    values: Mapped[List["ProgressionValue"]] = relationship("ProgressionValue", back_populates="table", cascade="all, delete-orphan")
     
     def get_value(self, item_level: int) -> float:
         """Get the value for a given item level using appropriate calculation method."""
@@ -35,8 +35,8 @@ class ProgressionTable(Base):
             return value.value if value else 0.0
         else:  # LINEAR
             # Find surrounding points for interpolation
-            lower = self.values.filter(TableValue.item_level <= item_level).order_by(TableValue.item_level.desc()).first()
-            upper = self.values.filter(TableValue.item_level >= item_level).order_by(TableValue.item_level.asc()).first()
+            lower = self.values.filter(ProgressionValue.item_level <= item_level).order_by(ProgressionValue.item_level.desc()).first()
+            upper = self.values.filter(ProgressionValue.item_level >= item_level).order_by(ProgressionValue.item_level.asc()).first()
             
             if not lower or not upper:
                 return 0.0
@@ -50,7 +50,7 @@ class ProgressionTable(Base):
     def __repr__(self):
         return f"<ProgressionTable(table_id='{self.table_id}', name='{self.name}')>"
 
-class TableValue(Base):
+class ProgressionValue(Base):
     """Model for individual values in a progression table."""
     __tablename__ = "table_values"
     
@@ -66,4 +66,4 @@ class TableValue(Base):
     )
     
     def __repr__(self) -> str:
-        return f"<TableValue(table_id='{self.table_id}', item_level={self.item_level}, value={self.value})>" 
+        return f"<ProgressionValue(table_id='{self.table_id}', item_level={self.item_level}, value={self.value})>" 

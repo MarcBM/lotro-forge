@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from xml.etree import ElementTree
 from sqlalchemy.orm import Session
 
-from database.models.progressions import ProgressionTable, TableValue, ProgressionType
+from database.models.progressions import ProgressionTable, ProgressionValue, ProgressionType
 from scripts.importers.base import BaseImporter
 
 class ProgressionsImporter(BaseImporter):
@@ -184,7 +184,7 @@ class ProgressionsImporter(BaseImporter):
             self.logger.error(f"Parsing failed: {str(e)}")
             return {}
     
-    def transform_data(self, data: Dict[str, Dict]) -> Tuple[List[ProgressionTable], List[TableValue]]:
+    def transform_data(self, data: Dict[str, Dict]) -> Tuple[List[ProgressionTable], List[ProgressionValue]]:
         """Transform the parsed data into database models."""
         tables = []
         values = []
@@ -201,7 +201,7 @@ class ProgressionsImporter(BaseImporter):
             
             # Create value models
             for value_data in table_data['values']:
-                value = TableValue(
+                value = ProgressionValue(
                     table_id=table_id,
                     item_level=value_data['level'],
                     value=value_data['value']
@@ -210,7 +210,7 @@ class ProgressionsImporter(BaseImporter):
         
         return tables, values
     
-    def import_data(self, data: Tuple[List[ProgressionTable], List[TableValue]]) -> None:
+    def import_data(self, data: Tuple[List[ProgressionTable], List[ProgressionValue]]) -> None:
         """Import the transformed data into the database."""
         tables, values = data
         try:
@@ -229,7 +229,7 @@ class ProgressionsImporter(BaseImporter):
             # Update values
             for table in tables:
                 # Remove existing values
-                self.db.query(TableValue).filter_by(table_id=table.table_id).delete()
+                self.db.query(ProgressionValue).filter_by(table_id=table.table_id).delete()
             
             # Add new values
             for value in values:
@@ -240,6 +240,40 @@ class ProgressionsImporter(BaseImporter):
         except Exception as e:
             self.logger.error(f"Import failed: {str(e)}")
             raise 
+
+    def import_specific_tables(self, required_table_ids: set[str]) -> bool:
+        """Import only specific progression tables that are required.
+        
+        Args:
+            required_table_ids: Set of table IDs to import
+            
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            self.logger.info(f"Importing {len(required_table_ids)} specific progression tables...")
+            
+            # Validate source data for only the required tables
+            if not self.validate_source(required_table_ids):
+                self.logger.error("Validation failed for required progression tables")
+                return False
+            
+            # Parse only the required tables
+            data = self.parse_source(required_table_ids)
+            if not data:
+                self.logger.error("No data found for required progression tables")
+                return False
+            
+            # Transform and import the data
+            transformed_data = self.transform_data(data)
+            self.import_data(transformed_data)
+            
+            self.logger.info(f"Successfully imported {len(data)} specific progression tables")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to import specific progression tables: {str(e)}")
+            return False
 
     def run(self, required_table_ids: set[str] = None) -> bool:
         """Run the import process.

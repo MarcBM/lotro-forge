@@ -26,6 +26,7 @@ ITEMS_FILE = EXAMPLE_DATA_DIR / 'example_items.xml'
 # Main data paths
 MAIN_DATA_DIR = Path('/home/marcb/workspace/lotro/lotro_companion')
 PROGRESSIONS_FILE = MAIN_DATA_DIR / 'lotro-data/lore/progressions.xml'
+DPS_TABLES_FILE = MAIN_DATA_DIR / 'lotro-data/lore/dpsTables.xml'
 
 def setup_logging():
     logging.basicConfig(
@@ -90,7 +91,7 @@ def main():
         with database_session(True) as session:
             # First, analyze example items to get required progression tables
             logger.info("Analyzing example items to determine required progression tables...")
-            items_importer = ItemImporter(ITEMS_FILE, session, skip_filters=True)  # Use base importer with skip_filters
+            items_importer = ItemImporter(ITEMS_FILE, session, skip_filters=True, dps_tables_path=DPS_TABLES_FILE)  # Add DPS tables path
             required_tables = items_importer.get_required_progression_tables()
             
             if not required_tables:
@@ -106,6 +107,17 @@ def main():
                 logger.error("Progressions import failed")
                 return 1
             logger.info("Progressions import complete.")
+            
+            # Get required DPS tables and import them
+            logger.info("Analyzing required DPS tables...")
+            required_dps_tables = items_importer.get_required_dps_tables()
+            if required_dps_tables:
+                logger.info(f"Found {len(required_dps_tables)} required DPS tables")
+                success = items_importer.import_required_dps_tables(required_dps_tables)
+                if not success:
+                    logger.error("DPS tables import failed")
+                    return 1
+                logger.info("DPS tables import complete.")
 
             # Import example items
             logger.info(f"Importing example items from {ITEMS_FILE}")

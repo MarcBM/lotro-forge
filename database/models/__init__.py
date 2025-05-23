@@ -1,16 +1,15 @@
 """
-Database models package.
+Database models for LOTRO Forge.
 """
+
 from .base import Base
-from .progressions import ProgressionTable, TableValue, ProgressionType
-from .item import Item, EquipmentItem, ItemStat
+from .item import Item, EquipmentItem, Weapon, ItemStat, ItemQuality
+from .dps import DpsTable, DpsValue
+from .progressions import ProgressionTable, ProgressionValue, ProgressionType
 
 __all__ = [
     'Base',
-    'ProgressionTable',
-    'TableValue',
-    'ProgressionType',
-    'Item',
-    'EquipmentItem',
-    'ItemStat',
+    'Item', 'EquipmentItem', 'Weapon', 'ItemStat', 'ItemQuality',
+    'DpsTable', 'DpsValue',
+    'ProgressionTable', 'ProgressionValue', 'ProgressionType'
 ] 

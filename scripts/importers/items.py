@@ -2,11 +2,12 @@
 Importer for item definitions from items.xml.
 """
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Set
 from dataclasses import dataclass
 from sqlalchemy.orm import Session
-from database.models.item import EquipmentItem, ItemStat
+from database.models.item import EquipmentItem, Weapon, ItemStat
 from scripts.importers.base import BaseImporter
+from scripts.importers.dps_tables import DpsTablesImporter
 from lxml import etree
 
 @dataclass
@@ -21,22 +22,32 @@ class ItemData:
     armour_type: Optional[str]
     scaling: Optional[str]
     stats: List[Tuple[str, str, int]]  # (stat_name, value_table_id, order)
+    # Weapon-specific fields
+    category: Optional[str] = None  # "WEAPON" vs "ARMOUR" vs "ITEM"
+    dps: Optional[float] = None
+    dps_table_id: Optional[str] = None
+    min_damage: Optional[int] = None
+    max_damage: Optional[int] = None
+    damage_type: Optional[str] = None
+    weapon_type: Optional[str] = None
 
 class ItemImporter(BaseImporter):
     """Importer for item definitions."""
     
-    def __init__(self, source_path: Path, db_session: Session, skip_filters: bool = False):
+    def __init__(self, source_path: Path, db_session: Session, skip_filters: bool = False, dps_tables_path: Optional[Path] = None):
         """Initialize the importer.
         
         Args:
             source_path: Path to the items.xml file
             db_session: Database session
             skip_filters: If True, skip filtering items by level and slot (imports all items)
+            dps_tables_path: Path to the dpsTables.xml file (required for importing weapons)
         """
         super().__init__(source_path, db_session)
         self.items_file = source_path  # source_path is now the direct path to items.xml
         self.skip_filters = skip_filters
         self.required_icons = set()  # Track unique icon IDs needed
+        self.dps_tables_path = dps_tables_path
         
     def validate_source(self) -> bool:
         """Validate that items.xml exists and has the expected structure."""
@@ -101,7 +112,15 @@ class ItemImporter(BaseImporter):
                 icon=item_elem.get("icon"),
                 armour_type=item_elem.get("armourType"),  # Note: might be armourType in XML
                 scaling=item_elem.get("scaling"),
-                stats=stats
+                stats=stats,
+                # Weapon-specific fields
+                category=item_elem.get("category"),
+                dps=float(item_elem.get("dps")) if item_elem.get("dps") else None,
+                dps_table_id=item_elem.get("dpsTableId"),
+                min_damage=int(item_elem.get("minDamage")) if item_elem.get("minDamage") else None,
+                max_damage=int(item_elem.get("maxDamage")) if item_elem.get("maxDamage") else None,
+                damage_type=item_elem.get("damageType"),
+                weapon_type=item_elem.get("weaponType")
             )
             items.append(item)
         
@@ -114,20 +133,44 @@ class ItemImporter(BaseImporter):
         item_stats = []
         
         for item in items:
-            # Create equipment item (all imported items are equipment)
-            equipment_item = EquipmentItem(
-                key=item.key,
-                name=item.name,
-                base_ilvl=item.base_ilvl,
-                quality=item.quality,
-                icon=item.icon,
-                slot=item.slot,
-                armour_type=item.armour_type,
-                scaling=item.scaling
-            )
+            # Determine if this is a weapon based on category
+            is_weapon = item.category == "WEAPON"
+            
+            if is_weapon:
+                # Create weapon item
+                equipment_item = Weapon(
+                    key=item.key,
+                    name=item.name,
+                    base_ilvl=item.base_ilvl,
+                    quality=item.quality,
+                    icon=item.icon,
+                    slot=item.slot,
+                    armour_type=item.armour_type,
+                    scaling=item.scaling,
+                    # Weapon-specific fields
+                    dps=item.dps,
+                    dps_table_id=item.dps_table_id,
+                    min_damage=item.min_damage,
+                    max_damage=item.max_damage,
+                    damage_type=item.damage_type,
+                    weapon_type=item.weapon_type
+                )
+            else:
+                # Create regular equipment item
+                equipment_item = EquipmentItem(
+                    key=item.key,
+                    name=item.name,
+                    base_ilvl=item.base_ilvl,
+                    quality=item.quality,
+                    icon=item.icon,
+                    slot=item.slot,
+                    armour_type=item.armour_type,
+                    scaling=item.scaling
+                )
+            
             equipment_items.append(equipment_item)
             
-            # Create item stats
+            # Create item stats (same for both weapons and regular equipment)
             for stat_name, value_table_id, order in item.stats:
                 stat = ItemStat(
                     item_key=item.key,
@@ -216,12 +259,71 @@ class ItemImporter(BaseImporter):
         return required_tables
 
     def get_required_icons(self) -> set[str]:
-        """Get the set of unique icon IDs required by the imported items.
+        """Extract the set of icon IDs required by the items to be imported."""
+        if not self.validate_source():
+            return set()
+            
+        items = self.parse_source()
+        icons = set()
+        for item in items:
+            if item.icon:
+                # Split hyphenated icon IDs and add each one to the set
+                for icon_id in item.icon.split('-'):
+                    icons.add(icon_id.strip())
+                
+        return icons
+    
+    def get_required_dps_tables(self) -> Set[str]:
+        """Extract the set of DPS table IDs required by weapon items."""
+        if not self.validate_source():
+            return set()
+            
+        items = self.parse_source()
+        dps_tables = set()
         
-        Returns:
-            set[str]: Set of icon IDs that need to be copied
-        """
-        return self.required_icons 
+        for item in items:
+            if item.category == "WEAPON" and item.dps_table_id:
+                dps_tables.add(item.dps_table_id)
+        
+        self.logger.info(f"Found {len(dps_tables)} required DPS tables from {len(items)} items")
+        return dps_tables
+    
+    def import_required_dps_tables(self, required_tables: Set[str]) -> bool:
+        """Import required DPS tables using the DPS tables importer."""
+        if not required_tables:
+            self.logger.info("No DPS tables required")
+            return True
+            
+        if not self.dps_tables_path:
+            self.logger.error("DPS tables path not provided but required for weapon imports")
+            return False
+            
+        if not self.dps_tables_path.exists():
+            self.logger.error(f"DPS tables file not found: {self.dps_tables_path}")
+            return False
+        
+        try:
+            self.logger.info(f"Importing {len(required_tables)} required DPS tables...")
+            dps_importer = DpsTablesImporter(self.dps_tables_path, self.db)
+            
+            # Parse all DPS tables and filter to only import required ones
+            all_dps_data = dps_importer.parse_source()
+            required_dps_data = [
+                dps_data for dps_data in all_dps_data 
+                if dps_data['id'] in required_tables
+            ]
+            
+            if required_dps_data:
+                dps_importer.import_data(required_dps_data)
+                self.logger.info(f"Successfully imported {len(required_dps_data)} DPS tables")
+            else:
+                self.logger.warning(f"None of the required DPS tables were found in {self.dps_tables_path}")
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to import DPS tables: {e}")
+            return False
 
     def run(self, required_tables: Optional[set[str]] = None) -> bool:
         """Override the base run method to use filtered parsing."""

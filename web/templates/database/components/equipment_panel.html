@@ -102,21 +102,34 @@
                     <span x-text="selectedEquipment.base_ilvl"></span>
                 </div>
                 <div class="text-gray-500">
-                    <template x-if="selectedEquipment.armour_type && selectedEquipment.slot === 'OFF_HAND'">
+                    <!-- Weapon display logic -->
+                    <template x-if="selectedEquipment.weapon_type">
+                        <span x-text="selectedEquipment.weapon_type"></span>
+                    </template>
+                    <!-- Regular equipment display logic -->
+                    <template x-if="!selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot === 'OFF_HAND'">
                         <span x-text="selectedEquipment.armour_type"></span>
                     </template>
-                    <template x-if="selectedEquipment.armour_type && selectedEquipment.slot !== 'OFF_HAND'">
+                    <template x-if="!selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot !== 'OFF_HAND'">
                         <span x-text="selectedEquipment.slot + ' / ' + selectedEquipment.armour_type"></span>
                     </template>
-                    <template x-if="!selectedEquipment.armour_type">
+                    <template x-if="!selectedEquipment.weapon_type && !selectedEquipment.armour_type">
                         <span x-text="selectedEquipment.slot"></span>
                     </template>
                 </div>
                 <div x-text="(selectedEquipment.ev || '0.00')"></div>
             </div>
             
-            <!-- ARMOUR stat above the line -->
-            <template x-if="concreteEquipment && concreteEquipment.stat_values && concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR')">
+            <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
+            <template x-if="concreteEquipment && concreteEquipment.weapon_type && concreteEquipment.calculated_dps">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
+                    <span>DPS</span>
+                    <span class="text-gray-300" x-text="concreteEquipment.calculated_dps.toFixed(1)"></span>
+                </div>
+            </template>
+            
+            <!-- ARMOUR stat above the line (only for non-weapons) -->
+            <template x-if="concreteEquipment && !concreteEquipment.weapon_type && concreteEquipment.stat_values && concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR')">
                 <div class="flex justify-between text-sm text-gray-400 mb-2">
                     <span>ARMOUR</span>
                     <span class="text-gray-300" x-text="Math.floor(concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR').value)"></span>

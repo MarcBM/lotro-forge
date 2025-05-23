@@ -9,6 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, create_engine, func
 
 from database.models.item import Item, EquipmentItem, ItemStat
+from database.models.dps import DpsTable
 from database.config import get_database_url
 
 # Setup logging
@@ -56,67 +57,53 @@ def get_icon_urls(request: Request, icon_ids: Optional[str]) -> Optional[List[st
 @router.get("/")
 async def list_all_items(
     request: Request,
-    item_type: Optional[str] = Query(None, description="Filter by item type (e.g., 'equipment')"),
-    slot: Optional[str] = None,
-    quality: Optional[str] = None,
-    min_level: Optional[int] = None,
-    max_level: Optional[int] = None,
+    item_type: Optional[str] = Query(None, description="Filter by item type (equipment, weapon)"),
     limit: int = Query(99, ge=1, le=200),
     skip: int = Query(0, ge=0),
     db: Session = Depends(get_db)
-) -> List[dict]:
+) -> dict:
     """
-    List all items with optional filtering by type and other parameters.
-    Use item_type='equipment' to get only equipment items.
+    List all items with optional type filtering.
+    Returns both items and total count.
     """
-    # Choose the model based on item_type filter
-    if item_type == "equipment":
-        model = EquipmentItem
-        stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats))
-        
-        # Apply equipment-specific filters
-        if slot:
-            stmt = stmt.where(EquipmentItem.slot == slot)
+    # Build base query
+    if item_type == "weapon":
+        base_query = select(EquipmentItem).where(EquipmentItem.item_type == 'weapon')
+        count_query = select(func.count(EquipmentItem.key)).where(EquipmentItem.item_type == 'weapon')
+    elif item_type == "equipment":
+        base_query = select(EquipmentItem).where(EquipmentItem.item_type != 'weapon')
+        count_query = select(func.count(EquipmentItem.key)).where(EquipmentItem.item_type != 'weapon')
     else:
-        # Default to base Item model for now, but in future can handle other types
-        model = Item
-        stmt = select(Item)
-        
-        # Apply item_type filter if specified
-        if item_type:
-            stmt = stmt.where(Item.item_type == item_type)
+        # All equipment items (including weapons)
+        base_query = select(EquipmentItem)
+        count_query = select(func.count(EquipmentItem.key))
     
-    # Apply common filters
-    if quality:
-        stmt = stmt.where(model.quality == quality)
-    if min_level:
-        stmt = stmt.where(model.base_ilvl >= min_level)
-    if max_level:
-        stmt = stmt.where(model.base_ilvl <= max_level)
+    # Get total count
+    total_result = db.execute(count_query)
+    total = total_result.scalar()
     
-    # Order by key descending (newest first)
-    stmt = stmt.order_by(model.key.desc())
+    # Add pagination and ordering
+    paginated_query = base_query.order_by(EquipmentItem.name).offset(skip).limit(limit)
+    result = db.execute(paginated_query)
+    items = result.scalars().all()
     
-    # Apply pagination
-    stmt = stmt.offset(skip).limit(limit)
-    
-    # Execute query
-    result = db.execute(stmt)
-    items = result.unique().scalars().all()
-    
-    # Convert to dict and process for frontend
-    processed_items = []
+    # Convert to dictionaries
+    item_dicts = []
     for item in items:
         item_dict = item.to_dict()
+        # Add icon URLs for frontend
+        if item.icon:
+            item_dict['icon_urls'] = get_icon_urls(request, item.icon)
+        else:
+            item_dict['icon_urls'] = []
         # Convert quality to uppercase for frontend
         item_dict['quality'] = item_dict['quality'].upper()
-        # Convert icon to icon_urls
-        item_dict['icon_urls'] = get_icon_urls(request, item_dict.get('icon'))
-        # Remove the raw icon field
-        item_dict.pop('icon', None)
-        processed_items.append(item_dict)
+        item_dicts.append(item_dict)
     
-    return processed_items
+    return {
+        "items": item_dicts,
+        "total": total
+    }
 
 @router.get("/equipment")
 async def list_items(
@@ -130,10 +117,10 @@ async def list_items(
     db: Session = Depends(get_db)
 ) -> dict:
     """
-    List equipment items with optional filtering and pagination.
+    List equipment items (including weapons) with optional filtering and pagination.
     Returns both items and total count.
     """
-    # Build base query for filtering
+    # Build base query for filtering - this will include weapons polymorphically
     base_query = select(EquipmentItem)
     
     # Apply filters to base query
@@ -156,7 +143,7 @@ async def list_items(
     items_query = items_query.order_by(EquipmentItem.key.desc())
     items_query = items_query.offset(skip).limit(limit)
     
-    # Execute items query
+    # Execute items query - this will return EquipmentItem or Weapon objects based on polymorphism
     result = db.execute(items_query)
     items = result.unique().scalars().all()
     
@@ -238,15 +225,32 @@ async def get_concrete_item(
     db: Session = Depends(get_db)
 ) -> dict:
     """
-    Get a specific equipment item with concrete stat values at a given item level.
+    Get a specific equipment item (including weapons) with concrete stat values at a given item level.
     Returns the item with stat_values array containing actual calculated values.
+    For weapons, also includes calculated DPS.
     """
-    stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats)).where(EquipmentItem.key == item_key)
+    # Query for EquipmentItem with eager loading - will return Weapon if it's a weapon due to polymorphism
+    stmt = select(EquipmentItem).options(
+        joinedload(EquipmentItem.stats)
+    ).where(EquipmentItem.key == item_key)
+    
     result = db.execute(stmt)
     item = result.unique().scalar_one_or_none()
     
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    
+    # If this is a weapon, we need to reload it with DPS table to get the relationship
+    if hasattr(item, 'weapon_type') and item.weapon_type:
+        # Import here to avoid circular imports
+        from database.models.item import Weapon
+        from database.models.dps import DpsTable
+        weapon_stmt = select(Weapon).options(
+            joinedload(Weapon.stats),
+            joinedload(Weapon.dps_table)
+        ).where(Weapon.key == item_key)
+        weapon_result = db.execute(weapon_stmt)
+        item = weapon_result.unique().scalar_one_or_none()
     
     # Get the concrete stat values at the specified level
     effective_ilvl = ilvl if ilvl is not None else item.base_ilvl
@@ -260,9 +264,23 @@ async def get_concrete_item(
         })
     
     # Format the response to match what the frontend expects
-    return {
+    response = {
         'key': item.key,
         'name': item.name,
         'ilvl': effective_ilvl,
-        'stat_values': stat_values
-    } 
+        'stat_values': stat_values,
+        'item_type': item.item_type
+    }
+    
+    # If this is a weapon, add weapon-specific data
+    if hasattr(item, 'weapon_type') and item.weapon_type:
+        response.update({
+            'weapon_type': item.weapon_type,
+            'damage_type': item.damage_type,
+            'min_damage': item.min_damage,
+            'max_damage': item.max_damage,
+            'dps': item.dps,
+            'calculated_dps': item.get_dps_at_ilvl(effective_ilvl) if hasattr(item, 'get_dps_at_ilvl') else None
+        })
+    
+    return response 

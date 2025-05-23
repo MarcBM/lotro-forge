@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from datetime import datetime
 
 # Add the project root to the Python path
 project_root = Path(__file__).parent.parent.parent
@@ -83,6 +84,43 @@ def wipe_database(engine):
     Base.metadata.create_all(engine)
     logger.info("Database wiped successfully")
 
+def copy_icons(required_icons: set) -> None:
+    """Copy required icon files to the web static directory."""
+    logger = logging.getLogger(__name__)
+    
+    # Define source and destination paths
+    source_dir = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-icons/items')
+    dest_dir = Path('web/static/icons/items')
+    
+    # Create destination directory if it doesn't exist
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    
+    copied = 0
+    skipped = 0
+    missing = 0
+    
+    for icon_id in required_icons:
+        source_file = source_dir / f"{icon_id}.png"
+        dest_file = dest_dir / f"{icon_id}.png"
+        
+        if not source_file.exists():
+            missing += 1
+            logger.warning(f"Icon not found: {source_file}")
+            continue
+            
+        if dest_file.exists():
+            skipped += 1
+            continue
+            
+        try:
+            import shutil
+            shutil.copy2(source_file, dest_file)
+            copied += 1
+        except Exception as e:
+            logger.error(f"Failed to copy {source_file} to {dest_file}: {e}")
+    
+    logger.info(f"Icon copy complete: {copied} new, {skipped} existing, {missing} missing")
+
 def main():
     """Main entry point for the import script."""
     parser = argparse.ArgumentParser(description='Import LOTRO data into the database')
@@ -93,114 +131,95 @@ def main():
     parser.add_argument('--create-tables', action='store_true',
                       help='Create database tables if they don\'t exist')
     parser.add_argument('--wipe', action='store_true',
-                      help='Drop all tables and recreate them before importing')
+                      help='Drop and recreate all tables before importing')
+    
     args = parser.parse_args()
     
-    # Setup logging
-    log_dir = Path(args.log_dir) if args.log_dir else None
-    setup_logging(log_dir)
+    # Set up logging
+    log_dir = Path(args.log_dir) if args.log_dir else Path.cwd()
+    setup_logging(log_dir / f"import_{args.import_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+    
     logger = logging.getLogger(__name__)
+    logger.info(f"Starting {args.import_type} import...")
+    
+    # Define absolute paths for real data
+    items_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-items-db/items.xml')
+    progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
+    dps_tables_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/dpsTables.xml')
+    
+    # Create database connection
+    engine = create_engine(get_database_url())
+    SessionLocal = sessionmaker(bind=engine)
     
     try:
-        # Setup database and run importers
-        logger.info("Setting up database connection...")
-        engine = create_engine(get_database_url())
-        
-        # Wipe database if requested
+        # Handle table creation/wiping
         if args.wipe:
             wipe_database(engine)
+        elif args.create_tables:
+            Base.metadata.create_all(engine)
         
-        import_type = args.import_type
+        with SessionLocal() as session:
+            if args.import_type == 'items':
+                # Import items with automatic dependency handling
+                logger.info("Starting comprehensive items import with dependencies...")
+                
+                # Create item importer with DPS tables path
+                item_importer = ItemImporter(items_path, session, dps_tables_path=dps_tables_path)
+                
+                # 1. Get required progression tables
+                logger.info("Analyzing required progression tables...")
+                required_progression_tables = item_importer.get_required_progression_tables()
+                
+                # 2. Import required progression tables
+                if required_progression_tables:
+                    progressions_importer = ProgressionsImporter(progressions_path, session)
+                    progressions_importer.import_specific_tables(required_progression_tables)
+                
+                # 3. Get required DPS tables
+                logger.info("Analyzing required DPS tables...")
+                required_dps_tables = item_importer.get_required_dps_tables()
+                
+                # 4. Import required DPS tables
+                if required_dps_tables:
+                    success = item_importer.import_required_dps_tables(required_dps_tables)
+                    if not success:
+                        logger.error("Failed to import required DPS tables")
+                        return
+                
+                # 5. Import items
+                logger.info("Importing items...")
+                item_importer.run()
+                
+                # 6. Get required icons BEFORE session closes
+                logger.info("Collecting required icons...")
+                required_icons = item_importer.get_required_icons()
+                
+                # 7. Explicit commit to ensure data is saved
+                logger.info("Committing database changes...")
+                session.commit()
+                
+            elif args.import_type == 'progressions':
+                # Import only progressions
+                logger.info("Starting progressions-only import...")
+                progressions_importer = ProgressionsImporter(progressions_path, session)
+                progressions_importer.run()
+                
+                # Explicit commit for progressions too
+                logger.info("Committing database changes...")
+                session.commit()
         
-        with database_session(args.create_tables) as session:
-            success = True
-            
-            if import_type == 'items':
-                # When importing items, automatically include required progressions and icons
-                logger.info("Importing items (includes required progressions and icons)...")
-                
-                # Step 1: Create item importer to analyze required progression tables
-                items_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-items-db/items.xml')
-                item_importer = ItemImporter(items_path, session)
-                
-                logger.info("Analyzing items to determine required progression tables...")
-                required_tables = item_importer.get_required_progression_tables()
-                if not required_tables:
-                    logger.error("No required progression tables found in items")
-                    return 1
-                
-                # Step 2: Import required progression tables first
-                progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
-                progressions_importer = ProgressionsImporter(progressions_path, session)
-                
-                logger.info("Importing required progression tables...")
-                try:
-                    if not progressions_importer.run(required_tables):
-                        success = False
-                        logger.error("ProgressionsImporter failed")
-                        session.rollback()
-                    else:
-                        session.commit()
-                        logger.info("Progression tables imported successfully")
-                except Exception as e:
-                    success = False
-                    logger.error(f"ProgressionsImporter failed with error: {str(e)}", exc_info=True)
-                    session.rollback()
-                
-                # Step 3: Import items
-                if success:
-                    logger.info("Importing items...")
-                    try:
-                        if not item_importer.run():
-                            success = False
-                            logger.error("ItemImporter failed")
-                            session.rollback()
-                        else:
-                            session.commit()
-                            logger.info("Items imported successfully")
-                    except Exception as e:
-                        success = False
-                        logger.error(f"ItemImporter failed with error: {str(e)}", exc_info=True)
-                        session.rollback()
-                
-                # Step 4: Copy required icons
-                if success:
-                    logger.info("Copying required icons...")
-                    try:
-                        copied, skipped, missing = copy_required_icons(session)
-                        logger.info(f"Icon copy complete: {copied} new, {skipped} existing, {missing} missing")
-                    except Exception as e:
-                        logger.error(f"Failed to copy icons: {str(e)}")
-                        success = False
-                        
-            elif import_type == 'progressions':
-                # Import only progressions (for development/testing)
-                progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
-                progressions_importer = ProgressionsImporter(progressions_path, session)
-                
-                logger.info("Importing all progression tables...")
-                try:
-                    if not progressions_importer.run():
-                        success = False
-                        logger.error("ProgressionsImporter failed")
-                        session.rollback()
-                    else:
-                        session.commit()
-                except Exception as e:
-                    success = False
-                    logger.error(f"ProgressionsImporter failed with error: {str(e)}", exc_info=True)
-                    session.rollback()
-            
-            if success:
-                logger.info("Import completed successfully")
-                return 0
-            else:
-                logger.error("Import failed")
-                return 1
-                
+        # Copy required icons AFTER session closes (outside the session context)
+        if args.import_type == 'items' and 'required_icons' in locals() and required_icons:
+            logger.info("Copying required icons...")
+            copy_icons(required_icons)
+        
+        logger.info(f"{args.import_type.title()} import completed successfully!")
+        
     except Exception as e:
-        logger.error(f"Import failed with error: {str(e)}", exc_info=True)
-        return 1
+        logger.error(f"Import failed: {e}")
+        raise
+    finally:
+        engine.dispose()
 
 if __name__ == '__main__':
     sys.exit(main()) 

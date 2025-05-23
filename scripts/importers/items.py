@@ -31,7 +31,7 @@ class ItemImporter(BaseImporter):
         Args:
             source_path: Path to the items.xml file
             db_session: Database session
-            skip_filters: If True, skip filtering items by level and slot
+            skip_filters: If True, skip filtering items by level and slot (imports all items)
         """
         super().__init__(source_path, db_session)
         self.items_file = source_path  # source_path is now the direct path to items.xml
@@ -75,9 +75,9 @@ class ItemImporter(BaseImporter):
                     level = int(item_elem.get("level", "1"))
                     slot = item_elem.get("slot", "")
                     
-                    # For progression table analysis, focus on high-level equipment items
+                    # Import all equipment items with level >= 500 that have a slot
                     # Skip items that don't meet our criteria
-                    if level < 510 or slot not in ["NECK", "FINGER", "POCKET", "EAR", "WRIST"]:
+                    if level < 500 or not slot:
                         continue
                 except (ValueError, TypeError):
                     # Skip items with invalid level data
@@ -85,10 +85,9 @@ class ItemImporter(BaseImporter):
             
             # Parse stats first
             stats = []
-            for stat_elem in item_elem.findall(".//stat"):
+            for order, stat_elem in enumerate(item_elem.findall(".//stat")):
                 stat_name = stat_elem.get("name")
                 scaling = stat_elem.get("scaling")  # Changed from value_table_id to scaling
-                order = int(stat_elem.get("order", "0"))
                 if stat_name and scaling:
                     stats.append((stat_name, scaling, order))
             
@@ -106,7 +105,7 @@ class ItemImporter(BaseImporter):
             )
             items.append(item)
         
-        self.logger.info(f"Parsed {total_parsed} total items, filtered to {len(items)} equipment items for progression analysis")
+        self.logger.info(f"Parsed {total_parsed} total items, filtered to {len(items)} equipment items level 500+")
         return items
     
     def transform_data(self, items: List[ItemData]) -> Tuple[List[EquipmentItem], List[ItemStat]]:

@@ -6,7 +6,7 @@ from typing import List, Optional, Dict
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session, sessionmaker, joinedload
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import select, create_engine
+from sqlalchemy import select, create_engine, func
 
 from database.models.item import Item, EquipmentItem, ItemStat
 from database.config import get_database_url
@@ -128,31 +128,36 @@ async def list_items(
     limit: int = Query(99, ge=1, le=200),
     skip: int = Query(0, ge=0),
     db: Session = Depends(get_db)
-) -> List[dict]:
+) -> dict:
     """
     List equipment items with optional filtering and pagination.
+    Returns both items and total count.
     """
-    # Start with base query
-    stmt = select(EquipmentItem).options(joinedload(EquipmentItem.stats))
+    # Build base query for filtering
+    base_query = select(EquipmentItem)
     
-    # Apply filters
+    # Apply filters to base query
     if slot:
-        stmt = stmt.where(EquipmentItem.slot == slot)
+        base_query = base_query.where(EquipmentItem.slot == slot)
     if quality:
-        stmt = stmt.where(EquipmentItem.quality == quality)
+        base_query = base_query.where(EquipmentItem.quality == quality)
     if min_level:
-        stmt = stmt.where(EquipmentItem.base_ilvl >= min_level)
+        base_query = base_query.where(EquipmentItem.base_ilvl >= min_level)
     if max_level:
-        stmt = stmt.where(EquipmentItem.base_ilvl <= max_level)
+        base_query = base_query.where(EquipmentItem.base_ilvl <= max_level)
     
-    # Order by key descending (newest first)
-    stmt = stmt.order_by(EquipmentItem.key.desc())
+    # Get total count (without pagination)
+    count_query = select(func.count()).select_from(base_query.subquery())
+    total_result = db.execute(count_query)
+    total_count = total_result.scalar()
     
-    # Apply pagination
-    stmt = stmt.offset(skip).limit(limit)
+    # Build query for items with pagination and joins
+    items_query = base_query.options(joinedload(EquipmentItem.stats))
+    items_query = items_query.order_by(EquipmentItem.key.desc())
+    items_query = items_query.offset(skip).limit(limit)
     
-    # Execute query
-    result = db.execute(stmt)
+    # Execute items query
+    result = db.execute(items_query)
     items = result.unique().scalars().all()
     
     # Convert to dict and process for frontend
@@ -167,7 +172,12 @@ async def list_items(
         item_dict.pop('icon', None)
         processed_items.append(item_dict)
     
-    return processed_items
+    return {
+        "items": processed_items,
+        "total": total_count,
+        "limit": limit,
+        "skip": skip
+    }
 
 @router.get("/equipment/{item_key}")
 async def get_item(
@@ -240,18 +250,19 @@ async def get_concrete_item(
     
     # Get the concrete stat values at the specified level
     effective_ilvl = ilvl if ilvl is not None else item.base_ilvl
-    stat_values = item.get_stats_at_ilvl(ilvl)
+    
+    # Build stat_values list preserving the original order from ItemStat.order
+    stat_values = []
+    for stat in item.stats:  # This is already ordered by ItemStat.order
+        stat_values.append({
+            'stat_name': stat.stat_name,
+            'value': stat.get_value(effective_ilvl)
+        })
     
     # Format the response to match what the frontend expects
     return {
         'key': item.key,
         'name': item.name,
         'ilvl': effective_ilvl,
-        'stat_values': [
-            {
-                'stat_name': stat_name,
-                'value': value
-            }
-            for stat_name, value in stat_values.items()
-        ]
+        'stat_values': stat_values
     } 

@@ -50,13 +50,19 @@
         <div class="p-4 border-b border-lotro-border flex-shrink-0">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold text-lotro-gold">{{ title }}</h2>
-                <!-- Sort By dropdown placeholder -->
-                <select class="bg-lotro-darker text-gray-300 px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
-                    <option value="" disabled selected>Sort By</option>
-                    <option value="" disabled>Name</option>
-                    <option value="" disabled>Level</option>
-                    <option value="" disabled>Type</option>
-                </select>
+                <div class="flex items-center gap-4">
+                    <!-- Results Counter -->
+                    <div class="text-sm text-gray-400">
+                        <span x-text="totalResults ? `Showing ${items.length} out of ${totalResults} results` : `Showing ${items.length} results`"></span>
+                    </div>
+                    <!-- Sort By dropdown placeholder -->
+                    <select class="bg-lotro-darker text-gray-300 px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
+                        <option value="" disabled selected>Sort By</option>
+                        <option value="" disabled>Name</option>
+                        <option value="" disabled>Level</option>
+                        <option value="" disabled>Type</option>
+                    </select>
+                </div>
             </div>
             <div class="flex gap-2">
                 <input type="text" 
@@ -115,12 +121,17 @@ document.addEventListener('alpine:init', () => {
         offset: 0,
         limit: 99,
         items: [], // Add items array to track total items
+        totalResults: null, // Track total results count
 
         handlePaginationUpdate(detail) {
             this.hasMore = detail.hasMore;
             this.offset = detail.offset;
             // Update total items count
             this.items = [...this.items, ...detail.newItems || []];
+            // Update total results if provided
+            if (detail.totalResults !== undefined) {
+                this.totalResults = detail.totalResults;
+            }
         },
 
         async loadMore() {

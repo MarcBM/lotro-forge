@@ -1,5 +1,12 @@
 """
 Script to run the data import process.
+
+This script handles importing LOTRO data with intelligent dependency management:
+- 'items': Imports equipment items along with required progression tables and icons
+- 'progressions': Imports only progression tables (for development/testing)
+
+Items cannot function without their progression tables (for stat calculations) and 
+icons (for display), so these dependencies are automatically included when importing items.
 """
 import argparse
 import logging
@@ -63,26 +70,6 @@ def database_session(create_tables: bool = False):
         session.close()
         engine.dispose()
 
-def get_importers(import_type: str, session: Session) -> tuple[ItemImporter, ProgressionsImporter]:
-    """Get the importers to run based on import type.
-    
-    Args:
-        import_type: Type of data to import ('all', 'items', or 'progressions')
-        session: Database session
-    
-    Returns:
-        tuple[ItemImporter, ProgressionsImporter]: The item and progression importers
-    """
-    # Define absolute paths for real data
-    items_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-items-db/items.xml')
-    progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
-    
-    # Create both importers
-    item_importer = ItemImporter(items_path, session) if import_type in ['all', 'items'] else None
-    progressions_importer = ProgressionsImporter(progressions_path, session) if import_type in ['all', 'progressions'] else None
-    
-    return item_importer, progressions_importer
-
 def wipe_database(engine):
     """Drop all tables and recreate them.
     
@@ -99,8 +86,8 @@ def wipe_database(engine):
 def main():
     """Main entry point for the import script."""
     parser = argparse.ArgumentParser(description='Import LOTRO data into the database')
-    parser.add_argument('--import-type', type=str, choices=['all', 'items', 'progressions'],
-                      default=None, help='Type of data to import')
+    parser.add_argument('--import-type', type=str, choices=['items', 'progressions'],
+                      default='items', help='Type of data to import (items includes required progressions and icons)')
     parser.add_argument('--log-dir', type=str,
                       help='Directory to store log files (default: current directory)')
     parser.add_argument('--create-tables', action='store_true',
@@ -122,38 +109,78 @@ def main():
         # Wipe database if requested
         if args.wipe:
             wipe_database(engine)
-            # If only wiping was requested (no import type specified), exit here
-            if args.import_type is None:
-                logger.info("Database wiped successfully. No imports requested.")
-                return 0
         
-        # Default to 'all' if no import type specified
-        import_type = args.import_type or 'all'
+        import_type = args.import_type
         
         with database_session(args.create_tables) as session:
-            # Get importers
-            item_importer, progressions_importer = get_importers(import_type, session)
-            
-            if not item_importer and not progressions_importer:
-                logger.error("No importers selected")
-                return 1
-            
             success = True
             
-            # Step 1: If importing items, get required progression tables
-            required_tables = None
-            if item_importer and progressions_importer:
+            if import_type == 'items':
+                # When importing items, automatically include required progressions and icons
+                logger.info("Importing items (includes required progressions and icons)...")
+                
+                # Step 1: Create item importer to analyze required progression tables
+                items_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-items-db/items.xml')
+                item_importer = ItemImporter(items_path, session)
+                
                 logger.info("Analyzing items to determine required progression tables...")
                 required_tables = item_importer.get_required_progression_tables()
                 if not required_tables:
                     logger.error("No required progression tables found in items")
                     return 1
-            
-            # Step 2: Import required progression tables
-            if progressions_importer:
-                logger.info("Starting ProgressionsImporter...")
+                
+                # Step 2: Import required progression tables first
+                progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
+                progressions_importer = ProgressionsImporter(progressions_path, session)
+                
+                logger.info("Importing required progression tables...")
                 try:
                     if not progressions_importer.run(required_tables):
+                        success = False
+                        logger.error("ProgressionsImporter failed")
+                        session.rollback()
+                    else:
+                        session.commit()
+                        logger.info("Progression tables imported successfully")
+                except Exception as e:
+                    success = False
+                    logger.error(f"ProgressionsImporter failed with error: {str(e)}", exc_info=True)
+                    session.rollback()
+                
+                # Step 3: Import items
+                if success:
+                    logger.info("Importing items...")
+                    try:
+                        if not item_importer.run():
+                            success = False
+                            logger.error("ItemImporter failed")
+                            session.rollback()
+                        else:
+                            session.commit()
+                            logger.info("Items imported successfully")
+                    except Exception as e:
+                        success = False
+                        logger.error(f"ItemImporter failed with error: {str(e)}", exc_info=True)
+                        session.rollback()
+                
+                # Step 4: Copy required icons
+                if success:
+                    logger.info("Copying required icons...")
+                    try:
+                        copied, skipped, missing = copy_required_icons(session)
+                        logger.info(f"Icon copy complete: {copied} new, {skipped} existing, {missing} missing")
+                    except Exception as e:
+                        logger.error(f"Failed to copy icons: {str(e)}")
+                        success = False
+                        
+            elif import_type == 'progressions':
+                # Import only progressions (for development/testing)
+                progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
+                progressions_importer = ProgressionsImporter(progressions_path, session)
+                
+                logger.info("Importing all progression tables...")
+                try:
+                    if not progressions_importer.run():
                         success = False
                         logger.error("ProgressionsImporter failed")
                         session.rollback()
@@ -164,36 +191,11 @@ def main():
                     logger.error(f"ProgressionsImporter failed with error: {str(e)}", exc_info=True)
                     session.rollback()
             
-            # Step 3: Import items
-            if item_importer and success:
-                logger.info("Starting ItemImporter...")
-                try:
-                    if not item_importer.run():
-                        success = False
-                        logger.error("ItemImporter failed")
-                        session.rollback()
-                    else:
-                        session.commit()
-                except Exception as e:
-                    success = False
-                    logger.error(f"ItemImporter failed with error: {str(e)}", exc_info=True)
-                    session.rollback()
-            
-            # Step 4: Copy required icons (only if items were imported successfully)
-            if item_importer and success:
-                logger.info("Copying required icons...")
-                try:
-                    copied, skipped, missing = copy_required_icons(session)
-                    logger.info(f"Icon copy complete: {copied} new, {skipped} existing, {missing} missing")
-                except Exception as e:
-                    logger.error(f"Failed to copy icons: {str(e)}")
-                    success = False
-            
             if success:
-                logger.info("All imports completed successfully")
+                logger.info("Import completed successfully")
                 return 0
             else:
-                logger.error("One or more imports failed")
+                logger.error("Import failed")
                 return 1
                 
     except Exception as e:

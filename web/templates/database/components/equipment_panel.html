@@ -139,6 +139,22 @@
                     </template>
                 </div>
             </div>
+            
+            <!-- Missing Features Placeholder -->
+            <div class="border-t border-orange-600/30 pt-3 mt-4">
+                <div class="bg-orange-900/20 border border-orange-600/30 rounded-lg p-3">
+                    <h4 class="text-sm font-medium text-orange-400 mb-2">⚠️ Missing Features</h4>
+                    <div class="text-xs text-orange-300/80 space-y-1">
+                        <div>• Socket support (essence slots)</div>
+                        <div>• Class restrictions (Guardian, Captain, etc.)</div>
+                        <div>• Set bonuses and set piece references</div>
+                        <div>• Source information (where to obtain)</div>
+                    </div>
+                    <div class="text-xs text-orange-400/60 mt-2 italic">
+                        These features will be added in future development phases
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -189,12 +205,13 @@ document.addEventListener('alpine:init', () => {
                 
                 const data = await response.json();
                 // Use Alpine's reactive array update
-                this.equipment = data;
+                this.equipment = data.items;
                 // Update pagination state in the base panel
                 this.$dispatch('update-pagination', { 
-                    hasMore: data.length === limit,
+                    hasMore: data.items.length === limit,
                     offset: offset + limit,
-                    newItems: data
+                    newItems: data.items,
+                    totalResults: data.total
                 });
             } catch (error) {
                 console.error('Error loading equipment:', error);
@@ -202,7 +219,8 @@ document.addEventListener('alpine:init', () => {
                 this.$dispatch('update-pagination', { 
                     hasMore: false,
                     offset: offset,
-                    newItems: []
+                    newItems: [],
+                    totalResults: 0
                 });
             } finally {
                 this.loading = false;
@@ -221,19 +239,21 @@ document.addEventListener('alpine:init', () => {
                 
                 const data = await response.json();
                 // Use Alpine's reactive array update
-                this.equipment = [...this.equipment, ...data];
+                this.equipment = [...this.equipment, ...data.items];
                 // Update pagination state in the base panel
                 this.$dispatch('update-pagination', { 
-                    hasMore: data.length === limit,
+                    hasMore: data.items.length === limit,
                     offset: offset + limit,
-                    newItems: data
+                    newItems: data.items,
+                    totalResults: data.total
                 });
             } catch (error) {
                 console.error('Error loading more equipment:', error);
                 this.$dispatch('update-pagination', { 
                     hasMore: false,
                     offset: offset,
-                    newItems: []
+                    newItems: [],
+                    totalResults: this.equipment.length
                 });
             } finally {
                 this.loading = false;

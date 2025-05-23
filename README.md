@@ -162,26 +162,43 @@ lotro_forge/
 
 ## Database Management
 
-To completely reset and reimport all data:
+### Data Import
+
+The import system automatically handles dependencies to ensure everything works correctly. When importing items, the system automatically includes required progression tables (for stat calculations) and icons (for display).
+
+To completely reset and import all equipment data:
 
 ```bash
-python -m scripts.importers.run_import --wipe --import-type all
+python -m scripts.importers.run_import --wipe
 ```
 
 This command will:
 1. Drop all existing tables
 2. Recreate the tables with their original schema
-3. Import all progression tables needed by items
-4. Import all items
-5. Import any icons not already acquired to the static folder.
+3. Analyze items to determine required progression tables
+4. Import required progression tables
+5. Import all equipment items (level 500+) with correct stat ordering
+6. Copy required icons to the static folder
 
-Other useful commands:
-- `--wipe` alone: Just drops and recreates tables without importing
-- `--import-type items`: Import only items (requires tables to exist)
-- `--import-type progressions`: Import only progression tables
-- `--create-tables`: Create tables if they don't exist (without wiping)
+### Import Options
 
-To simply run the example data in:
+```bash
+# Import everything (default) - most common usage
+python -m scripts.importers.run_import --wipe
+
+# Import items with dependencies (same as above)
+python -m scripts.importers.run_import --import-type items --wipe
+
+# Import only progression tables (for development/testing)
+python -m scripts.importers.run_import --import-type progressions --wipe
+
+# Create tables without wiping existing data
+python -m scripts.importers.run_import --create-tables
+```
+
+### Example Data
+
+To run with example data for testing:
 
 ```bash
 python -m scripts.importers.example_import --wipe
@@ -190,6 +207,13 @@ python -m scripts.importers.example_import --wipe
 This command will:
 1. Drop all existing tables
 2. Recreate the tables with their original schema
-3. Import all progression tables needed by items
-4. Import any items found in example_items.xml
-5. Import any icons not already acquired to the static folder.
+3. Import progression tables needed by example items
+4. Import items found in example_items.xml
+5. Copy required icons to the static folder
+
+### Key Features
+
+- **Intelligent Dependencies**: Items automatically include required progression tables and icons
+- **No Foreign Key Errors**: Dependencies are imported in the correct order
+- **Correct Stat Ordering**: Stats appear in the same order as the original LOTRO game data
+- **Comprehensive Coverage**: Imports all equipment items level 500+ (armor, weapons, jewelry, etc.)

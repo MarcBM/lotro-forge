@@ -112,6 +112,7 @@ async def list_items(
     quality: Optional[str] = None,
     min_level: Optional[int] = None,
     max_level: Optional[int] = None,
+    sort: Optional[str] = Query(None, description="Sort by: name, base_ilvl (default: recent/reverse key)"),
     limit: int = Query(99, ge=1, le=200),
     skip: int = Query(0, ge=0),
     db: Session = Depends(get_db)
@@ -140,7 +141,16 @@ async def list_items(
     
     # Build query for items with pagination and joins
     items_query = base_query.options(joinedload(EquipmentItem.stats))
-    items_query = items_query.order_by(EquipmentItem.key.desc())
+    
+    # Apply sorting
+    if sort == "name":
+        items_query = items_query.order_by(EquipmentItem.name)
+    elif sort == "base_ilvl":
+        items_query = items_query.order_by(EquipmentItem.base_ilvl.desc())
+    else:
+        # Default: recent (reverse key order)
+        items_query = items_query.order_by(EquipmentItem.key.desc())
+    
     items_query = items_query.offset(skip).limit(limit)
     
     # Execute items query - this will return EquipmentItem or Weapon objects based on polymorphism
@@ -165,6 +175,25 @@ async def list_items(
         "limit": limit,
         "skip": skip
     }
+
+@router.get("/equipment/slots")
+async def get_equipment_slots(db: Session = Depends(get_db)) -> dict:
+    """
+    Get all distinct slots from the equipment table for filtering.
+    Returns a list of slot values.
+    """
+    try:
+        # Query for distinct slot values
+        stmt = select(EquipmentItem.slot).distinct().order_by(EquipmentItem.slot)
+        result = db.execute(stmt)
+        slots = result.scalars().all()
+        
+        return {
+            "slots": [slot for slot in slots if slot is not None]
+        }
+    except SQLAlchemyError as e:
+        logger.error(f"Database error getting equipment slots: {e}")
+        raise HTTPException(status_code=500, detail="Database error") 
 
 @router.get("/equipment/{item_key}")
 async def get_item(

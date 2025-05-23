@@ -34,6 +34,7 @@
 <div x-data="databasePanel('{{ panel_id }}')"
      x-show="activePanel === '{{ panel_id }}'" 
      @update-pagination.window="handlePaginationUpdate($event.detail)"
+     @reset-pagination.window="handlePaginationReset()"
      class="h-[calc(100vh-20rem)] flex gap-4">
     
     <!-- Left Column - Filters -->
@@ -55,12 +56,13 @@
                     <div class="text-sm text-gray-400">
                         <span x-text="totalResults ? `Showing ${items.length} out of ${totalResults} results` : `Showing ${items.length} results`"></span>
                     </div>
-                    <!-- Sort By dropdown placeholder -->
-                    <select class="bg-lotro-darker text-gray-300 px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
-                        <option value="" disabled selected>Sort By</option>
-                        <option value="" disabled>Name</option>
-                        <option value="" disabled>Level</option>
-                        <option value="" disabled>Type</option>
+                    <!-- Sort By dropdown -->
+                    <select x-model="sortBy" 
+                            @change="handleSortChange()"
+                            class="bg-lotro-darker text-gray-300 px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
+                        <option value="recent">Recent</option>
+                        <option value="name">Name</option>
+                        <option value="base_ilvl">Base iLvl</option>
                     </select>
                 </div>
             </div>
@@ -122,16 +124,49 @@ document.addEventListener('alpine:init', () => {
         limit: 99,
         items: [], // Add items array to track total items
         totalResults: null, // Track total results count
+        sortBy: 'recent', // Default sort option
 
         handlePaginationUpdate(detail) {
             this.hasMore = detail.hasMore;
+            
+            // Determine if this is a fresh search or load-more
+            // For fresh search: offset - limit should equal 0 (first load)
+            // For load-more: offset - limit should equal current items length
+            const expectedCurrentLength = detail.offset - 99; // 99 is our limit
+            const isFreshSearch = expectedCurrentLength === 0;
+            
+            if (isFreshSearch) {
+                // Fresh search - replace items
+                this.items = detail.newItems || [];
+            } else {
+                // Load more - append items
+                this.items = [...this.items, ...detail.newItems || []];
+            }
+            
             this.offset = detail.offset;
-            // Update total items count
-            this.items = [...this.items, ...detail.newItems || []];
+            
             // Update total results if provided
             if (detail.totalResults !== undefined) {
                 this.totalResults = detail.totalResults;
             }
+        },
+
+        handlePaginationReset() {
+            this.items = [];
+            this.totalResults = null;
+            this.hasMore = true;
+            this.offset = 0;
+        },
+
+        handleSortChange() {
+            // Dispatch a custom event that the panel component can listen for
+            const event = new CustomEvent('sort-change', {
+                detail: {
+                    panelId,
+                    sortBy: this.sortBy
+                }
+            });
+            window.dispatchEvent(event);
         },
 
         async loadMore() {

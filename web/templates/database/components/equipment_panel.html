@@ -1,9 +1,22 @@
 {% from "database/components/base_panel.html" import database_panel %}
 
 {% set filters_content %}
-<!-- Filters placeholder -->
-<div class="text-gray-400 text-center py-4">
-    Filters coming soon
+<!-- Equipment Filters -->
+<div class="space-y-4">
+    <!-- Slot Filter -->
+    <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">
+            Slot
+        </label>
+        <select x-model="selectedSlot" 
+                @change="applyFilters()"
+                class="w-full bg-lotro-darker border border-lotro-border rounded-lg px-3 py-2 text-gray-300 focus:border-lotro-gold focus:outline-none">
+            <option value="">All Slots</option>
+            <template x-for="slot in availableSlots" :key="slot">
+                <option :value="slot" x-text="slot"></option>
+            </template>
+        </select>
+    </div>
 </div>
 {% endset %}
 
@@ -191,27 +204,85 @@ document.addEventListener('alpine:init', () => {
         concreteEquipment: null,
         loading: false,
         
+        // Filter state
+        selectedSlot: '',
+        availableSlots: [],
+        
+        // Sort state
+        currentSort: 'recent',
+        
         init() {
             // Initialize with empty array to ensure reactivity
             this.equipment = [];
+            // Load available slots for filter dropdown
+            this.loadAvailableSlots();
             // Initial load with a fixed limit of 99 (multiple of 3)
             this.loadEquipment(0, 99);
             
             // Listen for load-more events from the base panel
             window.addEventListener('load-more', this.handleLoadMore.bind(this));
+            // Listen for sort-change events from the base panel
+            window.addEventListener('sort-change', this.handleSortChange.bind(this));
+        },
+
+        async loadAvailableSlots() {
+            try {
+                const response = await fetch('/api/items/equipment/slots');
+                if (!response.ok) {
+                    throw new Error('Failed to load slots');
+                }
+                const data = await response.json();
+                this.availableSlots = data.slots;
+            } catch (error) {
+                console.error('Error loading available slots:', error);
+                this.availableSlots = [];
+            }
+        },
+
+        applyFilters() {
+            // Reset to first page and reload with filters
+            this.equipment = [];
+            // Reset pagination state to indicate this is a fresh search
+            this.$dispatch('reset-pagination');
+            this.loadEquipment(0, 99);
         },
 
         handleLoadMore(event) {
             if (event.detail.panelId !== 'equipment') return;
             this.loadMoreEquipment(event.detail.offset, event.detail.limit);
         },
+
+        handleSortChange(event) {
+            if (event.detail.panelId !== 'equipment') return;
+            this.currentSort = event.detail.sortBy;
+            this.applyFilters(); // Reload with new sort
+        },
         
+        buildApiUrl(offset, limit) {
+            const params = new URLSearchParams({
+                limit: limit.toString(),
+                skip: offset.toString()
+            });
+            
+            // Add filter parameters
+            if (this.selectedSlot) {
+                params.append('slot', this.selectedSlot);
+            }
+            
+            // Add sort parameter
+            if (this.currentSort && this.currentSort !== 'recent') {
+                params.append('sort', this.currentSort);
+            }
+            
+            return `/api/items/equipment?${params.toString()}`;
+        },
+
         async loadEquipment(offset, limit) {
             if (this.loading) return;
             
             try {
                 this.loading = true;
-                const response = await fetch(`/api/items/equipment?limit=${limit}&skip=${offset}`);
+                const response = await fetch(this.buildApiUrl(offset, limit));
                 if (!response.ok) {
                     throw new Error('Failed to load equipment');
                 }
@@ -245,7 +316,7 @@ document.addEventListener('alpine:init', () => {
             
             try {
                 this.loading = true;
-                const response = await fetch(`/api/items/equipment?limit=${limit}&skip=${offset}`);
+                const response = await fetch(this.buildApiUrl(offset, limit));
                 if (!response.ok) {
                     throw new Error('Failed to load more equipment');
                 }

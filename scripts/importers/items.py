@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Set
 from dataclasses import dataclass
 from sqlalchemy.orm import Session
-from database.models.item import EquipmentItem, Weapon, ItemStat
+from database.models.item import EquipmentItem, Weapon, Essence, ItemStat
 from scripts.importers.base import BaseImporter
 from scripts.importers.dps_tables import DpsTablesImporter
 from lxml import etree
@@ -23,13 +23,16 @@ class ItemData:
     scaling: Optional[str]
     stats: List[Tuple[str, str, int]]  # (stat_name, value_table_id, order)
     # Weapon-specific fields
-    category: Optional[str] = None  # "WEAPON" vs "ARMOUR" vs "ITEM"
+    category: Optional[str] = None  # "WEAPON" vs "ARMOUR" vs "ITEM" vs "ESSENCE"
     dps: Optional[float] = None
     dps_table_id: Optional[str] = None
     min_damage: Optional[int] = None
     max_damage: Optional[int] = None
     damage_type: Optional[str] = None
     weapon_type: Optional[str] = None
+    # Essence-specific fields
+    tier: Optional[int] = None
+    essence_type: Optional[int] = None
 
 class ItemImporter(BaseImporter):
     """Importer for item definitions."""
@@ -85,11 +88,24 @@ class ItemImporter(BaseImporter):
                 try:
                     level = int(item_elem.get("level", "1"))
                     slot = item_elem.get("slot", "")
+                    category = item_elem.get("category", "")
                     
                     # Import all equipment items with level >= 500 that have a slot
-                    # Skip items that don't meet our criteria
-                    if level < 500 or not slot:
+                    # OR essences with level >= 500 (regardless of slot)
+                    if level < 500:
                         continue
+                    
+                    # For equipment, require a slot; for essences, no slot required
+                    if category == "ESSENCE":
+                        # Include essence regardless of slot
+                        pass
+                    elif slot:
+                        # Include equipment items that have a slot
+                        pass
+                    else:
+                        # Skip items that are neither essences nor equipment with slots
+                        continue
+                        
                 except (ValueError, TypeError):
                     # Skip items with invalid level data
                     continue
@@ -120,23 +136,48 @@ class ItemImporter(BaseImporter):
                 min_damage=int(item_elem.get("minDamage")) if item_elem.get("minDamage") else None,
                 max_damage=int(item_elem.get("maxDamage")) if item_elem.get("maxDamage") else None,
                 damage_type=item_elem.get("damageType"),
-                weapon_type=item_elem.get("weaponType")
+                weapon_type=item_elem.get("weaponType"),
+                # Essence-specific fields
+                tier=int(item_elem.get("tier")) if item_elem.get("tier") else None,
+                essence_type=int(item_elem.get("type")) if item_elem.get("type") else None
             )
             items.append(item)
         
-        self.logger.info(f"Parsed {total_parsed} total items, filtered to {len(items)} equipment items level 500+")
+        self.logger.info(f"Parsed {total_parsed} total items, filtered to {len(items)} equipment items and essences level 500+")
         return items
     
-    def transform_data(self, items: List[ItemData]) -> Tuple[List[EquipmentItem], List[ItemStat]]:
+    def transform_data(self, items: List[ItemData]) -> Tuple[Tuple[List[EquipmentItem], List[Essence]], List[ItemStat]]:
         """Transform ItemData objects into database models."""
         equipment_items = []
+        essences = []
         item_stats = []
         
         for item in items:
-            # Determine if this is a weapon based on category
-            is_weapon = item.category == "WEAPON"
-            
-            if is_weapon:
+            # Determine the item type based on category
+            if item.category == "ESSENCE":
+                # Create essence item
+                essence = Essence(
+                    key=item.key,
+                    name=item.name,
+                    base_ilvl=item.base_ilvl,
+                    quality=item.quality,
+                    icon=item.icon,
+                    tier=item.tier,
+                    essence_type=item.essence_type
+                )
+                essences.append(essence)
+                
+                # Create item stats for essence
+                for stat_name, value_table_id, order in item.stats:
+                    stat = ItemStat(
+                        item_key=item.key,
+                        stat_name=stat_name,
+                        value_table_id=value_table_id,
+                        order=order
+                    )
+                    item_stats.append(stat)
+                    
+            elif item.category == "WEAPON":
                 # Create weapon item
                 equipment_item = Weapon(
                     key=item.key,
@@ -155,6 +196,18 @@ class ItemImporter(BaseImporter):
                     damage_type=item.damage_type,
                     weapon_type=item.weapon_type
                 )
+                equipment_items.append(equipment_item)
+                
+                # Create item stats for weapon
+                for stat_name, value_table_id, order in item.stats:
+                    stat = ItemStat(
+                        item_key=item.key,
+                        stat_name=stat_name,
+                        value_table_id=value_table_id,
+                        order=order
+                    )
+                    item_stats.append(stat)
+                    
             else:
                 # Create regular equipment item
                 equipment_item = EquipmentItem(
@@ -167,27 +220,26 @@ class ItemImporter(BaseImporter):
                     armour_type=item.armour_type,
                     scaling=item.scaling
                 )
-            
-            equipment_items.append(equipment_item)
-            
-            # Create item stats (same for both weapons and regular equipment)
-            for stat_name, value_table_id, order in item.stats:
-                stat = ItemStat(
-                    item_key=item.key,
-                    stat_name=stat_name,
-                    value_table_id=value_table_id,
-                    order=order
-                )
-                item_stats.append(stat)
+                equipment_items.append(equipment_item)
+                
+                # Create item stats for equipment
+                for stat_name, value_table_id, order in item.stats:
+                    stat = ItemStat(
+                        item_key=item.key,
+                        stat_name=stat_name,
+                        value_table_id=value_table_id,
+                        order=order
+                    )
+                    item_stats.append(stat)
         
-        return equipment_items, item_stats
+        return (equipment_items, essences), item_stats
     
-    def import_data(self, data: Tuple[List[EquipmentItem], List[ItemStat]]) -> None:
+    def import_data(self, data: Tuple[Tuple[List[EquipmentItem], List[Essence]], List[ItemStat]]) -> None:
         """Import the transformed data into the database."""
-        equipment_items, item_stats = data
+        (equipment_items, essences), item_stats = data
         
         try:
-            # Import items
+            # Import equipment items
             for equipment_item in equipment_items:
                 # Check if item already exists
                 existing = self.db.query(EquipmentItem).get(equipment_item.key)
@@ -199,6 +251,19 @@ class ItemImporter(BaseImporter):
                 else:
                     # Add new item
                     self.db.add(equipment_item)
+            
+            # Import essences
+            for essence in essences:
+                # Check if essence already exists
+                existing = self.db.query(Essence).get(essence.key)
+                if existing:
+                    # Update existing essence
+                    for key, value in essence.__dict__.items():
+                        if not key.startswith('_'):
+                            setattr(existing, key, value)
+                else:
+                    # Add new essence
+                    self.db.add(essence)
             
             # Import stats
             for stat in item_stats:
@@ -215,7 +280,7 @@ class ItemImporter(BaseImporter):
                     # Add new stat
                     self.db.add(stat)
             
-            self.logger.info(f"Successfully imported {len(equipment_items)} equipment items and {len(item_stats)} stats")
+            self.logger.info(f"Successfully imported {len(equipment_items)} equipment items, {len(essences)} essences, and {len(item_stats)} stats")
             
         except Exception as e:
             self.logger.error(f"Failed to import data: {str(e)}")

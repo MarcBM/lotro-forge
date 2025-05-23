@@ -15,7 +15,7 @@ sys.path.append(str(project_root))
 
 from database.config import DatabaseConfig
 from database.connection import DatabaseConnection
-from database.models.item import EquipmentItem
+from database.models.item import Item
 
 # Paths
 LOTRO_COMPANION_ROOT = Path('/home/marcb/workspace/lotro/lotro_companion')
@@ -32,7 +32,7 @@ def get_required_icons(session: Session) -> Set[str]:
         Set[str]: Set of icon IDs that need to be copied
     """
     # Query all items with non-null icons
-    stmt = select(EquipmentItem).where(EquipmentItem.icon.isnot(None))
+    stmt = select(Item).where(Item.icon.isnot(None))
     items = session.execute(stmt).scalars().all()
     
     # Collect unique icon IDs
@@ -54,8 +54,8 @@ def copy_icons(db: Session, source_dir: str, target_dir: str) -> Tuple[int, int,
     # Create target directory if it doesn't exist
     os.makedirs(target_dir, exist_ok=True)
     
-    # Get all unique icon IDs from items
-    stmt = select(EquipmentItem).where(EquipmentItem.icon.isnot(None))
+    # Get all unique icon IDs from all items
+    stmt = select(Item).where(Item.icon.isnot(None))
     items = db.execute(stmt).scalars().all()
     
     # Collect all icon IDs

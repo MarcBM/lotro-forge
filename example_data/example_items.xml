@@ -80,4 +80,9 @@
 <stat name="FINESSE" scaling="1879211719"/>
 </stats>
 </item>
+<item key="1879471498" name="Vivid Sea-farer's Essence of Critical Rating" pluralName="key:621082078:98907573" icon="1091914758-1090519044" level="532" category="ESSENCE" class="235" tier="15" binding="BOUND_TO_ACCOUNT_ON_ACQUIRE" quality="INCOMPARABLE" minLevel="150" valueTableId="1879055002" stackMax="50" type="1">
+<stats>
+<stat name="CRITICAL_RATING" scaling="1879211992"/>
+</stats>
+</item>
 </items>

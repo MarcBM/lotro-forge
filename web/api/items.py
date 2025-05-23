@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select, create_engine, func
 
-from database.models.item import Item, EquipmentItem, ItemStat
+from database.models.item import Item, EquipmentItem, Essence, ItemStat
 from database.models.dps import DpsTable
 from database.config import get_database_url
 
@@ -311,5 +311,215 @@ async def get_concrete_item(
             'dps': item.dps,
             'calculated_dps': item.get_dps_at_ilvl(effective_ilvl) if hasattr(item, 'get_dps_at_ilvl') else None
         })
+    
+    return response 
+
+@router.get("/essences")
+async def list_essences(
+    request: Request,
+    ilvl: Optional[int] = Query(None, description="Filter by item level"),
+    essence_type: Optional[int] = Query(None, description="Filter by essence type"),
+    quality: Optional[str] = None,
+    min_level: Optional[int] = None,
+    max_level: Optional[int] = None,
+    sort: Optional[str] = Query(None, description="Sort by: name, base_ilvl (default: recent/reverse key)"),
+    limit: int = Query(99, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    List essences with optional filtering and pagination.
+    Returns both essences and total count.
+    """
+    # Build base query for filtering
+    base_query = select(Essence)
+    
+    # Apply filters to base query
+    if ilvl is not None:
+        base_query = base_query.where(Essence.base_ilvl == ilvl)
+    if essence_type is not None:
+        base_query = base_query.where(Essence.essence_type == essence_type)
+    if quality:
+        base_query = base_query.where(Essence.quality == quality)
+    if min_level:
+        base_query = base_query.where(Essence.base_ilvl >= min_level)
+    if max_level:
+        base_query = base_query.where(Essence.base_ilvl <= max_level)
+    
+    # Get total count (without pagination)
+    count_query = select(func.count()).select_from(base_query.subquery())
+    total_result = db.execute(count_query)
+    total_count = total_result.scalar()
+    
+    # Build query for essences with pagination and joins
+    essences_query = base_query.options(joinedload(Essence.stats))
+    
+    # Apply sorting
+    if sort == "name":
+        essences_query = essences_query.order_by(Essence.name)
+    elif sort == "base_ilvl":
+        essences_query = essences_query.order_by(Essence.base_ilvl.desc())
+    else:
+        # Default: recent (reverse key order)
+        essences_query = essences_query.order_by(Essence.key.desc())
+    
+    essences_query = essences_query.offset(skip).limit(limit)
+    
+    # Execute essences query
+    result = db.execute(essences_query)
+    essences = result.unique().scalars().all()
+    
+    # Convert to dict and process for frontend
+    processed_essences = []
+    for essence in essences:
+        essence_dict = essence.to_dict()
+        # Convert quality to uppercase for frontend
+        essence_dict['quality'] = essence_dict['quality'].upper()
+        # Convert icon to icon_urls
+        essence_dict['icon_urls'] = get_icon_urls(request, essence_dict.get('icon'))
+        # Remove the raw icon field
+        essence_dict.pop('icon', None)
+        processed_essences.append(essence_dict)
+    
+    return {
+        "essences": processed_essences,
+        "total": total_count,
+        "limit": limit,
+        "skip": skip
+    }
+
+@router.get("/essences/tiers")
+async def get_essence_tiers(db: Session = Depends(get_db)) -> dict:
+    """
+    Get all distinct tiers from the essences table for filtering.
+    Returns a list of tier values.
+    """
+    try:
+        # Query for distinct tier values
+        stmt = select(Essence.tier).distinct().order_by(Essence.tier)
+        result = db.execute(stmt)
+        tiers = result.scalars().all()
+        
+        return {
+            "tiers": [tier for tier in tiers if tier is not None]
+        }
+    except SQLAlchemyError as e:
+        logger.error(f"Database error getting essence tiers: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+
+@router.get("/essences/types")
+async def get_essence_types(db: Session = Depends(get_db)) -> dict:
+    """
+    Get all distinct essence types from the essences table for filtering.
+    Returns a list of essence type objects with id and name.
+    """
+    try:
+        # Query for distinct essence_type values
+        stmt = select(Essence.essence_type).distinct().order_by(Essence.essence_type)
+        result = db.execute(stmt)
+        type_ids = result.scalars().all()
+        
+        # Convert to objects with readable names using the model mapping
+        type_objects = []
+        for type_id in type_ids:
+            if type_id is not None:
+                name = Essence.ESSENCE_TYPE_NAMES.get(type_id, f'Unknown ({type_id})')
+                type_objects.append({
+                    'id': type_id,
+                    'name': name
+                })
+        
+        return {
+            "types": type_objects
+        }
+    except SQLAlchemyError as e:
+        logger.error(f"Database error getting essence types: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+
+@router.get("/essences/levels")
+async def get_essence_levels(db: Session = Depends(get_db)) -> dict:
+    """
+    Get all distinct item levels from the essences table for filtering.
+    Returns a list of item level values.
+    """
+    try:
+        # Query for distinct base_ilvl values
+        stmt = select(Essence.base_ilvl).distinct().order_by(Essence.base_ilvl)
+        result = db.execute(stmt)
+        levels = result.scalars().all()
+        
+        return {
+            "levels": [level for level in levels if level is not None]
+        }
+    except SQLAlchemyError as e:
+        logger.error(f"Database error getting essence levels: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+
+@router.get("/essences/{essence_key}")
+async def get_essence(
+    essence_key: int,
+    request: Request,
+    ilvl: Optional[int] = None,
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Get a specific essence by its key.
+    Optionally specify an item level to get concrete stat values.
+    """
+    stmt = select(Essence).options(joinedload(Essence.stats)).where(Essence.key == essence_key)
+    result = db.execute(stmt)
+    essence = result.unique().scalar_one_or_none()
+    
+    if not essence:
+        raise HTTPException(status_code=404, detail="Essence not found")
+    
+    essence_dict = essence.to_dict(ilvl)
+    # Convert quality to uppercase for frontend
+    essence_dict['quality'] = essence_dict['quality'].upper()
+    # Convert icon to icon_urls
+    essence_dict['icon_urls'] = get_icon_urls(request, essence_dict.get('icon'))
+    # Remove the raw icon field
+    essence_dict.pop('icon', None)
+    
+    return essence_dict
+
+@router.get("/essences/{essence_key}/concrete")
+async def get_concrete_essence(
+    essence_key: int,
+    ilvl: Optional[int] = None,
+    db: Session = Depends(get_db)
+) -> dict:
+    """
+    Get a specific essence with concrete stat values at a given item level.
+    Returns the essence with stat_values array containing actual calculated values.
+    """
+    stmt = select(Essence).options(joinedload(Essence.stats)).where(Essence.key == essence_key)
+    result = db.execute(stmt)
+    essence = result.unique().scalar_one_or_none()
+    
+    if not essence:
+        raise HTTPException(status_code=404, detail="Essence not found")
+    
+    # Get the concrete stat values at the specified level
+    effective_ilvl = ilvl if ilvl is not None else essence.base_ilvl
+    
+    # Build stat_values list preserving the original order from ItemStat.order
+    stat_values = []
+    for stat in essence.stats:  # This is already ordered by ItemStat.order
+        stat_values.append({
+            'stat_name': stat.stat_name,
+            'value': stat.get_value(effective_ilvl)
+        })
+    
+    # Format the response to match what the frontend expects
+    response = {
+        'key': essence.key,
+        'name': essence.name,
+        'ilvl': effective_ilvl,
+        'stat_values': stat_values,
+        'item_type': essence.item_type,
+        'tier': essence.tier,
+        'essence_type': essence.essence_type
+    }
     
     return response 

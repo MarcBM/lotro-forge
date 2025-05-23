@@ -35,82 +35,86 @@
      x-show="activePanel === '{{ panel_id }}'" 
      @update-pagination.window="handlePaginationUpdate($event.detail)"
      @reset-pagination.window="handlePaginationReset()"
-     class="h-[calc(100vh-20rem)] flex gap-4">
+     @set-sort.window="if($event.detail.panelId === undefined || $event.detail.panelId === '{{ panel_id }}') { sortBy = $event.detail.sortBy }"
+     class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
     
-    <!-- Left Column - Filters -->
-    <div class="w-56 bg-lotro-dark rounded-lg border border-lotro-border p-4 flex-shrink-0 flex flex-col">
-        <h3 class="text-lg font-medium text-lotro-gold mb-4">Filters</h3>
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
-            {{ filters_content }}
-        </div>
-    </div>
-
-    <!-- Middle Column - Results Grid -->
-    <div class="flex-1 bg-lotro-dark rounded-lg border border-lotro-border flex flex-col min-w-[800px]">
-        <!-- Header with Search -->
-        <div class="p-4 border-b border-lotro-border flex-shrink-0">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-lotro-gold">{{ title }}</h2>
-                <div class="flex items-center gap-4">
-                    <!-- Results Counter -->
-                    <div class="text-sm text-gray-400">
-                        <span x-text="totalResults ? `Showing ${items.length} out of ${totalResults} results` : `Showing ${items.length} results`"></span>
-                    </div>
-                    <!-- Sort By dropdown -->
-                    <select x-model="sortBy" 
-                            @change="handleSortChange()"
-                            class="bg-lotro-darker text-gray-300 px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
-                        <option value="recent">Recent</option>
-                        <option value="name">Name</option>
-                        <option value="base_ilvl">Base iLvl</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <input type="text" 
-                       placeholder="Search..." 
-                       class="flex-1 bg-lotro-darker text-gray-300 px-4 py-2 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
+    <!-- Container to limit max width and center content -->
+    <div class="w-full max-w-[1400px] h-full flex gap-4">
+        <!-- Left Column - Filters -->
+        <div class="w-56 bg-lotro-dark rounded-lg border border-lotro-border p-4 flex-shrink-0 flex flex-col h-full">
+            <h3 class="text-lg font-medium text-lotro-gold mb-4">Filters</h3>
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                {{ filters_content }}
             </div>
         </div>
 
-        <!-- Results Grid - Now scrollable -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar">
-            <div class="p-4">
-                {{ results_content }}
-                
-                <!-- Load More Button or End Message -->
-                <div class="mt-4 text-center">
-                    <template x-if="hasMore">
-                        <button @click="loadMore" 
-                                class="bg-lotro-darker text-lotro-gold px-6 py-2 rounded border border-lotro-border hover:border-lotro-gold focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="loading">
-                            <span x-show="!loading">Load More</span>
-                            <span x-show="loading" class="inline-flex items-center">
-                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-lotro-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Loading...
-                            </span>
-                        </button>
-                    </template>
-                    <template x-if="!hasMore && items.length > 0">
-                        <div class="text-gray-400 py-2">
-                            No more items to load
+        <!-- Middle Column - Results Grid -->
+        <div class="flex-1 bg-lotro-dark rounded-lg border border-lotro-border flex flex-col min-w-[800px] h-full">
+            <!-- Header with Search -->
+            <div class="p-4 border-b border-lotro-border flex-shrink-0">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-lotro-gold">{{ title }}</h2>
+                    <div class="flex items-center gap-4">
+                        <!-- Results Counter -->
+                        <div class="text-sm text-gray-400">
+                            <span x-text="totalResults ? `Showing ${items.length} out of ${totalResults} results` : `Showing ${items.length} results`"></span>
                         </div>
-                    </template>
+                        <!-- Sort By dropdown -->
+                        <select x-model="sortBy" 
+                                @change="handleSortChange()"
+                                class="bg-lotro-darker text-gray-300 px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
+                            <option value="recent">Recent</option>
+                            <option value="name">Name</option>
+                            <option value="base_ilvl">Base iLvl</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" 
+                           placeholder="Search..." 
+                           class="flex-1 bg-lotro-darker text-gray-300 px-4 py-2 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Results Grid - Now scrollable -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                <div class="p-4">
+                    {{ results_content }}
+                    
+                    <!-- Load More Button or End Message -->
+                    <div class="mt-4 text-center">
+                        <template x-if="hasMore">
+                            <button @click="loadMore" 
+                                    class="bg-lotro-darker text-lotro-gold px-6 py-2 rounded border border-lotro-border hover:border-lotro-gold focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                    :disabled="loading">
+                                <span x-show="!loading">Load More</span>
+                                <span x-show="loading" class="inline-flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-lotro-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Loading...
+                                </span>
+                            </button>
+                        </template>
+                        <template x-if="!hasMore && items.length > 0">
+                            <div class="text-gray-400 py-2">
+                                No more items to load
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Right Column - Details Panel -->
-    <div class="w-80 bg-lotro-dark rounded-lg border border-lotro-border flex-shrink-0 flex flex-col">
-        <div class="p-4 border-b border-lotro-border flex-shrink-0">
-            <h3 class="text-lg font-medium text-lotro-gold">Details</h3>
-        </div>
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
-            {{ details_content }}
+        <!-- Right Column - Details Panel -->
+        <div class="w-80 bg-lotro-dark rounded-lg border border-lotro-border flex-shrink-0 flex flex-col h-full">
+            <div class="p-4 border-b border-lotro-border flex-shrink-0">
+                <h3 class="text-lg font-medium text-lotro-gold">Details</h3>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-4">
+                {{ details_content }}
+            </div>
         </div>
     </div>
 </div>

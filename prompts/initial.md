@@ -1,0 +1,1 @@
+Please refamiliarise yourself with the workspace directory structure. Read the RULES.md and README.md to reacquaint yourself with the project, its purpose, and the principles we are using to develop it. Now continue with whatever I ask you to do next.

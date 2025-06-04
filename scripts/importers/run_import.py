@@ -26,6 +26,7 @@ from database.config import get_database_url
 from scripts.importers.progressions import ProgressionsImporter
 from scripts.importers.items import ItemImporter
 from scripts.copy_icons import copy_required_icons  # Import icon copying function
+from database.session import SessionLocal, engine
 
 def setup_logging(log_dir: Path = None):
     """Configure logging for the import script.
@@ -56,11 +57,9 @@ def database_session(create_tables: bool = False):
     Args:
         create_tables: If True, create tables if they don't exist
     """
-    engine = create_engine(get_database_url())
     if create_tables:
         Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = SessionLocal()
     try:
         yield session
         session.commit()
@@ -69,9 +68,8 @@ def database_session(create_tables: bool = False):
         raise
     finally:
         session.close()
-        engine.dispose()
 
-def wipe_database(engine):
+def wipe_database():
     """Drop all tables and recreate them.
     
     Args:
@@ -147,14 +145,10 @@ def main():
     progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
     dps_tables_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/dpsTables.xml')
     
-    # Create database connection
-    engine = create_engine(get_database_url())
-    SessionLocal = sessionmaker(bind=engine)
-    
     try:
         # Handle table creation/wiping
         if args.wipe:
-            wipe_database(engine)
+            wipe_database()
         elif args.create_tables:
             Base.metadata.create_all(engine)
         
@@ -218,8 +212,6 @@ def main():
     except Exception as e:
         logger.error(f"Import failed: {e}")
         raise
-    finally:
-        engine.dispose()
 
 if __name__ == '__main__':
     sys.exit(main()) 

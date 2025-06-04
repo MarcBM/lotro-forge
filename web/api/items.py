@@ -13,6 +13,7 @@ from database.models.item import Item, EquipmentItem, Essence, ItemStat
 from database.models.dps import DpsTable
 from database.config import get_database_url
 from .services.ev_calculator import EVCalculator
+from database.session import SessionLocal
 
 class EquipmentSlot(Enum):
     """Equipment slot definitions for the builder and filtering."""
@@ -177,17 +178,6 @@ logger = logging.getLogger(__name__)
 
 # Create router
 router = APIRouter()
-
-# Create database engine and session factory
-try:
-    logger.info("Initializing database connection...")
-    database_url = get_database_url()
-    engine = create_engine(database_url)
-    SessionLocal = sessionmaker(bind=engine)
-    logger.info("Database connection initialized successfully")
-except Exception as e:
-    logger.error(f"Failed to initialize database connection: {e}")
-    raise RuntimeError(f"Failed to initialize database connection: {e}")
 
 # Database session dependency
 def get_db():

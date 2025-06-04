@@ -16,6 +16,7 @@ sys.path.append(str(project_root))
 
 from database.models.item import EquipmentItem
 from database.config import get_database_url
+from database.session import SessionLocal
 
 # Set up logging
 logging.basicConfig(
@@ -63,10 +64,6 @@ def main():
     
     # Create database connection
     try:
-        database_url = get_database_url()
-        engine = create_engine(database_url)
-        SessionLocal = sessionmaker(bind=engine)
-        
         with SessionLocal() as db:
             list_items(
                 db,

@@ -17,6 +17,7 @@ from .config.config import (
 )
 from .middleware.security import add_security_middleware
 from .api.items import router as items_router
+from .api.auth import router as auth_router
 
 # Configure logging
 logging.basicConfig(
@@ -63,6 +64,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Include routers
 app.include_router(items_router, prefix="/api/items", tags=["items"])
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
 # Error handlers
 @app.exception_handler(404)

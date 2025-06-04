@@ -10,13 +10,13 @@ from sqlalchemy import inspect
 from database.models.base import Base
 from database.connection import create_engine
 from database.config import get_database_url
+from database.session import engine
 
 def check_database():
     # Load environment variables
     load_dotenv()
     
     # Get database URL and create engine
-    engine = create_engine(get_database_url())
     inspector = inspect(engine)
     
     print("\nDatabase Tables:")

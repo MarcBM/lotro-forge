@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from database.models.item import EquipmentItem, ItemStat
 from database.models.progressions import ProgressionTable, TableValue
 from database.config import get_database_url
+from database.session import SessionLocal
 
 def check_data(db: Session) -> None:
     """Check the database for data integrity issues."""
@@ -44,10 +45,6 @@ def check_data(db: Session) -> None:
 def main():
     # Create database connection
     try:
-        database_url = get_database_url()
-        engine = create_engine(database_url)
-        SessionLocal = sessionmaker(bind=engine)
-        
         with SessionLocal() as db:
             check_data(db)
     except Exception as e:

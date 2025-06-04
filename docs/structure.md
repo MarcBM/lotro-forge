@@ -56,6 +56,8 @@ Core data models using SQLAlchemy:
 - **`Essence`** - Special essence items
 - **`StatProgression`** - Stat scaling tables
 - **`DpsTable`** - Damage calculation tables
+- **`User`** - User accounts for authentication and access control.
+- **`UserSession`** - Tracks user login sessions and tokens.
 
 ### API Layer (`web/api/`)
 

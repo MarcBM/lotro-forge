@@ -18,6 +18,7 @@ from database.models.base import Base
 from scripts.importers.progressions import ProgressionsImporter
 from scripts.importers.items import ItemImporter  # Import the base importer
 from scripts.copy_icons import copy_required_icons  # Import icon copying function
+from database.session import SessionLocal, engine
 
 # Example data paths
 EXAMPLE_DATA_DIR = Path(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) / 'example_data'
@@ -40,11 +41,9 @@ def setup_logging():
 
 @contextmanager
 def database_session(create_tables: bool = False):
-    engine = create_engine(get_database_url())
     if create_tables:
         Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = SessionLocal()
     try:
         yield session
         session.commit()
@@ -53,14 +52,8 @@ def database_session(create_tables: bool = False):
         raise
     finally:
         session.close()
-        engine.dispose()
 
-def wipe_database(engine):
-    """Drop all tables and recreate them.
-    
-    Args:
-        engine: SQLAlchemy engine instance
-    """
+def wipe_database():
     logger = logging.getLogger(__name__)
     logger.info("Dropping all tables...")
     Base.metadata.drop_all(engine)
@@ -81,13 +74,6 @@ def main():
     logger.info(f"Using progressions from: {PROGRESSIONS_FILE}")
 
     try:
-        # Setup database
-        engine = create_engine(get_database_url())
-        
-        # Wipe database if requested
-        if args.wipe:
-            wipe_database(engine)
-        
         with database_session(True) as session:
             # First, analyze example items to get required progression tables
             logger.info("Analyzing example items to determine required progression tables...")

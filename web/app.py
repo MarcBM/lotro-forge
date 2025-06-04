@@ -104,4 +104,4 @@ async def database(request: Request):
     return templates.TemplateResponse(
         "database/database.html",
         {"request": request}
-    ) 
+    )

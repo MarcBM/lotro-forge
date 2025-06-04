@@ -1,0 +1,8 @@
+- Cleanup the project directory
+- Fix and improve unit tests to solidify current functionality.
+- Implement very simple authentication (accounts manually created and handed out to new Beta testers, must be logged in to see any page other than home)
+- Find a way to host the website on the interwebs at a free/very cheap tier.
+- Change branch management to do development off the main branch, use the main branch for releases
+- Implement some sort of github actions or CI/CD to deploy the website on any push to main.
+- Fix display of the builder to look roughly the same on larger screens.
+- Fix EV display on item DBs to be global, not relative to only currently loaded results.

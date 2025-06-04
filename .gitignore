@@ -1,13 +1,19 @@
-# Virtual Environment
-venv/
-env/
-.env/
-.venv/
-ENV/
+# =================================================================
+# LOTRO Forge .gitignore
+# =================================================================
 
 # Environment Variables
 .env
 .env.*
+!.env.example
+
+# Virtual Environments
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Python
 __pycache__/
@@ -27,35 +33,259 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# IDE
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff (in case we ever add Django)
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff (in case we ever add Flask)
+instance/
+.webassets-cache
+
+# Scrapy stuff (if we ever add web scraping)
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff (if we ever add background tasks)
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# =================================================================
+# Database Files
+# =================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# PostgreSQL dumps
+*.sql
+*.dump
+
+# =================================================================
+# IDE and Editor Files
+# =================================================================
+# PyCharm
 .idea/
+
+# VS Code
 .vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
 *.swp
 *.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =================================================================
+# OS Specific Files
+# =================================================================
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
-# Test coverage
-.coverage
-coverage.xml
-htmlcov/
-.pytest_cache/
-.tox/
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# Distribution
-dist/
-build/
-*.egg-info/ 
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-# Generated files
+# =================================================================
+# Project Specific
+# =================================================================
+# Generated static files (copied by import scripts)
 web/static/icons/
 web/static/images/
 
-# Logs
+# Log files and directories
 *.log
 *.log/
 import_items_*.log/
 example_import.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Data files (if sensitive)
+# Uncomment if you have sensitive data files:
+# *.xml
+# *.json
+# data/
+
+# Alembic
+# Uncomment if you want to ignore specific Alembic files:
+# migrations/versions/*_*.py
+
+# =================================================================
+# Development and Testing
+# =================================================================
+# Local development overrides
+local_settings.py
+.local/
+
+# Test artifacts
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# Performance profiling
+*.prof
+
+# Memory dumps
+*.dmp
+
+# Debug logs
+debug.log
+
+# =================================================================
+# Distribution and Deployment
+# =================================================================
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Docker (for future use)
+.dockerignore
+Dockerfile.prod
+
+# Kubernetes (for future use)
+k8s/secrets/
+
+# Deployment scripts (if sensitive)
+deploy/secrets/

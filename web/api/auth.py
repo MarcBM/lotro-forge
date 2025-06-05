@@ -11,8 +11,9 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, UTC
 import secrets
-from typing import Optional, Annotated, Union
+from typing import Optional, Annotated, Union, List
 from pydantic import BaseModel, EmailStr, Field
+from fastapi.responses import RedirectResponse
 
 from database.session import get_session
 from database.models.user import User, UserSession, UserRole
@@ -25,7 +26,6 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=6)
     role: UserRole = UserRole.USER
     display_name: Optional[str] = Field(None, max_length=100)
-    bio: Optional[str] = Field(None, max_length=500)
 
 class UserResponse(BaseModel):
     id: int
@@ -33,10 +33,44 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: UserRole
     display_name: Optional[str] = None
-    bio: Optional[str] = None
     is_active: bool
     is_verified: bool
     created_at: datetime
+
+class ProfileUpdate(BaseModel):
+    display_name: Optional[str] = Field(None, max_length=100)
+    email: Optional[EmailStr] = None
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=6)
+    confirm_password: str = Field(..., min_length=6)
+
+class AdminUserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    role: UserRole = UserRole.USER
+
+class AdminUserResponse(BaseModel):
+    id: int
+    username: str
+    role: UserRole
+    is_active: bool
+    created_at: datetime
+    generated_password: str  # Only for admin response
+    email: str  # Use regular string instead of EmailStr for temp emails
+
+class UserListResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    role: UserRole
+    is_active: bool
+    created_at: datetime
+    last_login: Optional[datetime] = None
+    display_name: Optional[str] = None
+
+class UserRoleUpdate(BaseModel):
+    role: UserRole
 
 # --- Password hashing ---
 
@@ -47,6 +81,13 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
+
+def generate_random_password(length: int = 8) -> str:
+    """Generate a simple random password using alphanumeric characters."""
+    import string
+    import random
+    characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(characters) for _ in range(length))
 
 # --- Session token (cookie) helpers ---
 
@@ -93,6 +134,14 @@ async def get_admin_user(current_user: User = Depends(get_current_user)) -> User
     if current_user.role != UserRole.ADMIN:
          raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required.")
     return current_user
+
+# --- Custom exception for web authentication redirects ---
+
+class AuthenticationRequiredException(Exception):
+    """Exception raised when authentication is required for web routes."""
+    def __init__(self, redirect_url: str = "/?login_required=1"):
+        self.redirect_url = redirect_url
+        super().__init__("Authentication required")
 
 # --- Router ---
 
@@ -200,7 +249,6 @@ async def create_user(
         hashed_password=hashed_password,
         role=user_in.role,
         display_name=user_in.display_name,
-        bio=user_in.bio,
         is_active=True,
         is_verified=False
     )
@@ -208,4 +256,173 @@ async def create_user(
     db_session.add(new_user)
     db_session.commit()
     db_session.refresh(new_user)
-    return new_user 
+    return new_user
+
+@router.put("/profile", response_model=UserResponse)
+async def update_profile(
+    profile_data: ProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_session)
+):
+    """
+    Update the current user's profile information.
+    """
+    # Check if email is being changed and if it's already taken by another user
+    if profile_data.email and profile_data.email != current_user.email:
+        existing_user = db_session.query(User).filter(
+            User.email == profile_data.email,
+            User.id != current_user.id
+        ).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Email already taken by another user."
+            )
+        current_user.email = profile_data.email
+    
+    # Update profile fields (only if provided)
+    if profile_data.display_name is not None:
+        current_user.display_name = profile_data.display_name.strip() if profile_data.display_name.strip() else None
+    
+    # Save changes
+    db_session.commit()
+    db_session.refresh(current_user)
+    
+    return current_user
+
+@router.put("/password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    password_data: PasswordChange,
+    current_user: User = Depends(get_current_user),
+    db_session: Session = Depends(get_session)
+):
+    """
+    Change the current user's password.
+    """
+    # Verify current password
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect."
+        )
+    
+    # Check that new passwords match
+    if password_data.new_password != password_data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New passwords do not match."
+        )
+    
+    # Check that new password is different from current
+    if verify_password(password_data.new_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password."
+        )
+    
+    # Update password
+    current_user.hashed_password = hash_password(password_data.new_password)
+    db_session.commit()
+    
+    return 
+
+@router.post("/create_simple_user", response_model=AdminUserResponse, status_code=status.HTTP_201_CREATED)
+async def create_simple_user(
+    user_in: AdminUserCreate,
+    db_session: Session = Depends(get_session),
+    admin: User = Depends(get_admin_user)
+):
+    """
+    Admin-only endpoint to create a new user with just username and generated password.
+    """
+    # Check if a user with the same username already exists
+    if db_session.query(User).filter(User.username == user_in.username).first():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken.")
+    
+    # Generate a random password
+    generated_password = generate_random_password()
+    hashed_password = hash_password(generated_password)
+    
+    # Create a temporary email using username
+    temp_email = f"{user_in.username}@placeholder.email"
+    
+    # Create a new user
+    new_user = User(
+        username=user_in.username,
+        email=temp_email,  # Temporary email
+        hashed_password=hashed_password,
+        role=user_in.role,
+        is_active=True,
+        is_verified=False
+    )
+    
+    db_session.add(new_user)
+    db_session.commit()
+    db_session.refresh(new_user)
+    
+    # Return user info with generated password
+    return AdminUserResponse(
+        id=new_user.id,
+        username=new_user.username,
+        role=new_user.role,
+        is_active=new_user.is_active,
+        created_at=new_user.created_at,
+        generated_password=generated_password,
+        email=temp_email
+    )
+
+@router.get("/users", response_model=List[UserListResponse])
+async def list_users(
+    db_session: Session = Depends(get_session),
+    admin: User = Depends(get_admin_user)
+):
+    """
+    Admin-only endpoint to list all users.
+    """
+    users = db_session.query(User).order_by(User.created_at.desc()).all()
+    return users
+
+@router.put("/users/{user_id}/role", response_model=UserListResponse)
+async def update_user_role(
+    user_id: int,
+    role_update: UserRoleUpdate,
+    db_session: Session = Depends(get_session),
+    admin: User = Depends(get_admin_user)
+):
+    """
+    Admin-only endpoint to update a user's role.
+    """
+    user = db_session.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    
+    user.role = role_update.role
+    db_session.commit()
+    db_session.refresh(user)
+    
+    return user
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    db_session: Session = Depends(get_session),
+    admin: User = Depends(get_admin_user)
+):
+    """
+    Admin-only endpoint to delete a user.
+    """
+    user = db_session.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    
+    # Prevent admins from deleting themselves
+    if user.id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="You cannot delete your own account."
+        )
+    
+    db_session.delete(user)
+    db_session.commit()
+    
+    return 

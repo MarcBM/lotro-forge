@@ -1,25 +1,53 @@
 ## High Priority (Beta Launch)
-- 🚧 **Implement basic authentication system**
+- ✅ **Implement basic authentication system** (COMPLETED)
 -   ✅ Create user account management (User and UserSession models implemented)
 -   ✅ Set up login/logout functionality (Complete with modal UI and session management)
--   ❌ Implement access control (logged-in users only)
--     - ❌ Protect builder routes with authentication
--     - ❌ Protect database routes with authentication  
--     - ❌ Redirect unauthenticated users appropriately
+-   ✅ Implement access control (logged-in users only)
+-     - ✅ Protect builder routes with authentication
+-     - ✅ Protect database routes with authentication  
+-     - ✅ Protect builds routes with authentication
+-     - ✅ Redirect unauthenticated users appropriately
+-     - ✅ Protect all API endpoints with middleware (cleaner architecture)
 -   ✅ Create admin interface for managing beta tester accounts (Admin-only user creation endpoint)
 -   ✅ Create master user account (Vuldyn admin account created)
--   ❌ **Account management frontend needed:**
--     - ❌ User profile/account settings page
--     - ❌ Password change functionality
--     - ❌ Account information display and editing
--     - ❌ User dashboard or settings interface
+-   ✅ **Account management frontend completed:**
+-     - ✅ User profile/account settings page (Interactive profile editing with Alpine.js)
+-     - ✅ Password change functionality (Secure password update with validation)
+-     - ✅ Account information display and editing (Display name, email editing)
+-     - ✅ User dashboard or settings interface (Complete account management interface)
+-   ✅ **Admin Panel System (NEW):**
+-     - ✅ Admin-only route with role-based access control
+-     - ✅ Comprehensive user creation with random password generation
+-     - ✅ Full user management interface (view, edit roles, delete users)
+-     - ✅ Inline role editing with dropdown selection
+-     - ✅ User deletion with confirmation dialogs and self-protection
+-     - ✅ Real-time user list management with loading states
+-     - ✅ Streamlined workflow for beta tester account creation
+-   ✅ **Display Name System (NEW):**
+-     - ✅ Display name priority throughout interface (display_name || username)
+-     - ✅ Profile editing with display name functionality
+-     - ✅ Navigation updates to show display names
 -   📋 **Authentication features completed:**
 -     - Session-based authentication with secure cookies
 -     - Password hashing with bcrypt
 -     - User roles (USER, BETA_TESTER, ADMIN)
 -     - Login/logout modal UI with visual feedback
+-     - Auto-focus username field in login modal
+-     - Account dropdown menu with username display
+-     - Conditional admin menu option for admin users
 -     - Authentication status checking and display
 -     - Success/error notifications for login/logout
+-     - Logout redirects to home page automatically
+-     - Route protection with proper redirects for web routes
+-     - API middleware for automatic authentication (all /api/* routes except auth)
+-     - Authentication messages on home page for redirected users
+-     - Only home page accessible without authentication
+-     - Profile management with success/error messaging
+-     - Password change security with current password verification
+-     - Admin panel with comprehensive user management tools
+- Refactor page js to actual js files
+- Refactor nav template.
+- Refactor templates directory, especially move baseline components into the builder.
 - Deploy website to lotroforge.com domain
   - Research and implement hosting solution
   - Set up domain configuration
@@ -40,3 +68,4 @@
 - Fix display of the builder to look roughly the same on larger screens
 - Fix EV display on item DBs to be global, not relative to only currently loaded results
 - Remove left/right slot filters from equipment database explorer to simplify slot selection
+- Make the footer/nav float.

@@ -17,6 +17,7 @@ from database.models.base import Base
 from database.models.progressions import ProgressionTable, ProgressionValue
 from database.models.item import Item, EquipmentItem, ItemStat, Weapon, Essence
 from database.models.dps import DpsTable, DpsValue
+from database.models.user import User, UserSession
 
 # this is the Alembic Config object
 config = context.config

@@ -10,9 +10,72 @@ source venv/bin/activate
 python scripts/run_tests.py unit
 python -m scripts.run_web
 
-# Verify working
-curl http://localhost:8000/api/items/equipment?limit=1
+# Verify working (requires authentication)
+# First login via web UI at http://localhost:8000
+curl http://localhost:8000/api/items/equipment?limit=1 -H "Cookie: auth_session_token=YOUR_TOKEN"
 ```
+
+## Authentication System
+
+### Overview
+LOTRO Forge uses session-based authentication with secure HTTP-only cookies. All functionality except the home page requires authentication.
+
+### Protected Routes
+- `/builder` - Character build creation tool
+- `/database` - Item database browser
+- `/builds` - Community builds repository
+- All `/api/*` endpoints - Automatically protected by middleware
+
+### Unprotected Routes
+- `/` - Home page (only unprotected route)
+
+### Authentication Architecture
+- **Web Routes**: Use dependency injection with `get_current_user_for_web()` 
+- **API Routes**: Use `AuthenticationMiddleware` for automatic protection
+- **Excluded API paths**: `/api/auth/*`, `/docs`, `/redoc`, `/openapi.json`
+
+### Authentication Flow
+1. User clicks "Sign In" button in navigation
+2. Modal opens with username/password form
+3. Credentials sent to `/api/auth/login`
+4. Server sets secure HTTP-only cookie
+5. Subsequent requests include cookie automatically
+6. Unauthenticated access to protected routes redirects to home page with message
+7. API requests without authentication return 401 Unauthorized
+8. Logout clears session and redirects to home page
+
+### Testing Authentication
+```bash
+# Test protected web routes without auth (should redirect)
+curl -i "http://localhost:8000/builder"
+curl -i "http://localhost:8000/database"
+curl -i "http://localhost:8000/builds"
+# All return: 303 See Other, Location: /?login_required=1
+
+# Test API without auth (should return 401)
+curl -i "http://localhost:8000/api/items/equipment"
+# Returns: 401 Unauthorized
+
+# Login via API (for testing)
+curl -X POST "http://localhost:8000/api/auth/login" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=your_username&password=your_password" \
+  -c cookies.txt
+
+# Use session cookie for API calls
+curl "http://localhost:8000/api/items/equipment?limit=1" -b cookies.txt
+```
+
+### User Management
+Admin users can create new accounts via `/api/auth/create_user` endpoint. Regular user registration is not implemented (beta-only access).
+
+### Middleware Implementation
+The `AuthenticationMiddleware` automatically protects all `/api/*` routes:
+- Runs before any API endpoint
+- Validates session cookie
+- Returns 401 if not authenticated
+- Adds `request.state.current_user` for endpoints that need user info
+- Excludes auth endpoints and documentation from protection
 
 ## Development Server
 

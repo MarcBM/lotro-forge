@@ -33,7 +33,6 @@ class User(Base):
     
     # Profile information
     display_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    bio: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(

@@ -1,0 +1,376 @@
+{% extends "base/base.html" %}
+
+{% block title %}Admin Panel - LotRO Forge{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8"
+     x-data="{
+         // User creation form
+         newUsername: '',
+         selectedRole: 'beta_tester',
+         isCreating: false,
+         createMessage: '',
+         isCreateSuccess: false,
+         generatedPassword: '',
+         showPassword: false,
+         
+         // Created users list (for display) - REMOVED
+         
+         // User management
+         allUsers: [],
+         isLoadingUsers: false,
+         editingUserId: null,
+         editingRole: '',
+         isUpdatingRole: false,
+         isDeletingUser: false,
+         
+         async createUser() {
+             this.isCreating = true;
+             this.createMessage = '';
+             this.generatedPassword = '';
+             this.showPassword = false;
+             
+             try {
+                 const response = await fetch('/api/auth/create_simple_user', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify({
+                         username: this.newUsername,
+                         role: this.selectedRole
+                     })
+                 });
+                 
+                 if (response.ok) {
+                     const newUser = await response.json();
+                     this.isCreateSuccess = true;
+                     this.createMessage = 'User created successfully!';
+                     this.generatedPassword = newUser.generated_password;
+                     this.showPassword = true;
+                     
+                     // Refresh the user management list
+                     await this.loadUsers();
+                     
+                     // Clear form
+                     this.newUsername = '';
+                     this.selectedRole = 'beta_tester';
+                     
+                 } else {
+                     const error = await response.json();
+                     this.isCreateSuccess = false;
+                     this.createMessage = error.detail || 'Failed to create user';
+                 }
+             } catch (e) {
+                 this.isCreateSuccess = false;
+                 this.createMessage = 'Network error. Please try again.';
+             } finally {
+                 this.isCreating = false;
+             }
+         },
+         
+         copyPassword() {
+             navigator.clipboard.writeText(this.generatedPassword).then(() => {
+                 // Could add a brief 'copied!' message here
+             });
+         },
+         
+         clearPassword() {
+             this.generatedPassword = '';
+             this.showPassword = false;
+             this.createMessage = '';
+         },
+         
+         async loadUsers() {
+             this.isLoadingUsers = true;
+             try {
+                 const response = await fetch('/api/auth/users');
+                 if (response.ok) {
+                     this.allUsers = await response.json();
+                 } else {
+                     console.error('Failed to load users');
+                 }
+             } catch (e) {
+                 console.error('Error loading users:', e);
+             } finally {
+                 this.isLoadingUsers = false;
+             }
+         },
+         
+         startEditRole(user) {
+             this.editingUserId = user.id;
+             this.editingRole = user.role;
+         },
+         
+         cancelEditRole() {
+             this.editingUserId = null;
+             this.editingRole = '';
+         },
+         
+         async saveRole(userId) {
+             this.isUpdatingRole = true;
+             try {
+                 const response = await fetch(`/api/auth/users/${userId}/role`, {
+                     method: 'PUT',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify({
+                         role: this.editingRole
+                     })
+                 });
+                 
+                 if (response.ok) {
+                     const updatedUser = await response.json();
+                     // Update the user in the list
+                     const userIndex = this.allUsers.findIndex(u => u.id === userId);
+                     if (userIndex !== -1) {
+                         this.allUsers[userIndex] = updatedUser;
+                     }
+                     this.editingUserId = null;
+                     this.editingRole = '';
+                 } else {
+                     const error = await response.json();
+                     alert(error.detail || 'Failed to update user role');
+                 }
+             } catch (e) {
+                 alert('Network error. Please try again.');
+             } finally {
+                 this.isUpdatingRole = false;
+             }
+         },
+         
+         async deleteUser(userId, username) {
+             if (!confirm(`Are you sure you want to delete user '${username}'? This action cannot be undone.`)) {
+                 return;
+             }
+             
+             this.isDeletingUser = true;
+             try {
+                 const response = await fetch(`/api/auth/users/${userId}`, {
+                     method: 'DELETE'
+                 });
+                 
+                 if (response.ok) {
+                     // Remove user from the list
+                     this.allUsers = this.allUsers.filter(u => u.id !== userId);
+                 } else {
+                     const error = await response.json();
+                     alert(error.detail || 'Failed to delete user');
+                 }
+             } catch (e) {
+                 alert('Network error. Please try again.');
+             } finally {
+                 this.isDeletingUser = false;
+             }
+         }
+     }"
+     x-init="loadUsers()">
+
+    <!-- Page Header -->
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-lotro-gold mb-2">Admin Panel</h1>
+        <p class="text-gray-300">Manage LotRO Forge users and system settings</p>
+    </div>
+
+    <!-- User Creation Section -->
+    <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-lotro-gold mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                </svg>
+                Create New User
+            </h2>
+            
+            <!-- Success/Error Message -->
+            <div x-show="createMessage" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0"
+                 x-transition:leave-end="opacity-0 transform translate-y-2"
+                 class="mb-4 px-4 py-2 rounded-md font-medium"
+                 :class="isCreateSuccess ? 'bg-green-600 text-white' : 'bg-red-600 text-white'"
+                 x-text="createMessage">
+            </div>
+            
+            <!-- Generated Password Display -->
+            <div x-show="showPassword" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 class="mb-4 p-4 bg-yellow-900 border border-yellow-600 rounded-md">
+                <h3 class="text-yellow-200 font-medium mb-2">Generated Password:</h3>
+                <div class="flex items-center space-x-2">
+                    <code class="bg-yellow-800 text-yellow-100 px-3 py-2 rounded font-mono text-lg" x-text="generatedPassword"></code>
+                    <button @click="copyPassword()" 
+                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded transition-colors duration-200"
+                            title="Copy to clipboard">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                    <button @click="clearPassword()" 
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded transition-colors duration-200"
+                            title="Clear password">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-yellow-200 text-sm mt-2">
+                    <strong>Important:</strong> Save this password now. It won't be shown again. The user can change it later.
+                </p>
+            </div>
+            
+            <!-- User Creation Form -->
+            <form @submit.prevent="createUser()" class="space-y-4">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Username</label>
+                        <input x-model="newUsername" type="text" required minlength="3" maxlength="50"
+                               class="w-full bg-lotro-darker text-white border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none"
+                               placeholder="Enter username (3-50 characters)" />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Role</label>
+                        <select x-model="selectedRole"
+                                class="w-full bg-lotro-darker text-white border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none">
+                            <option value="beta_tester">Beta Tester</option>
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" 
+                            :disabled="isCreating || !newUsername"
+                            class="bg-lotro-blue hover:bg-lotro-gold text-white px-6 py-2 rounded transition-colors duration-200 disabled:opacity-50">
+                        <span x-show="!isCreating">Create User</span>
+                        <span x-show="isCreating">Creating...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Management Section -->
+    <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-lotro-gold flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                    User Management
+                </h2>
+                <button @click="loadUsers()" 
+                        :disabled="isLoadingUsers"
+                        class="bg-lotro-blue hover:bg-lotro-gold text-white px-4 py-2 rounded transition-colors duration-200 disabled:opacity-50">
+                    <span x-show="!isLoadingUsers">Refresh</span>
+                    <span x-show="isLoadingUsers">Loading...</span>
+                </button>
+            </div>
+            
+            <!-- Users Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-lotro-border">
+                            <th class="text-left py-3 text-gray-300">Username</th>
+                            <th class="text-left py-3 text-gray-300">Display Name</th>
+                            <th class="text-left py-3 text-gray-300">Email</th>
+                            <th class="text-left py-3 text-gray-300">Role</th>
+                            <th class="text-left py-3 text-gray-300">Status</th>
+                            <th class="text-left py-3 text-gray-300">Last Login</th>
+                            <th class="text-left py-3 text-gray-300">Created</th>
+                            <th class="text-left py-3 text-gray-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="user in allUsers" :key="user.id">
+                            <tr class="border-b border-lotro-border/50 hover:bg-lotro-darker/50">
+                                <td class="py-3 text-white font-medium" x-text="user.username"></td>
+                                <td class="py-3 text-gray-300" x-text="user.display_name || '-'"></td>
+                                <td class="py-3 text-gray-300 text-xs" x-text="user.email"></td>
+                                <td class="py-3">
+                                    <template x-if="editingUserId !== user.id">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                              :class="{
+                                                  'bg-red-100 text-red-800': user.role === 'admin',
+                                                  'bg-yellow-100 text-yellow-800': user.role === 'beta_tester',
+                                                  'bg-green-100 text-green-800': user.role === 'user'
+                                              }"
+                                              x-text="user.role.replace('_', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')">
+                                        </span>
+                                    </template>
+                                    <template x-if="editingUserId === user.id">
+                                        <div class="flex items-center space-x-2">
+                                            <select x-model="editingRole"
+                                                    class="bg-lotro-darker text-white border border-lotro-border rounded px-2 py-1 text-xs">
+                                                <option value="user">User</option>
+                                                <option value="beta_tester">Beta Tester</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                            <button @click="saveRole(user.id)"
+                                                    :disabled="isUpdatingRole"
+                                                    class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs">
+                                                ✓
+                                            </button>
+                                            <button @click="cancelEditRole()"
+                                                    class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </template>
+                                </td>
+                                <td class="py-3">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                          :class="user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                          x-text="user.is_active ? 'Active' : 'Inactive'">
+                                    </span>
+                                </td>
+                                <td class="py-3 text-gray-300 text-xs" 
+                                    x-text="user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'"></td>
+                                <td class="py-3 text-gray-300 text-xs" 
+                                    x-text="new Date(user.created_at).toLocaleDateString()"></td>
+                                <td class="py-3">
+                                    <div class="flex items-center space-x-2">
+                                        <template x-if="editingUserId !== user.id">
+                                            <button @click="startEditRole(user)"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+                                                    title="Edit role">
+                                                Edit
+                                            </button>
+                                        </template>
+                                        <button @click="deleteUser(user.id, user.username)"
+                                                :disabled="isDeletingUser"
+                                                class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs disabled:opacity-50"
+                                                title="Delete user">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+                
+                <!-- Loading state -->
+                <div x-show="isLoadingUsers" class="text-center py-8">
+                    <div class="text-gray-400">Loading users...</div>
+                </div>
+                
+                <!-- Empty state -->
+                <div x-show="!isLoadingUsers && allUsers.length === 0" class="text-center py-8">
+                    <div class="text-gray-400">No users found.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

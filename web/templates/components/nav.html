@@ -27,6 +27,9 @@
          notification: '',
          showNotification: false,
          
+         // Account dropdown state
+         isAccountDropdownOpen: false,
+         
          displayNotification(message) {
              this.notification = message;
              this.showNotification = true;
@@ -97,10 +100,28 @@
                  this.isAuthenticated = false;
                  // Show logout success notification
                  this.displayNotification('Logged out successfully!');
+                 // Redirect to home page after logout
+                 window.location.href = '/';
              } catch (e) {
                  console.log('Logout failed:', e);
                  this.displayNotification('Logout failed. Please try again.');
              }
+         },
+         
+         openLoginModal() {
+             this.isLoginModalOpen = true;
+             // Focus the username field after the modal is shown
+             this.$nextTick(() => {
+                 this.$refs.usernameInput.focus();
+             });
+         },
+         
+         toggleAccountDropdown() {
+             this.isAccountDropdownOpen = !this.isAccountDropdownOpen;
+         },
+         
+         closeAccountDropdown() {
+             this.isAccountDropdownOpen = false;
          }
      }"
      x-init="checkAuthStatus();
@@ -174,21 +195,83 @@
                 </div>
             </template>
 
-            <!-- Right side - Account placeholder -->
+            <!-- Right side - Account section -->
             <div class="flex items-center" :class="{'w-1/4 justify-end': isBuilderPage}">
-                <!-- Show user info when authenticated -->
+                <!-- Show account dropdown when authenticated -->
                 <template x-if="isAuthenticated && currentUser">
-                    <div class="flex items-center space-x-3">
-                        <span class="text-lotro-gold text-sm">Welcome, <span x-text="currentUser.username"></span></span>
-                        <button @click="logout()" class="text-gray-300 hover:text-red-400 px-3 py-2 rounded-md text-sm font-medium border border-lotro-border hover:border-red-400 transition-colors duration-200">
-                            Logout
+                    <div class="relative">
+                        <!-- Dropdown trigger button -->
+                        <button @click="toggleAccountDropdown()" 
+                                class="flex items-center space-x-2 text-lotro-gold px-3 py-2 rounded-md text-sm font-medium border border-lotro-border hover:border-lotro-gold transition-colors duration-200"
+                                :class="{'border-lotro-gold': isAccountDropdownOpen}">
+                            <span x-text="currentUser.display_name || currentUser.username"></span>
+                            <!-- Dropdown arrow -->
+                            <svg class="w-4 h-4 transition-transform duration-200" 
+                                 :class="{'rotate-180': isAccountDropdownOpen}"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
                         </button>
+                        
+                        <!-- Dropdown menu -->
+                        <div x-show="isAccountDropdownOpen" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             @click.away="closeAccountDropdown()"
+                             class="absolute right-0 mt-2 w-48 bg-lotro-dark border border-lotro-border rounded-md shadow-lg z-50">
+                            <div class="py-1">
+                                <!-- Account link -->
+                                <a href="/account" 
+                                   @click="closeAccountDropdown()"
+                                   class="block px-4 py-2 text-sm text-gray-300 hover:text-lotro-gold hover:bg-lotro-darker transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                        <span>Account</span>
+                                    </div>
+                                </a>
+                                
+                                <!-- Admin link (only for admins) -->
+                                <template x-if="currentUser.role === 'admin'">
+                                    <a href="/admin" 
+                                       @click="closeAccountDropdown()"
+                                       class="block px-4 py-2 text-sm text-gray-300 hover:text-lotro-gold hover:bg-lotro-darker transition-colors duration-200">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                            <span>Admin</span>
+                                        </div>
+                                    </a>
+                                </template>
+                                
+                                <!-- Divider -->
+                                <div class="border-t border-lotro-border my-1"></div>
+                                
+                                <!-- Logout button -->
+                                <button @click="logout(); closeAccountDropdown()" 
+                                        class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:text-red-400 hover:bg-lotro-darker transition-colors duration-200">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                        <span>Logout</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </template>
                 
                 <!-- Show sign in button when not authenticated -->
                 <template x-if="!isAuthenticated">
-                    <button @click="isLoginModalOpen = true" class="text-gray-300 hover:text-lotro-gold px-3 py-2 rounded-md text-sm font-medium border border-lotro-border hover:border-lotro-gold transition-colors duration-200">
+                    <button @click="openLoginModal()" class="text-gray-300 hover:text-lotro-gold px-3 py-2 rounded-md text-sm font-medium border border-lotro-border hover:border-lotro-gold transition-colors duration-200">
                         Sign In
                     </button>
                 </template>
@@ -280,7 +363,7 @@
                      <form @submit.prevent="login()" class="space-y-4">
                          <div>
                              <label for="login-username" class="block text-sm font-medium text-gray-300">Username</label>
-                             <input id="login-username" x-model="loginUsername" type="text" class="mt-1 block w-full bg-lotro-darker text-white border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none" required />
+                             <input id="login-username" x-model="loginUsername" type="text" class="mt-1 block w-full bg-lotro-darker text-white border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none" required x-ref="usernameInput" />
                          </div>
                          <div>
                              <label for="login-password" class="block text-sm font-medium text-gray-300">Password</label>

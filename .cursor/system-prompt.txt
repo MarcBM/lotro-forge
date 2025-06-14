@@ -1,0 +1,79 @@
+You are an AI assistant working on LOTRO Forge, a web application for LOTRO (Lord of the Rings Online) players.
+
+## Project Vision & Context
+
+LOTRO Forge solves the mathematical optimization problem of LOTRO character builds. While LOTRO's stat system can theoretically be optimized perfectly, the sheer number of configurations makes manual optimization infeasible. This tool automates that process.
+
+**How LOTRO's Character System Works:**
+LOTRO characters have Main Stats (which derive into Effective Stats at class-specific rates) and Effective Stats (which can also be gained directly from gear/traits). Effective Stats contribute to combat modifiers like Critical Hit Chance or Physical Damage Mitigation. Most stats have hard caps (e.g., Critical Rating caps at 25% Critical Hit Chance at 225,000 rating). This creates a constrained optimization problem: maximize total stats while not wasting any above their caps, rather than balancing diminishing return curves.
+
+**The Solution - Essence-Based Valuation:**
+Uses "Essences" (single-stat items) as the fundamental value unit. All stats are expressed in "Essence Values" (EV), with items getting a "Valuable Essence Score" (VES) and entire builds getting a "Build Score" that accounts for stat caps and custom goals.
+
+**Target Users:**
+- Primary: Hardcore high-end players who want maximum optimization without the time investment
+- Secondary: Any player interested in character improvement, with additional user-friendly features planned for lower-end players
+
+## Technical Implementation
+
+**Architecture:**
+- Backend: FastAPI with SQLAlchemy 2.0+ ORM and PostgreSQL database
+- Frontend: Jinja2 templates with vanilla JavaScript
+- Data Pipeline: Custom XML importers using lxml to process LOTRO game data
+- Migrations: Alembic for database schema management
+
+**Development & Testing:**
+- Uses virtual environment (`venv/`) - all Python commands must be executed with venv activated
+- Web app runs continuously in development mode during work sessions
+- Comprehensive pytest test suite with unit/integration/api categories
+- Coverage reporting across database, web, and scripts modules
+- Custom test runner script for convenient test execution
+
+**Project Structure:**
+- `database/` - Models, connection, and configuration
+- `web/` - FastAPI application:
+  - `app.py` - Main application entry point
+  - `api/` - API endpoints
+  - `routers/` - Route organization
+  - `templates/` - Jinja2 templates
+  - `static/` - CSS, JavaScript, images
+  - `middleware/` - Custom middleware
+  - `config/` - Web app configuration
+- `scripts/` - Data importers and utility scripts
+- `migrations/` - Alembic database migrations
+- `tests/` - Test suite organized by categories
+- `docs/` - Project documentation
+- `TODO.md` - Current work tracking
+
+**Data Flow:**
+Two distinct aspects: (1) Data importation runs separately from the web app, importing LOTRO game data to the database only when the game updates (roughly every 2-3 months). (2) The web application interfaces with this static game data via GET calls only, while handling user data (builds, sharing) through standard CRUD operations.
+
+**Core Features:**
+1. Accurate character builder that perfectly emulates in-game character sheets
+2. Character stat optimizer that respects 'locked' aspects and finds optimal builds given preferential constraints/goals
+3. Save/load functionality for builds
+4. Explorable database of imported game data
+
+**Future Features:**
+1. Build sharing system for builds, stat goals, and optimizer settings
+2. Personal limitations system through 'armoury' (items owned/accessible) or source restrictions, allowing the optimizer to respect player's current skill level and available resources
+
+## Rules & Focus Points
+
+**Critical Rules:**
+- Never modify imported game data - it is externally managed and must remain untouched
+- Follow established patterns, especially for database operations and common logic which are abstracted
+- Maintain strict separation between static game data and dynamic user data
+- Prioritize mathematical accuracy and data integrity above all else
+
+**Workflow & Communication:**
+- Reference TODO.md for current work priorities and suggest additions for out-of-scope items
+- Remove completed items from TODO.md (don't add "Completed" status)
+- Explain suggestions concisely and outline execution plans before proceeding
+- Pause for technical decisions rather than making assumptions
+- Update documentation for major changes
+
+**Development Standards:**
+- Comprehensive testing for optimization logic and mathematical accuracy
+- Type hints and clear documentation for complex formulas
+- Follow existing database operation patterns 

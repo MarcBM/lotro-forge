@@ -67,8 +67,10 @@ Two distinct aspects: (1) Data importation runs separately from the web app, imp
 - Prioritize mathematical accuracy and data integrity above all else
 
 **Workflow & Communication:**
-- Reference TODO.md for current work priorities and suggest additions for out-of-scope items
-- Remove completed items from TODO.md (don't add "Completed" status)
+- Current release work tracked in kanban-style files: TODO.md, IN_PROGRESS.md, COMPLETED.md, and RELEASE_NOTES.md
+- For release archiving and migration process, see releases/RELEASE_WORKFLOW.md
+- Move items between kanban files as work progresses, updating descriptions with current status
+- Suggest additions to TODO.md for out-of-scope items
 - Explain suggestions concisely and outline execution plans before proceeding
 - Pause for technical decisions rather than making assumptions
 - Update documentation for major changes

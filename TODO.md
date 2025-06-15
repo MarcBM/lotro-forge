@@ -2,9 +2,6 @@
 
 ## Items Ready for Work
 
-### 1. Refactor Page JavaScript
-**Priority:** High  
-**Description:** Move inline JavaScript from templates to separate .js files for better code organization and maintainability.
 
 ### 2. Refactor Navigation Template
 **Priority:** High  
@@ -52,4 +49,4 @@
 
 ### 13. Add Release Notes Display to Website
 **Priority:** High  
-**Description:** Create a public-facing page on the website to display release notes history, showing current release goals and completed milestones. This provides transparency to testers about development progress and upcoming features.
+**Description:** Create a public-facing page on the website to display release notes history, showing current release goals and completed milestones. This provides transparency to testers about development progress and upcoming features. Update the RELEASE_WORKFLOW documentation to make sure that release notes are added to the web page on completion of each release.

@@ -6,50 +6,38 @@
     <title>{% block title %}LotRO Forge{% endblock %}</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'lotro-gold': '#E6D5AC',
-                        'lotro-blue': '#1E3A8A',
-                        'lotro-dark': '#1F2937',
-                        'lotro-darker': '#111827',
-                        'lotro-border': '#2D3748'
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="{{ url_for('static', path='js/tailwind-config.js') }}"></script>
     <!-- Custom styles -->
     <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
     <!-- Alpine.js -->
+    <script src="{{ url_for('static', path='js/alpine-init.js') }}"></script>
+    <script src="{{ url_for('static', path='js/components/notifications.js') }}"></script>
+    <script src="{{ url_for('static', path='js/components/authentication.js') }}"></script>
+    <script src="{{ url_for('static', path='js/components/nav.js') }}"></script>
     <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <script>
-        // Wait for Alpine to be ready
-        window.addEventListener('alpine:init', () => {
-            console.log('Alpine.js initialized');
-            // Initialize Alpine store globally
-            Alpine.store('nav', {
-                isBuilderPage: window.location.pathname === '/builder'
-            });
-            // Dispatch a custom event when Alpine is ready
-            window.dispatchEvent(new CustomEvent('alpine-ready'));
-        });
-    </script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-lotro-darker min-h-screen flex flex-col text-white">
-    {% include "components/nav.html" %}
+    <!-- Global Components -->
+    <div x-data="notifications()" x-init="init()">
+        {% include "components/notifications/toast.html" %}
+    </div>
+    
+    <div x-data="authentication()" x-init="init()">
+        {% include "components/nav.html" %}
 
-    <!-- Main Content -->
-    <main class="flex-grow">
-        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            {% block content %}{% endblock %}
-        </div>
-    </main>
+        <!-- Main Content -->
+        <main class="flex-grow">
+            <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
 
-    {% include "components/footer.html" %}
+        {% include "components/footer.html" %}
+
+        <!-- Global Authentication Components -->
+        {% include "components/auth/login-modal.html" %}
+    </div>
 
     <!-- Custom scripts -->
     <script src="{{ url_for('static', path='js/main.js') }}"></script>

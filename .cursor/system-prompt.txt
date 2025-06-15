@@ -64,7 +64,7 @@ Two distinct aspects: (1) Data importation runs separately from the web app, imp
 - Never modify imported game data - it is externally managed and must remain untouched
 - Follow established patterns, especially for database operations and common logic which are abstracted
 - Maintain strict separation between static game data and dynamic user data
-- Prioritize mathematical accuracy and data integrity above all else
+- JavaScript must be in separate .js files, never embedded in templates
 
 **Workflow & Communication:**
 - Current release work tracked in kanban-style files: TODO.md, IN_PROGRESS.md, COMPLETED.md, and RELEASE_NOTES.md

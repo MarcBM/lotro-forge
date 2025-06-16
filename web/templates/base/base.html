@@ -20,11 +20,11 @@
 <body class="bg-lotro-darker min-h-screen flex flex-col text-white">
     <!-- Global Components -->
     <div x-data="notifications()" x-init="init()">
-        {% include "components/notifications/toast.html" %}
+        {% include "components/toast.html" %}
     </div>
     
     <div x-data="authentication()" x-init="init()">
-        {% include "components/nav.html" %}
+        {% include "components/nav/nav.html" %}
 
         <!-- Main Content -->
         <main class="flex-grow">
@@ -36,7 +36,7 @@
         {% include "components/footer.html" %}
 
         <!-- Global Authentication Components -->
-        {% include "components/auth/login-modal.html" %}
+        {% include "components/login-modal.html" %}
     </div>
 
     <!-- Custom scripts -->

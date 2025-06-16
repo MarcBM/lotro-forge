@@ -3,12 +3,7 @@
 {% block title %}Builder - LotRO Forge{% endblock %}
 
 {% block content %}
-</div>
-</main>
-
-<!-- Override the base template's main structure for full-width builder -->
-<main class="flex-grow">
-    <div class="w-full h-[calc(100vh-12rem)]">
+<div class="w-full h-[calc(100vh-12rem)] -mx-6 -my-6">
         <!-- Builder Component -->
         <div id="builder-component" 
             x-data="characterBuilder()"
@@ -43,7 +38,6 @@
                 <div class="w-28 h-full flex-grow"></div>
             </div>
         </div>
-    </div>
 </div>
 
 <!-- Hide elements until Alpine.js is ready -->

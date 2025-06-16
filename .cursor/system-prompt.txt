@@ -69,6 +69,7 @@ Two distinct aspects: (1) Data importation runs separately from the web app, imp
 **Workflow & Communication:**
 - Current release work tracked in kanban-style files: TODO.md, IN_PROGRESS.md, COMPLETED.md, and RELEASE_NOTES.md
 - For release archiving and migration process, see releases/RELEASE_WORKFLOW.md
+- **CRITICAL: Never move items directly from TODO.md to COMPLETED.md** - all items must first go to IN_PROGRESS.md for review and testing, as initial implementations may contain errors that need fixing
 - Move items between kanban files as work progresses, updating descriptions with current status
 - Suggest additions to TODO.md for out-of-scope items
 - Explain suggestions concisely and outline execution plans before proceeding

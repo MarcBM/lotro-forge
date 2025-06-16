@@ -43,10 +43,6 @@
 **Priority:** Low  
 **Description:** Remove left/right slot filters from equipment database explorer to streamline slot selection process.
 
-### 12. Make Footer/Navigation Float
-**Priority:** Low  
-**Description:** Implement floating footer and navigation elements for improved user interface experience.
-
 ### 13. Add Release Notes Display to Website
 **Priority:** High  
 **Description:** Create a public-facing page on the website to display release notes history, showing current release goals and completed milestones. This provides transparency to testers about development progress and upcoming features. Update the RELEASE_WORKFLOW documentation to make sure that release notes are added to the web page on completion of each release.

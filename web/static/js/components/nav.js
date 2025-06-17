@@ -5,6 +5,7 @@ document.addEventListener('alpine:init', () => {
         isBuilderPage: window.location.pathname === '/builder',
         isDatabasePage: window.location.pathname === '/database',
         isBuildsPage: window.location.pathname === '/builds',
+        isReleaseNotesPage: window.location.pathname === '/release-notes',
         
         // UI state for navigation-specific elements
         isAccountDropdownOpen: false,

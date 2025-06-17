@@ -20,6 +20,7 @@ from .middleware.security import add_security_middleware
 from .middleware.auth import AuthenticationMiddleware
 from .api.items import router as items_router
 from .api.auth import router as auth_router, get_current_user, AuthenticationRequiredException
+
 from database.models.user import User
 from database.session import get_session
 
@@ -146,6 +147,14 @@ async def admin(request: Request, current_user: User = Depends(get_current_user_
     return templates.TemplateResponse(
         "admin/admin.html",
         {"request": request, "current_user": current_user}
+    )
+
+@app.get("/release-notes")
+async def release_notes(request: Request):
+    """Display public release notes and roadmap"""
+    return templates.TemplateResponse(
+        "release_notes/release_notes.html", 
+        {"request": request}
     )
 
 # Error handlers

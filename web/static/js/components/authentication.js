@@ -10,6 +10,12 @@ document.addEventListener('alpine:init', () => {
         isAuthenticated: false,
         
         init() {
+            // Initialize global auth state
+            window.lotroAuth = {
+                isAuthenticated: false,
+                currentUser: null
+            };
+            
             // Check authentication status on component initialization
             this.checkAuthStatus();
             
@@ -30,13 +36,34 @@ document.addEventListener('alpine:init', () => {
                 if (res.ok) {
                     this.currentUser = await res.json();
                     this.isAuthenticated = true;
+                    
+                    // Update global auth state
+                    window.lotroAuth.currentUser = this.currentUser;
+                    window.lotroAuth.isAuthenticated = this.isAuthenticated;
+                    
+                    // Notify navigation component
+                    window.dispatchEvent(new CustomEvent('auth-state-changed'));
                 } else {
                     this.currentUser = null;
                     this.isAuthenticated = false;
+                    
+                    // Update global auth state
+                    window.lotroAuth.currentUser = null;
+                    window.lotroAuth.isAuthenticated = false;
+                    
+                    // Notify navigation component
+                    window.dispatchEvent(new CustomEvent('auth-state-changed'));
                 }
             } catch (e) {
                 this.currentUser = null;
                 this.isAuthenticated = false;
+                
+                // Update global auth state
+                window.lotroAuth.currentUser = null;
+                window.lotroAuth.isAuthenticated = false;
+                
+                // Notify navigation component
+                window.dispatchEvent(new CustomEvent('auth-state-changed'));
             }
         },
         
@@ -89,6 +116,13 @@ document.addEventListener('alpine:init', () => {
                 await fetch('/api/auth/logout', { method: 'POST' });
                 this.currentUser = null;
                 this.isAuthenticated = false;
+                
+                // Update global auth state
+                window.lotroAuth.currentUser = null;
+                window.lotroAuth.isAuthenticated = false;
+                
+                // Notify navigation component
+                window.dispatchEvent(new CustomEvent('auth-state-changed'));
                 
                 // Show logout success notification using global system
                 window.showNotification('Logged out successfully!', 'success');

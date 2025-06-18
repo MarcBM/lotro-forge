@@ -2,7 +2,7 @@
 window.addEventListener('alpine:init', () => {
     console.log('Alpine.js initialized');
     
-    // Initialize Alpine store globally
+    // Initialize Alpine stores globally
     Alpine.store('nav', {
         isBuilderPage: window.location.pathname === '/builder'
     });

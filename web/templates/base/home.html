@@ -1,4 +1,5 @@
 {% extends "base/base.html" %}
+{% from "components/icons.html" import icon %}
 
 {% block title %}LotRO Forge - Home{% endblock %}
 
@@ -100,6 +101,20 @@
                     </div>
                 </div>
             </div>
+        </a>
+    </div>
+
+    <!-- Additional Links Section -->
+    <div class="text-center mt-12 pt-8 border-t border-lotro-border">
+        <h3 class="text-xl font-semibold text-lotro-gold mb-4">Stay Updated</h3>
+        <p class="text-gray-300 mb-4">
+            Follow our development progress and see what's new in LotRO Forge
+        </p>
+        <a href="/release-notes" class="inline-flex items-center px-6 py-3 bg-lotro-dark border border-lotro-border rounded-lg hover:border-lotro-gold transition-colors duration-200 text-lotro-primary hover:text-lotro-gold">
+            <div class="mr-2">
+                {{ icon("document", "w-5 h-5") }}
+            </div>
+            View Release Notes
         </a>
     </div>
 </div>

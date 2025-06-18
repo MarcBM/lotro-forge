@@ -5,13 +5,27 @@ document.addEventListener('alpine:init', () => {
         isBuilderPage: window.location.pathname === '/builder',
         isDatabasePage: window.location.pathname === '/database',
         isBuildsPage: window.location.pathname === '/builds',
-        isReleaseNotesPage: window.location.pathname === '/release-notes',
         
         // UI state for navigation-specific elements
         isAccountDropdownOpen: false,
         
+        // Authentication state (reactive)
+        isAuthenticated: false,
+        currentUser: null,
+        
         init() {
             // Navigation initialization (minimal)
+            this.updateAuthState();
+            
+            // Listen for auth state changes
+            window.addEventListener('auth-state-changed', () => {
+                this.updateAuthState();
+            });
+        },
+        
+        updateAuthState() {
+            this.isAuthenticated = window.lotroAuth?.isAuthenticated || false;
+            this.currentUser = window.lotroAuth?.currentUser || null;
         },
         
         // Navigation UI methods

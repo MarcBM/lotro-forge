@@ -17,23 +17,29 @@
     <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-lotro-darker text-white">
+<body class="bg-lotro-darker text-white overflow-hidden">
     <!-- Global Components -->
     <div x-data="notifications()" x-init="init()">
         {% include "components/toast.html" %}
     </div>
     
-    <div x-data="authentication()" x-init="init()" class="flex flex-col min-h-screen">
-        {% include "components/nav/nav.html" %}
+    <div x-data="authentication()" x-init="init()" class="flex flex-col h-screen">
+        <!-- Fixed Navigation Bar -->
+        <div class="flex-none">
+            {% include "components/nav/nav.html" %}
+        </div>
 
-        <!-- Main Content -->
-        <main class="flex-grow">
+        <!-- Scrollable Main Content Area -->
+        <main class="flex-grow overflow-y-auto">
             <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                 {% block content %}{% endblock %}
             </div>
         </main>
 
-        {% include "components/footer.html" %}
+        <!-- Fixed Footer -->
+        <div class="flex-none">
+            {% include "components/footer.html" %}
+        </div>
 
         <!-- Global Authentication Components -->
         {% include "components/login-modal.html" %}

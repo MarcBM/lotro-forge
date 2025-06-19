@@ -1,5 +1,97 @@
 /* Custom styles for LOTRO Forge */
 
+
+
+/* Custom Scrollbar Styling */
+/* Firefox support */
+* {
+    scrollbar-width: thin !important;
+    scrollbar-color: #2D3748 #111827 !important; /* thumb track */
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+::-webkit-scrollbar-track {
+    background: #111827 !important; /* lotro-darker */
+    border-radius: 6px !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2D3748 !important; /* lotro-border */
+    border-radius: 6px !important;
+    border: 2px solid #111827 !important; /* lotro-darker */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #E6D5AC !important; /* lotro-gold */
+}
+
+::-webkit-scrollbar-corner {
+    background: #111827 !important; /* lotro-darker */
+}
+
+/* Apply to specific containers for better targeting */
+body::-webkit-scrollbar,
+main::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+    width: 12px !important;
+}
+
+body::-webkit-scrollbar-track,
+main::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: #111827 !important;
+    border-radius: 6px !important;
+}
+
+body::-webkit-scrollbar-thumb,
+main::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #2D3748 !important;
+    border-radius: 6px !important;
+    border: 2px solid #111827 !important;
+}
+
+body::-webkit-scrollbar-thumb:hover,
+main::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #E6D5AC !important;
+}
+
+/* Additional force override for stubborn browsers */
+html {
+    scrollbar-width: thin !important;
+    scrollbar-color: #2D3748 #111827 !important;
+}
+
+html::-webkit-scrollbar {
+    width: 12px !important;
+    background: #111827 !important;
+}
+
+html::-webkit-scrollbar-track {
+    background: #111827 !important;
+    border-radius: 6px !important;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: #2D3748 !important;
+    border-radius: 6px !important;
+    border: 2px solid #111827 !important;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background: #E6D5AC !important;
+}
+
+html::-webkit-scrollbar-corner {
+    background: #111827 !important;
+}
+
 /* Quality colors */
 .quality-common { color: #ffffff; }
 .quality-uncommon { color: #1eff00; }

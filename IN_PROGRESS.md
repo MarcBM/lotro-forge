@@ -10,13 +10,6 @@
 
 **Next Steps:** Conduct a full frontend audit to identify and refactor any remaining inline JavaScript throughout the application templates. Consider extending the icon system to other templates with SVG icons.
 
-### 12. Make Footer/Navigation Float
-**Priority:** Low  
-**Description:** Implement floating footer and navigation elements for improved user interface experience.
-
-**Current Status:** Initial implementation completed. Implemented proper sticky footer layout using flexbox with `flex-col min-h-screen` on the authentication wrapper div and `mt-auto` on the footer component. Fixed builder page layout conflicts to work with the new footer system. However, testing on the release notes page revealed that both footer and navbar are not currently floating - they should always be visible with the rest of the page existing in a scrollable viewport.
-
-**Next Steps:** Fix the floating implementation so navbar and footer are always visible, with page content scrollable between them. Test on release notes page and other page types to ensure proper behavior across all scenarios.
 
 ### 13. Add Release Notes Display to Website
 **Priority:** High  

@@ -92,12 +92,8 @@ html::-webkit-scrollbar-corner {
     background: #111827 !important;
 }
 
-/* Quality colors */
-.quality-common { color: #ffffff; }
-.quality-uncommon { color: #1eff00; }
-.quality-rare { color: #0070dd; }
-.quality-incomparable { color: #a335ee; }
-.quality-legendary { color: #ff8000; }
+/* Quality colors moved to tailwind-config.js for centralized management */
+/* Use: text-lotro-common, text-lotro-uncommon, text-lotro-rare, text-lotro-incomparable, text-lotro-legendary */
 
 /* Item card styles */
 .item-card {

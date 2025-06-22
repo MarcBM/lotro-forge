@@ -25,7 +25,7 @@ document.addEventListener('alpine:init', () => {
             this.showPassword = false;
             
             try {
-                const response = await fetch('/api/auth/create_simple_user', {
+                const response = await fetch('/api/auth/admin/users/simple', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ document.addEventListener('alpine:init', () => {
         async loadUsers() {
             this.isLoadingUsers = true;
             try {
-                const response = await fetch('/api/auth/users');
+                const response = await fetch('/api/auth/admin/users');
                 if (response.ok) {
                     this.allUsers = await response.json();
                 } else {
@@ -104,7 +104,7 @@ document.addEventListener('alpine:init', () => {
         async saveRole(userId) {
             this.isUpdatingRole = true;
             try {
-                const response = await fetch(`/api/auth/users/${userId}/role`, {
+                const response = await fetch(`/api/auth/admin/users/${userId}/role`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ document.addEventListener('alpine:init', () => {
             
             this.isDeletingUser = true;
             try {
-                const response = await fetch(`/api/auth/users/${userId}`, {
+                const response = await fetch(`/api/auth/admin/users/${userId}`, {
                     method: 'DELETE'
                 });
                 

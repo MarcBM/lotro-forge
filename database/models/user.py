@@ -46,7 +46,7 @@ class User(Base):
         onupdate=func.now(),
         nullable=False
     )
-    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)  # Tracks last activity/visit, not just explicit logins
     
     # Relationships
     sessions: Mapped[List["UserSession"]] = relationship(

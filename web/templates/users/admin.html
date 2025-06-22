@@ -10,16 +10,13 @@
     <!-- Page Header -->
     <div class="text-center">
         <h1 class="text-3xl font-bold text-lotro-gold mb-2">Admin Panel</h1>
-        <p class="text-gray-300">Manage LotRO Forge users and system settings</p>
+        <p class="text-lotro-primary">Manage LotRO Forge users and system settings</p>
     </div>
 
     <!-- User Creation Section -->
     <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border">
         <div class="p-6">
-            <h2 class="text-xl font-bold text-lotro-gold mb-4 flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                </svg>
+            <h2 class="text-xl font-bold text-lotro-gold mb-4">
                 Create New User
             </h2>
             
@@ -48,16 +45,12 @@
                     <button @click="copyPassword()" 
                             class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded transition-colors duration-200"
                             title="Copy to clipboard">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                        </svg>
+                        Copy
                     </button>
                     <button @click="clearPassword()" 
-                            class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded transition-colors duration-200"
+                            class="bg-lotro-button hover:bg-lotro-button-hover text-white px-3 py-2 rounded transition-colors duration-200"
                             title="Clear password">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
+                        Clear
                     </button>
                 </div>
                 <p class="text-yellow-200 text-sm mt-2">
@@ -69,16 +62,16 @@
             <form @submit.prevent="createUser()" class="space-y-4">
                 <div class="grid md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Username</label>
+                        <label class="block text-sm font-medium text-lotro-secondary mb-1">Username</label>
                         <input x-model="newUsername" type="text" required minlength="3" maxlength="50"
-                               class="w-full bg-lotro-darker text-white border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none"
+                               class="w-full bg-lotro-darker text-lotro-primary border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none"
                                placeholder="Enter username (3-50 characters)" />
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Role</label>
+                        <label class="block text-sm font-medium text-lotro-secondary mb-1">Role</label>
                         <select x-model="selectedRole"
-                                class="w-full bg-lotro-darker text-white border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none">
+                                class="w-full bg-lotro-darker text-lotro-primary border border-lotro-border rounded px-3 py-2 focus:border-lotro-gold focus:outline-none">
                             <option value="beta_tester">Beta Tester</option>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
@@ -102,10 +95,7 @@
     <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border">
         <div class="p-6">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-lotro-gold flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                    </svg>
+                <h2 class="text-xl font-bold text-lotro-gold">
                     User Management
                 </h2>
                 <button @click="loadUsers()" 
@@ -121,29 +111,28 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-lotro-border">
-                            <th class="text-left py-3 text-gray-300">Username</th>
-                            <th class="text-left py-3 text-gray-300">Display Name</th>
-                            <th class="text-left py-3 text-gray-300">Email</th>
-                            <th class="text-left py-3 text-gray-300">Role</th>
-                            <th class="text-left py-3 text-gray-300">Status</th>
-                            <th class="text-left py-3 text-gray-300">Last Login</th>
-                            <th class="text-left py-3 text-gray-300">Created</th>
-                            <th class="text-left py-3 text-gray-300">Actions</th>
+                            <th class="text-left py-3 text-lotro-secondary">Username</th>
+                            <th class="text-left py-3 text-lotro-secondary">Display Name</th>
+                            <th class="text-left py-3 text-lotro-secondary">Email</th>
+                            <th class="text-left py-3 text-lotro-secondary">Role</th>
+                            <th class="text-left py-3 text-lotro-secondary">Last Login</th>
+                            <th class="text-left py-3 text-lotro-secondary">Created</th>
+                            <th class="text-left py-3 text-lotro-secondary">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="user in allUsers" :key="user.id">
                             <tr class="border-b border-lotro-border/50 hover:bg-lotro-darker/50">
-                                <td class="py-3 text-white font-medium" x-text="user.username"></td>
-                                <td class="py-3 text-gray-300" x-text="user.display_name || '-'"></td>
-                                <td class="py-3 text-gray-300 text-xs" x-text="user.email"></td>
+                                <td class="py-3 text-lotro-primary font-medium" x-text="user.username"></td>
+                                <td class="py-3 text-lotro-primary" x-text="user.display_name || '-'"></td>
+                                <td class="py-3 text-lotro-primary text-xs" x-text="user.email"></td>
                                 <td class="py-3">
                                     <template x-if="editingUserId !== user.id">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
                                               :class="{
-                                                  'bg-red-100 text-red-800': user.role === 'admin',
-                                                  'bg-yellow-100 text-yellow-800': user.role === 'beta_tester',
-                                                  'bg-green-100 text-green-800': user.role === 'user'
+                                                  'bg-lotro-legendary/20 text-lotro-legendary border-lotro-legendary/40': user.role === 'admin',
+                                                  'bg-lotro-rare/20 text-lotro-rare border-lotro-rare/40': user.role === 'beta_tester',
+                                                  'bg-lotro-uncommon/20 text-lotro-uncommon border-lotro-uncommon/40': user.role === 'user'
                                               }"
                                               x-text="user.role.replace('_', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')">
                                         </span>
@@ -151,7 +140,7 @@
                                     <template x-if="editingUserId === user.id">
                                         <div class="flex items-center space-x-2">
                                             <select x-model="editingRole"
-                                                    class="bg-lotro-darker text-white border border-lotro-border rounded px-2 py-1 text-xs">
+                                                    class="bg-lotro-darker text-lotro-primary border border-lotro-border rounded px-2 py-1 text-xs">
                                                 <option value="user">User</option>
                                                 <option value="beta_tester">Beta Tester</option>
                                                 <option value="admin">Admin</option>
@@ -162,21 +151,15 @@
                                                 ✓
                                             </button>
                                             <button @click="cancelEditRole()"
-                                                    class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs">
+                                                    class="bg-lotro-button hover:bg-lotro-button-hover text-white px-2 py-1 rounded text-xs">
                                                 ✕
                                             </button>
                                         </div>
                                     </template>
                                 </td>
-                                <td class="py-3">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-                                          :class="user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                                          x-text="user.is_active ? 'Active' : 'Inactive'">
-                                    </span>
-                                </td>
-                                <td class="py-3 text-gray-300 text-xs" 
+                                <td class="py-3 text-lotro-primary text-xs" 
                                     x-text="user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'"></td>
-                                <td class="py-3 text-gray-300 text-xs" 
+                                <td class="py-3 text-lotro-primary text-xs" 
                                     x-text="new Date(user.created_at).toLocaleDateString()"></td>
                                 <td class="py-3">
                                     <div class="flex items-center space-x-2">
@@ -202,17 +185,19 @@
                 
                 <!-- Loading state -->
                 <div x-show="isLoadingUsers" class="text-center py-8">
-                    <div class="text-gray-400">Loading users...</div>
+                    <div class="text-lotro-muted">Loading users...</div>
                 </div>
                 
                 <!-- Empty state -->
                 <div x-show="!isLoadingUsers && allUsers.length === 0" class="text-center py-8">
-                    <div class="text-gray-400">No users found.</div>
+                    <div class="text-lotro-muted">No users found.</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script src="{{ url_for('static', path='js/admin/admin-panel.js') }}"></script>
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/users/admin-panel.js') }}"></script>
 {% endblock %} 

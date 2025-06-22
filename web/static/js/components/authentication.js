@@ -31,30 +31,38 @@ document.addEventListener('alpine:init', () => {
         
         // Authentication methods
         async checkAuthStatus() {
+            // Avoid multiple simultaneous calls
+            if (this._checkingAuth) {
+                return;
+            }
+            this._checkingAuth = true;
+            
             try {
                 const res = await fetch('/api/auth/me');
                 if (res.ok) {
-                    this.currentUser = await res.json();
-                    this.isAuthenticated = true;
-                    
-                    // Update global auth state
-                    window.lotroAuth.currentUser = this.currentUser;
-                    window.lotroAuth.isAuthenticated = this.isAuthenticated;
-                    
-                    // Notify navigation component
-                    window.dispatchEvent(new CustomEvent('auth-state-changed'));
+                    const userData = await res.json();
+                    // Handle null response (unauthenticated)
+                    if (userData) {
+                        this.currentUser = userData;
+                        this.isAuthenticated = true;
+                    } else {
+                        this.currentUser = null;
+                        this.isAuthenticated = false;
+                    }
                 } else {
                     this.currentUser = null;
                     this.isAuthenticated = false;
-                    
-                    // Update global auth state
-                    window.lotroAuth.currentUser = null;
-                    window.lotroAuth.isAuthenticated = false;
-                    
-                    // Notify navigation component
-                    window.dispatchEvent(new CustomEvent('auth-state-changed'));
                 }
+                
+                // Update global auth state
+                window.lotroAuth.currentUser = this.currentUser;
+                window.lotroAuth.isAuthenticated = this.isAuthenticated;
+                
+                // Notify navigation component
+                window.dispatchEvent(new CustomEvent('auth-state-changed'));
+                
             } catch (e) {
+                console.warn('Auth check failed:', e);
                 this.currentUser = null;
                 this.isAuthenticated = false;
                 
@@ -64,6 +72,8 @@ document.addEventListener('alpine:init', () => {
                 
                 // Notify navigation component
                 window.dispatchEvent(new CustomEvent('auth-state-changed'));
+            } finally {
+                this._checkingAuth = false;
             }
         },
         

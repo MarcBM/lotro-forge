@@ -3,46 +3,31 @@
 {% block page_title %}Release Notes{% endblock %}
 
 {% block content %}
-<div class="flex min-h-screen bg-lotro-background">
-    <!-- Left Sidebar - Roadmap (Fixed Position) -->
-    <div class="w-1/3 bg-lotro-surface border-r border-lotro-accent/20 sticky top-0 h-screen overflow-y-auto">
-        <div class="p-6">
-            {% include "release_notes/roadmap.html" %}
+<div class="bg-lotro-background relative -m-6 -mt-6">
+    <!-- Fixed Roadmap Container - Matches main content alignment -->
+    <div class="fixed top-16 left-0 right-0 z-10 pointer-events-none">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 pointer-events-none">
+            <div class="w-1/3 h-[calc(100vh-4rem)] bg-lotro-surface pointer-events-auto">
+                <div class="h-full overflow-y-auto p-6">
+                    {% include "release_notes/roadmap.html" %}
+                </div>
+            </div>
         </div>
     </div>
     
-    <!-- Right Content - Release Notes Timeline (Scrollable) -->
-    <div class="w-2/3 flex-1">
-        <div class="p-6 space-y-8">
-            <!-- Header -->
-            <div class="text-center mb-12">
-                <h1 class="text-4xl font-bold text-lotro-primary mb-4">Release Notes</h1>
-                <p class="text-lotro-secondary text-lg">Track the development progress of LOTRO Forge</p>
-            </div>
-            
-            <!-- Release Timeline -->
-            <div class="max-w-4xl mx-auto space-y-12">
-                <!-- Example releases - most recent first -->
-                
-                <!-- Major Release Example -->
-                {% include "release_notes/releases/v1_0_0_launch.html" %}
-                
-                <!-- Standard Release Example -->
-                {% include "release_notes/releases/v0_8_0.html" %}
-                
-                <!-- Minor Release Example -->
-                {% include "release_notes/releases/v0_7_1.html" %}
-                
-                <!-- Standard Release Example -->
-                {% include "release_notes/releases/v0_7_0.html" %}
-                
-                <!-- Minor Release Example -->
-                {% include "release_notes/releases/v0_6_2.html" %}
-                
-                <!-- Standard Release Example -->
-                {% include "release_notes/releases/v0_6_0.html" %}
-                
-                <!-- This timeline pattern continues for all releases -->
+    <!-- Release Notes Content - Full Width with Left Padding -->
+    <div class="pl-[33.333333%] pt-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="space-y-8">
+                <!-- Release Timeline -->
+                <div class="max-w-4xl mx-auto">
+                    <div class="space-y-8">
+                        <!-- Release notes will be added here when available -->
+                        <div class="text-center py-12">
+                            <p class="text-lotro-secondary text-lg">Release notes will be available when the alpha launch begins.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

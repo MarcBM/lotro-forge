@@ -150,11 +150,11 @@ async def admin(request: Request, current_user: User = Depends(get_current_user_
     )
 
 @app.get("/release-notes")
-async def release_notes(request: Request):
-    """Display public release notes and roadmap"""
+async def release_notes(request: Request, current_user: User = Depends(get_current_user_for_web)):
+    """Display release notes and roadmap. Requires authentication."""
     return templates.TemplateResponse(
         "release_notes/release_notes.html", 
-        {"request": request}
+        {"request": request, "current_user": current_user}
     )
 
 # Error handlers

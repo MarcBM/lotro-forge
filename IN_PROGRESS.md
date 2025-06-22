@@ -10,15 +10,6 @@
 
 **Next Steps:** Conduct a full frontend audit to identify and refactor any remaining inline JavaScript throughout the application templates. Consider extending the icon system to other templates with SVG icons.
 
-
-### 13. Add Release Notes Display to Website
-**Priority:** High  
-**Description:** Create a public-facing page on the website to display release notes history, showing current release goals and completed milestones. This provides transparency to testers about development progress and upcoming features. Update the RELEASE_WORKFLOW documentation to make sure that release notes are added to the web page on completion of each release.
-
-**Current Status:** Core implementation completed with comprehensive template system. Created main release notes page with two-column layout (fixed left sidebar for roadmap, scrollable right column for timeline), roadmap template, and three release template types (major, standard, minor) with proper visual hierarchy. Added navigation integration and example releases. However, release notes timeline needs UI refinement and roadmap needs editing to fit properly on 1080p monitors.
-
-**Next Steps:** Refine release notes timeline UI design and optimize roadmap content/layout to fit within 1080p screen constraints. Create polished examples for each release tier (major, standard, minor) that can be easily copied as templates for future releases. Update RELEASE_WORKFLOW documentation to include web page update process.
-
 ---
 
 **Note:** When moving items here from TODO.md, update the description to include current status and next steps. 

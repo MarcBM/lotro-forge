@@ -43,3 +43,11 @@
 **Priority:** Low  
 **Description:** Remove left/right slot filters from equipment database explorer to streamline slot selection process.
 
+### 14. Add Timeline Connections to Release Notes
+**Priority:** Low  
+**Description:** Implement visual timeline connections between release notes on the release notes page. Should show connecting lines only in the spaces between releases, not through the release content itself.
+
+---
+
+**Next Work Item Number:** 15
+

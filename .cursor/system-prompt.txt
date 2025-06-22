@@ -71,6 +71,7 @@ Two distinct aspects: (1) Data importation runs separately from the web app, imp
 - For release archiving and migration process, see releases/RELEASE_WORKFLOW.md
 - **CRITICAL: Never move items directly from TODO.md to COMPLETED.md** - all items must first go to IN_PROGRESS.md for review and testing, as initial implementations may contain errors that need fixing
 - Move items between kanban files as work progresses, updating descriptions with current status
+- **Work Item Numbering:** Use next number from TODO.md tracker
 - Suggest additions to TODO.md for out-of-scope items
 - Explain suggestions concisely and outline execution plans before proceeding
 - Pause for technical decisions rather than making assumptions

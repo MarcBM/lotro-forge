@@ -5,14 +5,14 @@
 <div class="space-y-4">
     <!-- Slot Filter -->
     <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">
+        <label class="block text-sm font-medium text-lotro-primary mb-2">
             <span>Slot</span>
-            <span x-show="isSlotFilterLocked" class="text-xs text-yellow-400 ml-2">🔒 Locked for this slot</span>
+            <span x-show="isSlotFilterLocked" class="text-xs text-lotro-uncommon ml-2">🔒 Locked for this slot</span>
         </label>
         <select x-model="selectedSlot" 
                 @change="applyFilters()"
                 :disabled="isSlotFilterLocked"
-                :class="isSlotFilterLocked ? 'bg-lotro-darker border border-gray-600 text-gray-500 cursor-not-allowed' : 'bg-lotro-darker border border-lotro-border text-gray-300 focus:border-lotro-gold focus:outline-none'"
+                :class="isSlotFilterLocked ? 'bg-lotro-darker border border-lotro-border text-lotro-muted cursor-not-allowed' : 'bg-lotro-darker border border-lotro-border text-lotro-primary focus:border-lotro-gold focus:outline-none'"
                 class="w-full rounded-lg px-3 py-2">
             <option value="">All Slots</option>
             <template x-for="filterOption in filterOptions" :key="filterOption.key">
@@ -30,7 +30,7 @@
         <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
              @click="selectEquipment(item)">
             <!-- Equipment Key -->
-            <div class="absolute top-1 left-1 text-xs text-gray-500" 
+            <div class="absolute top-1 left-1 text-xs text-lotro-muted" 
                  x-text="item.key.toString().replace(/(\d{5})(\d+)/, '$1 $2')"></div>
             
             <!-- Main Content -->
@@ -46,24 +46,24 @@
                         </template>
                     </template>
                     <template x-if="!item.icon_urls || !Array.isArray(item.icon_urls)">
-                        <div class="w-full h-full bg-gray-700 rounded"></div>
+                        <div class="w-full h-full bg-lotro-button rounded"></div>
                     </template>
                 </div>
                 
                 <!-- Equipment Name -->
                 <h3 class="text-sm font-medium line-clamp-2 leading-tight flex-1"
                     :class="{
-                        'text-white': item.quality === 'COMMON',
-                        'text-yellow-300': item.quality === 'UNCOMMON',
-                        'text-purple-400': item.quality === 'RARE',
-                        'text-teal-400': item.quality === 'INCOMPARABLE',
-                        'text-orange-400': item.quality === 'LEGENDARY'
+                        'text-lotro-common': item.quality === 'COMMON',
+                        'text-lotro-uncommon': item.quality === 'UNCOMMON',
+                        'text-lotro-rare': item.quality === 'RARE',
+                        'text-lotro-incomparable': item.quality === 'INCOMPARABLE',
+                        'text-lotro-legendary': item.quality === 'LEGENDARY'
                     }"
                     x-text="item.name"></h3>
             </div>
             
             <!-- EV Value -->
-            <div class="absolute bottom-1 right-2 text-sm font-medium"
+            <div x-show="isBuilderMode()" class="absolute bottom-1 right-2 text-sm font-medium"
                  :class="testMode ? getTestColorClass(index) : getEvColorClass(item.ev)">
                 <span x-text="(item.ev || '0.00')"></span>
             </div>
@@ -93,7 +93,7 @@
                         </div>
                     </template>
                     <template x-if="!selectedEquipment || !selectedEquipment.icon_urls || !Array.isArray(selectedEquipment.icon_urls)">
-                        <div class="w-full h-full bg-gray-700 rounded"></div>
+                        <div class="w-full h-full bg-lotro-button rounded"></div>
                     </template>
                 </div>
                 
@@ -103,11 +103,11 @@
                     <div class="h-16 flex items-center">
                         <h3 class="text-xl font-bold line-clamp-2"
                             :class="{
-                                'text-white': selectedEquipment && selectedEquipment.quality === 'COMMON',
-                                'text-yellow-300': selectedEquipment && selectedEquipment.quality === 'UNCOMMON',
-                                'text-purple-400': selectedEquipment && selectedEquipment.quality === 'RARE',
-                                'text-teal-400': selectedEquipment && selectedEquipment.quality === 'INCOMPARABLE',
-                                'text-orange-400': selectedEquipment && selectedEquipment.quality === 'LEGENDARY'
+                                'text-lotro-common': selectedEquipment && selectedEquipment.quality === 'COMMON',
+                                'text-lotro-uncommon': selectedEquipment && selectedEquipment.quality === 'UNCOMMON',
+                                'text-lotro-rare': selectedEquipment && selectedEquipment.quality === 'RARE',
+                                'text-lotro-incomparable': selectedEquipment && selectedEquipment.quality === 'INCOMPARABLE',
+                                'text-lotro-legendary': selectedEquipment && selectedEquipment.quality === 'LEGENDARY'
                             }"
                             x-text="selectedEquipmentName"></h3>
                     </div>
@@ -115,12 +115,12 @@
             </div>
 
             <!-- Baseline Stats Row -->
-            <div class="flex justify-between items-center text-sm text-gray-400 -mt-1">
+            <div class="flex justify-between items-center text-sm text-lotro-secondary -mt-1">
                 <div>
                     <span>iLvl: </span>
                     <span x-text="selectedEquipmentBaseIlvl"></span>
                 </div>
-                <div class="text-gray-500">
+                <div class="text-lotro-muted">
                     <!-- Weapon display logic -->
                     <template x-if="selectedEquipment && selectedEquipment.weapon_type">
                         <span x-text="selectedEquipment ? selectedEquipment.weapon_type : ''"></span>
@@ -136,39 +136,47 @@
                         <span x-text="selectedEquipment ? selectedEquipment.slot : ''"></span>
                     </template>
                 </div>
-                <div class="text-gray-500 font-medium"
-                     :class="testMode ? 'text-purple-400' : (selectedEquipment ? getEvColorClass(selectedEquipment.ev) : 'text-gray-400')"
+                <div class="text-lotro-muted font-medium"
+                     x-show="isBuilderMode()"
+                     :class="testMode ? 'text-lotro-rare' : (selectedEquipment ? getEvColorClass(selectedEquipment.ev) : 'text-lotro-secondary')"
                      x-text="selectedEquipmentEv"></div>
             </div>
             
             <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
             <template x-if="concreteEquipment && concreteEquipment.weapon_type && concreteEquipment.calculated_dps">
-                <div class="flex justify-between text-sm text-gray-400 mb-2">
+                <div class="flex justify-between text-sm text-lotro-secondary mb-2">
                     <span>DPS</span>
-                    <span class="text-gray-300" x-text="concreteEquipment && concreteEquipment.calculated_dps ? concreteEquipment.calculated_dps.toFixed(1) : '0.0'"></span>
+                    <span class="text-lotro-primary" x-text="concreteEquipment && concreteEquipment.calculated_dps ? concreteEquipment.calculated_dps.toFixed(1) : '0.0'"></span>
                 </div>
             </template>
             
             <!-- ARMOUR stat above the line (only for non-weapons) -->
-            <template x-if="concreteEquipment && !concreteEquipment.weapon_type && concreteEquipment.stat_values && Array.isArray(concreteEquipment.stat_values) && concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR')">
-                <div class="flex justify-between text-sm text-gray-400 mb-2">
+            <template x-if="concreteEquipment && !concreteEquipment.weapon_type && concreteEquipmentArmour !== null">
+                <div class="flex justify-between text-sm text-lotro-secondary mb-2">
                     <span>ARMOUR</span>
-                    <span class="text-gray-300" x-text="concreteEquipment && Array.isArray(concreteEquipment.stat_values) ? Math.floor(concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR').value) : 0"></span>
+                    <span class="text-lotro-primary" x-text="concreteEquipmentArmour"></span>
                 </div>
             </template>
             
             <!-- Equipment Stats -->
             <div class="border-t border-lotro-border pt-3">
-                <div class="text-sm text-gray-400 space-y-1">
+                <div class="text-sm text-lotro-secondary space-y-1">
                     <!-- Other stats -->
                     <template x-if="concreteEquipment && concreteEquipment.stat_values && Array.isArray(concreteEquipment.stat_values)">
                         <div class="space-y-1">
                             <template x-for="stat in concreteEquipmentStats" :key="stat.stat_name">
                                 <div class="flex justify-between">
                                     <span x-text="stat.stat_name"></span>
-                                    <span class="text-gray-300" x-text="Math.floor(stat.value)"></span>
+                                    <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
                                 </div>
                             </template>
+                        </div>
+                    </template>
+                    
+                    <!-- Fallback when stats fail to load -->
+                    <template x-if="selectedEquipment && !concreteEquipment">
+                        <div class="text-lotro-muted text-center py-2">
+                            <span class="text-xs">Loading detailed stats...</span>
                         </div>
                     </template>
                 </div>
@@ -231,10 +239,10 @@
             
             <!-- Missing Features Placeholder -->
             <template x-if="!isBuilderMode()">
-                <div class="border-t border-orange-600/30 pt-2 mt-3">
-                    <div class="bg-orange-900/20 border border-orange-600/30 rounded-lg p-2">
-                        <h4 class="text-xs font-medium text-orange-400 mb-1">⚠️ Missing Features</h4>
-                        <div class="text-xs text-orange-300/80 space-y-0.5">
+                <div class="border-t border-lotro-border pt-2 mt-3">
+                    <div class="bg-lotro-uncommon/10 border border-lotro-uncommon/30 rounded-lg p-2">
+                                        <h4 class="text-xs font-medium text-lotro-uncommon mb-1">⚠️ Missing Features</h4>
+                <div class="text-xs text-lotro-uncommon/80 space-y-0.5">
                             <div>• Class restrictions & Set bonuses</div>
                             <div>• Source information</div>
                         </div>
@@ -245,483 +253,14 @@
     </div>
 </template>
 <template x-if="!selectedEquipment">
-    <div class="text-gray-400 text-center py-4">
+    <div class="text-lotro-secondary text-center py-4">
         Select equipment to view details
     </div>
 </template>
 {% endset %}
 
 <div x-data="equipmentPanel" x-init="$nextTick(() => init())">
-    {{ database_panel('equipment', 'Equipment Database', filters_content, results_content, details_content) }}
+    {{ database_panel('equipment', 'Equipment', filters_content, results_content, details_content) }}
 </div>
 
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('equipmentPanel', () => ({
-        searchQuery: '',
-        equipment: [],
-        selectedEquipment: null,
-        concreteEquipment: null,
-        loading: false,
-        
-        // Filter state
-        selectedSlot: '',
-        filterOptions: [],
-        
-        // Sort state
-        currentSort: 'ev',
-        
-        // Test mode
-        testMode: false,
-        
-        // Pagination state for builder mode
-        hasMore: true,
-        items: [],
-        totalResults: null,
-        sortBy: 'ev',
-        
-        // New state for pre-selecting
-        itemToPreselect: null,
-        
-        // New state for slot filter lock
-        isSlotFilterLocked: false,
-        
-        // Computed getters for safe template access
-        get selectedEquipmentIconUrls() {
-            return this.selectedEquipment && Array.isArray(this.selectedEquipment.icon_urls) 
-                ? this.selectedEquipment.icon_urls.slice().reverse() 
-                : [];
-        },
-        
-        get selectedEquipmentName() {
-            return this.selectedEquipment ? this.selectedEquipment.name : '';
-        },
-        
-        get selectedEquipmentBaseIlvl() {
-            return this.selectedEquipment ? this.selectedEquipment.base_ilvl : '';
-        },
-        
-        get selectedEquipmentEv() {
-            return this.selectedEquipment ? (this.selectedEquipment.ev || '0.00') : '0.00';
-        },
-        
-        get concreteEquipmentStats() {
-            return this.concreteEquipment && Array.isArray(this.concreteEquipment.stat_values)
-                ? this.concreteEquipment.stat_values.filter(s => s.stat_name !== 'ARMOUR')
-                : [];
-        },
-        
-        init() {
-            // Initialize with empty array to ensure reactivity
-            this.equipment = [];
-            
-            // Initialize with null instead of false to prevent template errors
-            this.selectedEquipment = null;
-            this.concreteEquipment = null;
-            
-            // Force reset selectedSlot to prevent browser form persistence
-            this.selectedSlot = '';
-            
-            // Initialize filter lock state
-            this.isSlotFilterLocked = false;
-            
-            // Load available slots for filter dropdown
-            this.loadAvailableSlots();
-            
-            // Initialize currentSort to 'ev' (default for equipment)
-            this.currentSort = 'ev';
-            
-            console.log('Equipment panel init - selectedSlot:', this.selectedSlot);
-            
-            // Only load equipment if we're NOT in builder mode
-            // Builder mode will load equipment when handleLoadSlotItems is called
-            if (!this.isBuilderMode()) {
-                console.log('Database mode: loading initial equipment');
-                this.loadEquipment(0, 99);
-            } else {
-                console.log('Builder mode: waiting for slot selection before loading equipment');
-            }
-            
-            // Listen for load-more events from the base panel
-            window.addEventListener('load-more', this.handleLoadMore.bind(this));
-            // Listen for sort-change events from the base panel
-            window.addEventListener('sort-change', this.handleSortChange.bind(this));
-            // Listen for load-slot-items events from the builder
-            window.addEventListener('load-slot-items', this.handleLoadSlotItems.bind(this));
-            
-            // Debug: Add keyboard shortcut to toggle test mode (Press 'T' key)
-            // Use a flag to prevent multiple listeners
-            if (!window.evTestModeListenerAttached) {
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 't' || e.key === 'T') {
-                        e.preventDefault(); // Prevent any default behavior
-                        this.testMode = !this.testMode;
-                        console.log('EV Color Test Mode:', this.testMode ? 'ENABLED' : 'DISABLED');
-                    }
-                });
-                window.evTestModeListenerAttached = true;
-            }
-            
-            // Debug: Log EV values after loading
-            this.$watch('equipment', (newEquipment) => {
-                if (newEquipment.length > 0) {
-                    console.log('Equipment loaded with EV values:', 
-                        newEquipment.slice(0, 5).map(item => ({
-                            name: item.name.substring(0, 20),
-                            ev: item.ev
-                        }))
-                    );
-                    
-                    // Check if we need to pre-select an item
-                    if (this.itemToPreselect) {
-                        console.log('Equipment loaded, attempting to pre-select:', this.itemToPreselect.name);
-                        this.preselectCurrentItem(this.itemToPreselect);
-                    }
-                }
-            });
-        },
-
-        async loadAvailableSlots() {
-            try {
-                const response = await fetch('/api/items/equipment/filter-options');
-                if (!response.ok) {
-                    throw new Error('Failed to load filter options');
-                }
-                const data = await response.json();
-                this.filterOptions = data.filter_options;
-                console.log('Loaded filter options:', this.filterOptions);
-            } catch (error) {
-                console.error('Error loading filter options:', error);
-                this.filterOptions = [];
-            }
-        },
-
-        applyFilters() {
-            console.log('applyFilters called - selectedSlot:', this.selectedSlot);
-            
-            // Reset to first page and reload with filters
-            this.equipment = [];
-            // Clear selected equipment when filters change
-            this.clearSelection();
-            // Reset pagination state to indicate this is a fresh search
-            this.$dispatch('reset-pagination-equipment');
-            this.loadEquipment(0, 99);
-        },
-
-        clearSelection() {
-            // Gracefully clear selection to avoid template errors
-            this.selectedEquipment = null;
-            this.concreteEquipment = null;
-        },
-
-        handleLoadMore(event) {
-            console.log('handleLoadMore called for panelId:', event.detail.panelId);
-            if (event.detail.panelId !== 'equipment') return;
-            this.loadMoreEquipment(event.detail.offset, event.detail.limit);
-        },
-
-        handleSortChange(event) {
-            console.log('handleSortChange called for panelId:', event.detail.panelId, 'sortBy:', event.detail.sortBy);
-            if (event.detail.panelId !== 'equipment') return;
-            this.currentSort = event.detail.sortBy;
-            this.applyFilters(); // Reload with new sort
-        },
-        
-        handleLoadSlotItems(event) {
-            console.log('handleLoadSlotItems called:', event.detail);
-            const { slotType, currentlyEquipped } = event.detail;
-            
-            // Debug: Log the currently equipped item details
-            if (currentlyEquipped) {
-                console.log('Currently equipped item details:', {
-                    name: currentlyEquipped.name,
-                    slot: currentlyEquipped.slot,
-                    requestedSlot: slotType,
-                    key: currentlyEquipped.key
-                });
-            }
-            
-            // In builder mode, SET the slot filter to restrict to valid items for this slot
-            // In regular database mode, also set the filter for convenience
-            this.selectedSlot = slotType;
-            
-            // Lock the filter dropdown when in builder mode
-            if (this.isBuilderMode()) {
-                this.isSlotFilterLocked = true;
-                console.log('Builder mode: locking filter to slot:', slotType);
-            } else {
-                this.isSlotFilterLocked = false;
-                console.log('Database mode: filter unlocked, set to slot:', slotType);
-            }
-            
-            // Clear current selection first
-            this.clearSelection();
-            
-            // Store the item to pre-select for later
-            this.itemToPreselect = currentlyEquipped;
-            
-            // Reload equipment for this slot
-            this.equipment = [];
-            this.$dispatch('reset-pagination-equipment');
-            this.loadEquipment(0, 99);
-        },
-        
-        async preselectCurrentItem(currentItem) {
-            // Find the item in the loaded equipment by key
-            const matchingItem = this.equipment.find(item => item.key === currentItem.key);
-            console.log('Searching for item with key:', currentItem.key);
-            console.log('Available items keys:', this.equipment.slice(0, 5).map(item => item.key));
-            
-            if (matchingItem) {
-                console.log('Pre-selecting currently equipped item:', matchingItem.name);
-                await this.selectEquipment(matchingItem);
-                // Clear the flag after pre-selecting
-                this.itemToPreselect = null;
-            } else {
-                console.log('Currently equipped item not found in loaded equipment');
-                console.log('Item slot mismatch? Equipped item slot:', currentItem.slot, 'Requested slot:', this.selectedSlot);
-                // Clear the flag even if not found
-                this.itemToPreselect = null;
-            }
-        },
-
-        async loadEquipment(offset, limit) {
-            if (this.loading) return;
-            
-            console.log('loadEquipment called with offset:', offset, 'limit:', limit, 'selectedSlot:', this.selectedSlot, 'currentSort:', this.currentSort);
-            
-            try {
-                this.loading = true;
-                const url = this.buildApiUrl(offset, limit);
-                console.log('Making API call to:', url);
-                
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error('Failed to load equipment');
-                }
-                
-                const data = await response.json();
-                console.log('API response - items count:', data.items.length, 'total:', data.total);
-                
-                // Use Alpine's reactive array update
-                this.equipment = data.items;
-                // Update pagination state in the base panel
-                this.$dispatch('update-pagination-equipment', { 
-                    panelId: 'equipment',
-                    hasMore: data.items.length === limit,
-                    offset: offset + limit,
-                    newItems: data.items,
-                    totalResults: data.total
-                });
-            } catch (error) {
-                console.error('Error loading equipment:', error);
-                this.equipment = [];
-                this.$dispatch('update-pagination-equipment', { 
-                    panelId: 'equipment',
-                    hasMore: false,
-                    offset: offset,
-                    newItems: [],
-                    totalResults: 0
-                });
-            } finally {
-                this.loading = false;
-            }
-        },
-
-        async loadMoreEquipment(offset, limit) {
-            if (this.loading) return;
-            
-            try {
-                this.loading = true;
-                const response = await fetch(this.buildApiUrl(offset, limit));
-                if (!response.ok) {
-                    throw new Error('Failed to load more equipment');
-                }
-                
-                const data = await response.json();
-                // Use Alpine's reactive array update
-                this.equipment = [...this.equipment, ...data.items];
-                // Update pagination state in the base panel
-                this.$dispatch('update-pagination-equipment', { 
-                    panelId: 'equipment',
-                    hasMore: data.items.length === limit,
-                    offset: offset + limit,
-                    newItems: data.items,
-                    totalResults: data.total
-                });
-            } catch (error) {
-                console.error('Error loading more equipment:', error);
-                this.$dispatch('update-pagination-equipment', { 
-                    panelId: 'equipment',
-                    hasMore: false,
-                    offset: offset,
-                    newItems: [],
-                    totalResults: this.equipment.length
-                });
-            } finally {
-                this.loading = false;
-            }
-        },
-
-        async selectEquipment(equipment) {
-            // Safety check: ensure we have a valid equipment item
-            if (!equipment || !equipment.key) {
-                console.warn('Invalid equipment item:', equipment);
-                this.selectedEquipment = null;
-                this.concreteEquipment = null;
-                return;
-            }
-            
-            this.selectedEquipment = equipment;
-            try {
-                const response = await fetch(`/api/items/equipment/${equipment.key}/concrete?ilvl=${equipment.base_ilvl}`);
-                if (!response.ok) {
-                    throw new Error('Failed to load concrete equipment');
-                }
-                this.concreteEquipment = await response.json();
-                
-                // Additional safety check for the concrete item data
-                if (!this.concreteEquipment) {
-                    console.warn('No concrete equipment data received for item:', equipment.key);
-                }
-            } catch (error) {
-                console.error('Error loading concrete equipment:', error);
-                this.concreteEquipment = null;
-            }
-        },
-
-        getEvColorClass(ev) {
-            // Safety checks first
-            if (!ev) return 'text-gray-400';
-            if (!this.equipment || !Array.isArray(this.equipment) || this.equipment.length === 0) {
-                return 'text-gray-400';
-            }
-            
-            const evValue = parseFloat(ev);
-            if (isNaN(evValue)) return 'text-gray-400';
-            
-            // Get all EV values from current equipment set to determine range
-            const evValues = this.equipment
-                .map(item => parseFloat(item.ev || 0))
-                .filter(value => !isNaN(value) && value > 0);
-            
-            if (evValues.length === 0) return 'text-gray-400';
-            
-            // Get min and max values for range calculation
-            const minEV = Math.min(...evValues);
-            const maxEV = Math.max(...evValues);
-            const range = maxEV - minEV;
-            
-            // Reduced debug logging
-            if (Math.random() < 0.005) {
-                console.log('EV Color Debug (Range-based):', {
-                    currentEV: evValue,
-                    min: minEV,
-                    max: maxEV,
-                    range: range,
-                    position: range > 0 ? (evValue - minEV) / range : 0
-                });
-            }
-            
-            // If range is too small, all items get neutral color
-            if (range < 0.1) {
-                return 'text-yellow-500';
-            }
-            
-            // Calculate where this value falls in the range (0.0 to 1.0)
-            const position = (evValue - minEV) / range;
-            
-            // Apply colors based on position in range
-            if (position < 0.1) {
-                return 'text-red-500';      // Bottom 10% of range
-            } else if (position < 0.3) {
-                return 'text-orange-500';   // 10-30% of range
-            } else if (position < 0.5) {
-                return 'text-yellow-500';   // 30-50% of range
-            } else if (position < 0.7) {
-                return 'text-lime-500';     // 50-70% of range
-            } else if (position < 0.9) {
-                return 'text-green-500';    // 70-90% of range
-            } else {
-                return 'text-teal-500';     // Top 10% of range
-            }
-        },
-
-        getTestColorClass(index) {
-            const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400', 'text-teal-400'];
-            return colors[index % colors.length];
-        },
-        
-        // Builder-specific method for the Missing Features section
-        isBuilderMode() {
-            // Check if we're in the builder by looking for the builder component
-            const builderComponent = document.getElementById('builder-component');
-            return builderComponent && this.$el && builderComponent.contains(this.$el);
-        },
-        
-        // Validation function to check if an item can be equipped in a builder slot
-        canItemBeEquippedInSlot(item, builderSlot) {
-            if (!item || !item.slot || !builderSlot) return false;
-            
-            // Database slot to builder slot mapping (from API logic)
-            const slotMapping = {
-                'EAR': ['LEFT_EAR', 'RIGHT_EAR'],
-                'LEFT_EAR': ['LEFT_EAR'],
-                'RIGHT_EAR': ['RIGHT_EAR'],
-                'NECK': ['NECK'],
-                'WRIST': ['LEFT_WRIST', 'RIGHT_WRIST'],
-                'LEFT_WRIST': ['LEFT_WRIST'],
-                'RIGHT_WRIST': ['RIGHT_WRIST'],
-                'FINGER': ['LEFT_FINGER', 'RIGHT_FINGER'],
-                'LEFT_FINGER': ['LEFT_FINGER'],
-                'RIGHT_FINGER': ['RIGHT_FINGER'],
-                'POCKET': ['POCKET'],
-                'HEAD': ['HEAD'],
-                'SHOULDER': ['SHOULDERS'],
-                'BACK': ['BACK'],
-                'CHEST': ['CHEST'],
-                'HAND': ['HANDS'],
-                'LEGS': ['LEGS'],
-                'FEET': ['FEET'],
-                'EITHER_HAND': ['MAIN_HAND', 'OFF_HAND'],
-                'MAIN_HAND': ['MAIN_HAND'],
-                'OFF_HAND': ['OFF_HAND'],
-                'RANGED_ITEM': ['RANGED'],
-                'CLASS_SLOT': ['CLASS']
-            };
-            
-            const compatibleSlots = slotMapping[item.slot] || [];
-            const canEquip = compatibleSlots.includes(builderSlot);
-            
-            console.log('Validation check:', {
-                itemName: item.name,
-                itemSlot: item.slot,
-                builderSlot: builderSlot,
-                compatibleSlots: compatibleSlots,
-                canEquip: canEquip
-            });
-            
-            return canEquip;
-        },
-        
-        buildApiUrl(offset, limit) {
-            const params = new URLSearchParams({
-                limit: limit.toString(),
-                skip: offset.toString()
-            });
-            
-            // Add filter parameters
-            if (this.selectedSlot) {
-                params.append('slot', this.selectedSlot);
-            }
-            
-            // Add sort parameter - always include it since EV is now the default
-            if (this.currentSort) {
-                params.append('sort', this.currentSort);
-            }
-            
-            return `/api/items/equipment?${params.toString()}`;
-        }
-    }));
-});
-</script> 
+<!-- JavaScript will be loaded from external file --> 

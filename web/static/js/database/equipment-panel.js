@@ -1,225 +1,244 @@
 // Equipment Panel Alpine.js Component
 document.addEventListener('alpine:init', () => {
     Alpine.data('equipmentPanel', () => ({
-        searchQuery: '',
+        // Component state
+        loading: false,
         equipment: [],
         selectedEquipment: null,
         concreteEquipment: null,
-        loading: false,
         
-        // Filter state
+        // Builder-specific properties
+        isSlotFilterLocked: false, // Always false for now - builder mode integration comes later
         selectedSlot: '',
-        filterOptions: [],
+        
+        // Filter options
+        filterOptions: [], // Will be populated from API
         
         // Sort state
-        currentSort: 'ev',
+        currentSort: 'recent',
         
-        // Test mode
-        testMode: false,
-        
-        // Pagination state for builder mode
-        hasMore: true,
-        items: [],
-        totalResults: null,
-        sortBy: 'ev',
-        
-        // New state for pre-selecting
-        itemToPreselect: null,
-        
-        // New state for slot filter lock
-        isSlotFilterLocked: false,
-        
-        // Computed getters for safe template access
-        get selectedEquipmentIconUrls() {
-            return this.selectedEquipment && Array.isArray(this.selectedEquipment.icon_urls) 
-                ? this.selectedEquipment.icon_urls.slice().reverse() 
-                : [];
-        },
-        
-        get selectedEquipmentName() {
-            return this.selectedEquipment ? this.selectedEquipment.name : '';
-        },
-        
-        get selectedEquipmentBaseIlvl() {
-            return this.selectedEquipment ? this.selectedEquipment.base_ilvl : '';
-        },
-        
-        get selectedEquipmentEv() {
-            return this.selectedEquipment ? (this.selectedEquipment.ev || '0.00') : '0.00';
-        },
-        
-        get concreteEquipmentStats() {
-            return this.concreteEquipment && Array.isArray(this.concreteEquipment.stat_values)
-                ? this.concreteEquipment.stat_values.filter(s => s.stat_name !== 'ARMOUR')
-                : [];
-        },
-        
-        init() {
-            // Initialize the component
-            console.log('Equipment panel initialized');
-            this.loadFilterOptions();
-            this.search();
+        async init() {
+            // Set the base panel sort dropdown to match our default
+            this.$dispatch('set-sort', { panelId: 'equipment', sortBy: this.currentSort });
+            // Load available filter options
+            await this.loadFilterOptions();
+            // Initial load with a fixed limit of 99
+            this.loadEquipment(0, 99);
             
-            // Listen for builder events
-            window.addEventListener('equipment-search', (event) => {
-                this.searchQuery = event.detail.query || '';
-                this.selectedSlot = event.detail.slot || '';
-                this.search();
-            });
-            
-            // Listen for item preselection from builder
-            window.addEventListener('preselect-item', (event) => {
-                if (event.detail.panelType === 'equipment') {
-                    this.itemToPreselect = event.detail.item;
-                    this.preselectItem();
-                }
-            });
+            // Listen for load-more events from the base panel
+            window.addEventListener('load-more', this.handleLoadMore.bind(this));
+            // Listen for sort-change events from the base panel
+            window.addEventListener('sort-change', this.handleSortChange.bind(this));
         },
         
         async loadFilterOptions() {
             try {
-                const response = await fetch('/api/equipment/filters');
-                if (response.ok) {
-                    const data = await response.json();
-                    this.filterOptions = data.slot_options || [];
-                } else {
-                    console.error('Failed to load filter options');
+                const response = await fetch('/api/data/equipment/slots');
+                if (!response.ok) {
+                    throw new Error('Failed to load equipment slots');
                 }
+                const data = await response.json();
+                this.filterOptions = data.slots || [];
             } catch (error) {
-                console.error('Error loading filter options:', error);
-            }
-        },
-        
-        async search() {
-            this.loading = true;
-            try {
-                const params = new URLSearchParams({
-                    q: this.searchQuery,
-                    slot: this.selectedSlot,
-                    sort: this.currentSort,
-                    limit: this.isBuilderMode() ? '33' : '99'
-                });
-                
-                const response = await fetch(`/api/equipment/search?${params}`);
-                if (response.ok) {
-                    const result = await response.json();
-                    this.equipment = result.items || [];
-                    this.items = this.equipment; // For builder mode compatibility
-                    this.totalResults = result.total;
-                    this.hasMore = this.equipment.length < result.total;
-                    
-                    // Auto-select first item if in builder mode and no item is selected
-                    if (this.isBuilderMode() && this.equipment.length > 0 && !this.selectedEquipment) {
-                        this.selectEquipment(this.equipment[0]);
-                    }
-                    
-                    // Handle preselection if there's an item to preselect
-                    if (this.itemToPreselect) {
-                        this.preselectItem();
-                    }
-                } else {
-                    console.error('Search failed');
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-            } finally {
-                this.loading = false;
-            }
-        },
-        
-        async loadMore() {
-            if (!this.hasMore || this.loading) return;
-            
-            this.loading = true;
-            try {
-                const params = new URLSearchParams({
-                    q: this.searchQuery,
-                    slot: this.selectedSlot,
-                    sort: this.currentSort,
-                    offset: this.equipment.length.toString(),
-                    limit: this.isBuilderMode() ? '33' : '99'
-                });
-                
-                const response = await fetch(`/api/equipment/search?${params}`);
-                if (response.ok) {
-                    const result = await response.json();
-                    const newItems = result.items || [];
-                    this.equipment = [...this.equipment, ...newItems];
-                    this.items = this.equipment; // For builder mode compatibility
-                    this.hasMore = this.equipment.length < result.total;
-                } else {
-                    console.error('Load more failed');
-                }
-            } catch (error) {
-                console.error('Load more error:', error);
-            } finally {
-                this.loading = false;
-            }
-        },
-        
-        async selectEquipment(item) {
-            this.selectedEquipment = item;
-            
-            // Load concrete equipment data
-            if (item && item.key) {
-                try {
-                    const response = await fetch(`/api/equipment/${item.key}`);
-                    if (response.ok) {
-                        this.concreteEquipment = await response.json();
-                    } else {
-                        console.error('Failed to load concrete equipment');
-                        this.concreteEquipment = null;
-                    }
-                } catch (error) {
-                    console.error('Error loading concrete equipment:', error);
-                    this.concreteEquipment = null;
-                }
-            } else {
-                this.concreteEquipment = null;
-            }
-        },
-        
-        preselectItem() {
-            if (!this.itemToPreselect) return;
-            
-            // Find the item in the current equipment list
-            const item = this.equipment.find(eq => eq.key === this.itemToPreselect.key);
-            if (item) {
-                this.selectEquipment(item);
-                this.itemToPreselect = null; // Clear preselection
+                this.filterOptions = [];
             }
         },
         
         applyFilters() {
-            this.search();
+            // Reset to first page and reload with filters
+            this.equipment = [];
+            // Reset pagination state to indicate this is a fresh search
+            this.$dispatch('reset-pagination-equipment');
+            this.loadEquipment(0, 99);
         },
         
-        sortBy(field) {
-            this.currentSort = field;
-            this.search();
+        handleLoadMore(event) {
+            if (event.detail.panelId !== 'equipment') return;
+            this.loadMoreEquipment(event.detail.offset, event.detail.limit);
+        },
+
+        handleSortChange(event) {
+            if (event.detail.panelId !== 'equipment') return;
+            this.currentSort = event.detail.sortBy;
+            this.applyFilters(); // Reload with new sort
         },
         
-        toggleTestMode() {
-            this.testMode = !this.testMode;
+        buildApiUrl(offset, limit) {
+            const params = new URLSearchParams({
+                limit: limit.toString(),
+                skip: offset.toString()
+            });
+            
+            // Add filter parameters
+            if (this.selectedSlot) {
+                params.append('slot_group', this.selectedSlot);
+            }
+            
+            // Always add sort parameter
+            if (this.currentSort) {
+                params.append('sort', this.currentSort);
+            }
+            
+            return `/api/data/equipment?${params.toString()}`;
+        },
+
+        async loadEquipment(offset, limit) {
+            if (this.loading) return;
+            
+            try {
+                this.loading = true;
+                const response = await fetch(this.buildApiUrl(offset, limit));
+                if (!response.ok) {
+                    throw new Error('Failed to load equipment');
+                }
+                
+                const data = await response.json();
+                // Use Alpine's reactive array update
+                this.equipment = data.equipment;
+                // Update pagination state in the base panel
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
+                    hasMore: data.has_more,
+                    offset: offset + limit,
+                    newItems: data.equipment,
+                    totalResults: data.total
+                });
+            } catch (error) {
+                this.equipment = [];
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
+                    hasMore: false,
+                    offset: offset,
+                    newItems: [],
+                    totalResults: 0
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async loadMoreEquipment(offset, limit) {
+            if (this.loading) return;
+            
+            try {
+                this.loading = true;
+                const response = await fetch(this.buildApiUrl(offset, limit));
+                if (!response.ok) {
+                    throw new Error('Failed to load more equipment');
+                }
+                
+                const data = await response.json();
+                // Use Alpine's reactive array update
+                this.equipment = [...this.equipment, ...data.equipment];
+                // Update pagination state in the base panel
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
+                    hasMore: data.has_more,
+                    offset: offset + limit,
+                    newItems: data.equipment,
+                    totalResults: data.total
+                });
+            } catch (error) {
+                this.$dispatch('update-pagination-equipment', { 
+                    panelId: 'equipment',
+                    hasMore: false,
+                    offset: offset,
+                    newItems: [],
+                    totalResults: this.equipment.length
+                });
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async selectEquipment(equipment) {
+            this.selectedEquipment = equipment;
+            // Reset concrete equipment to prevent showing stale data
+            this.concreteEquipment = null;
+            
+            // Fetch concrete equipment details
+            try {
+                const response = await fetch(`/api/data/equipment/${equipment.key}/concrete?ilvl=${equipment.base_ilvl}`);
+                if (!response.ok) {
+                    return; // Keep concreteEquipment as null
+                }
+                this.concreteEquipment = await response.json();
+            } catch (error) {
+                this.concreteEquipment = null;
+            }
         },
         
+        // EV Color coding methods using percentiles
         getEvColorClass(ev) {
-            const value = parseFloat(ev) || 0;
-            if (value >= 90) return 'text-red-400';
-            if (value >= 80) return 'text-orange-400';
-            if (value >= 70) return 'text-yellow-400';
-            if (value >= 60) return 'text-green-400';
-            if (value >= 50) return 'text-blue-400';
-            return 'text-gray-400';
+            // Find the item with this EV value to get its percentile
+            const item = this.equipment.find(item => item.ev === ev);
+            if (!item || item.ev_percentile === undefined) {
+                return 'text-lotro-common';
+            }
+            
+            const percentile = item.ev_percentile;
+            
+            // Color based on percentile ranges
+            if (percentile >= 90) return 'text-lotro-legendary';      // Top 10%
+            if (percentile >= 75) return 'text-lotro-incomparable';   // Top 25%
+            if (percentile >= 50) return 'text-lotro-rare';           // Top 50%
+            if (percentile >= 25) return 'text-lotro-uncommon';       // Top 75%
+            return 'text-lotro-common';                               // Bottom 25%
         },
         
         getTestColorClass(index) {
-            const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-green-400', 'text-blue-400', 'text-purple-400'];
+            // For test mode - cycle through colors
+            const colors = ['text-red-400', 'text-blue-400', 'text-green-400', 'text-yellow-400', 'text-purple-400'];
             return colors[index % colors.length];
         },
         
+        // Test mode property (always false for now)
+        get testMode() {
+            return false; // TODO: Implement test mode toggle
+        },
+        
+        // Computed properties for selected equipment
+        get selectedEquipmentIconUrls() {
+            // Reverse the icon URLs so the base icon renders first and overlays render on top
+            const urls = this.selectedEquipment?.icon_urls || [];
+            return [...urls].reverse();
+        },
+        
+        get selectedEquipmentName() {
+            return this.selectedEquipment?.name || '';
+        },
+        
+        get selectedEquipmentBaseIlvl() {
+            return this.selectedEquipment?.base_ilvl || 0;
+        },
+        
+        get selectedEquipmentEv() {
+            // Only show EV in builder mode
+            if (!this.isBuilderMode()) return '';
+            return this.selectedEquipment?.ev ? this.selectedEquipment.ev.toFixed(2) : '0.00';
+        },
+        
+        // Computed properties for concrete equipment stats
+        get concreteEquipmentStats() {
+            if (!this.concreteEquipment?.stat_values) return [];
+            // Filter out ARMOUR since it's displayed separately
+            return this.concreteEquipment.stat_values.filter(stat => stat.stat_name !== 'ARMOUR');
+        },
+        
+        // Safely get ARMOUR stat value
+        get concreteEquipmentArmour() {
+            if (!this.concreteEquipment?.stat_values || !Array.isArray(this.concreteEquipment.stat_values)) {
+                return null;
+            }
+            const armourStat = this.concreteEquipment.stat_values.find(s => s.stat_name === 'ARMOUR');
+            return armourStat ? Math.floor(armourStat.value) : null;
+        },
+        
+        // Builder mode detection
         isBuilderMode() {
-            return window.location.pathname === '/builder';
+            // Check if we're in the builder by looking for the builder component
+            const builderComponent = document.getElementById('builder-component');
+            return builderComponent && this.$el && builderComponent.contains(this.$el);
         }
     }));
 }); 

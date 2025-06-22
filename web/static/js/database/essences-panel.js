@@ -35,28 +35,26 @@ document.addEventListener('alpine:init', () => {
 
         async loadAvailableLevels() {
             try {
-                const response = await fetch('/api/items/essences/levels');
+                const response = await fetch('/api/data/essences/levels');
                 if (!response.ok) {
                     throw new Error('Failed to load levels');
                 }
                 const data = await response.json();
                 this.availableLevels = data.levels;
             } catch (error) {
-                console.error('Error loading available levels:', error);
                 this.availableLevels = [];
             }
         },
 
         async loadAvailableEssenceTypes() {
             try {
-                const response = await fetch('/api/items/essences/types');
+                const response = await fetch('/api/data/essences/types');
                 if (!response.ok) {
                     throw new Error('Failed to load essence types');
                 }
                 const data = await response.json();
                 this.availableEssenceTypes = data.types;
             } catch (error) {
-                console.error('Error loading available essence types:', error);
                 this.availableEssenceTypes = [];
             }
         },
@@ -99,7 +97,7 @@ document.addEventListener('alpine:init', () => {
                 params.append('sort', this.currentSort);
             }
             
-            return `/api/items/essences?${params.toString()}`;
+            return `/api/data/essences?${params.toString()}`;
         },
 
         async loadEssences(offset, limit) {
@@ -124,7 +122,6 @@ document.addEventListener('alpine:init', () => {
                     totalResults: data.total
                 });
             } catch (error) {
-                console.error('Error loading essences:', error);
                 this.essences = [];
                 this.$dispatch('update-pagination-essences', { 
                     panelId: 'essences',
@@ -160,7 +157,6 @@ document.addEventListener('alpine:init', () => {
                     totalResults: data.total
                 });
             } catch (error) {
-                console.error('Error loading more essences:', error);
                 this.$dispatch('update-pagination-essences', { 
                     panelId: 'essences',
                     hasMore: false,
@@ -176,13 +172,12 @@ document.addEventListener('alpine:init', () => {
         async selectEssence(essence) {
             this.selectedEssence = essence;
             try {
-                const response = await fetch(`/api/items/essences/${essence.key}/concrete?ilvl=${essence.base_ilvl}`);
+                const response = await fetch(`/api/data/essences/${essence.key}/concrete?ilvl=${essence.base_ilvl}`);
                 if (!response.ok) {
                     throw new Error('Failed to load concrete essence');
                 }
                 this.concreteEssence = await response.json();
             } catch (error) {
-                console.error('Error loading concrete essence:', error);
                 this.concreteEssence = null;
             }
         }

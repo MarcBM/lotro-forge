@@ -85,7 +85,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         # Define API route patterns that require authentication
         self.protected_api_patterns = [
             "/api/auth/users/",     # User profile management requires auth
-            "/api/items/",          # All item API routes require auth
+            "/api/data/",           # All data API routes require auth
         ]
         
         # Define API route patterns that require admin access

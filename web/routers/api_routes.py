@@ -6,7 +6,7 @@ to register all API routes with the main FastAPI application.
 """
 from fastapi import FastAPI
 
-from ..api.items import router as items_router
+from ..api.data import equipment_router, essences_router
 from ..api.auth import public_router, users_router, admin_router
 
 def register_api_routes(app: FastAPI) -> None:
@@ -19,8 +19,9 @@ def register_api_routes(app: FastAPI) -> None:
     Args:
         app: The FastAPI application instance
     """
-    # Items API
-    app.include_router(items_router, prefix="/api/items", tags=["items"])
+    # Data API
+    app.include_router(equipment_router, prefix="/api/data/equipment", tags=["equipment"])
+    app.include_router(essences_router, prefix="/api/data/essences", tags=["essences"])
     
     # Authentication API
     app.include_router(public_router, prefix="/api/auth", tags=["auth"])
@@ -30,4 +31,5 @@ def register_api_routes(app: FastAPI) -> None:
     # TODO: Add new API routers here as they are created:
     # app.include_router(builds_router, prefix="/api/builds", tags=["builds"])
     # app.include_router(character_router, prefix="/api/characters", tags=["characters"])
-    # app.include_router(progression_router, prefix="/api/progressions", tags=["progressions"]) 
+    # app.include_router(progressions_router, prefix="/api/data/progressions", tags=["progressions"])
+    # app.include_router(traits_router, prefix="/api/data/traits", tags=["traits"]) 

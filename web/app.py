@@ -18,8 +18,7 @@ from .config.config import (
 )
 from .middleware.security import add_security_middleware
 from .middleware.auth import AuthenticationMiddleware
-from .api.items import router as items_router
-from .api.auth import public_router, users_router, admin_router
+from .routers import web_router, register_api_routes, not_found_handler
 
 from database.models.user import User
 
@@ -73,75 +72,10 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Include routers
-app.include_router(items_router, prefix="/api/items", tags=["items"])
-app.include_router(public_router, prefix="/api/auth", tags=["auth"])
-app.include_router(users_router, prefix="/api/auth/users", tags=["users"])
-app.include_router(admin_router, prefix="/api/auth/admin", tags=["admin"])
+app.include_router(web_router, tags=["web"])
+register_api_routes(app)
 
 
-
-# Routes
-@app.get("/")
-async def home(request: Request):
-    """Render the home page."""
-    return templates.TemplateResponse(
-        "base/home.html",
-        {"request": request}
-    )
-
-@app.get("/builds")
-async def builds(request: Request):
-    """Render the builds page - a repository of community-created builds. Requires authentication."""
-    return templates.TemplateResponse(
-        "builds/builds.html",
-        {"request": request}
-    )
-
-@app.get("/builder")
-async def builder(request: Request):
-    """Render the builder page - where users can create and edit builds. Requires authentication."""
-    return templates.TemplateResponse(
-        "builder/builder.html",
-        {"request": request}
-    )
-
-@app.get("/database")
-async def database(request: Request):
-    """Render the database page. Requires authentication."""
-    return templates.TemplateResponse(
-        "database/database.html",
-        {"request": request}
-    )
-
-@app.get("/account")
-async def account(request: Request):
-    """Render the account management page. Requires authentication."""
-    return templates.TemplateResponse(
-        "users/account.html",
-        {"request": request}
-    )
-
-@app.get("/admin")
-async def admin(request: Request):
-    """Render the admin page. Requires admin authentication."""
-    return templates.TemplateResponse(
-        "users/admin.html",
-        {"request": request}
-    )
-
-@app.get("/release-notes")
-async def release_notes(request: Request):
-    """Display release notes and roadmap. Requires authentication."""
-    return templates.TemplateResponse(
-        "release_notes/release_notes.html", 
-        {"request": request}
-    )
 
 # Error handlers
-@app.exception_handler(404)
-async def not_found_handler(request: Request, exc):
-    return templates.TemplateResponse(
-        "errors/404.html",
-        {"request": request},
-        status_code=404
-    )
+app.add_exception_handler(404, not_found_handler)

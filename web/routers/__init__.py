@@ -1,14 +1,17 @@
 """
 FastAPI router organization.
 
-This module will contain router definitions for better organization
-of API endpoints when the application grows larger.
+This module contains router definitions for better organization
+of endpoints, keeping the main app.py clean and focused.
 
-Example structure:
-- builds_router.py - Routes for builds functionality
-- users_router.py - Routes for user management  
-- admin_router.py - Routes for admin functionality
+Router organization:
+- web_routes.py - Main web page routes that render HTML templates
+- api_routes.py - Centralized API routes registration
+- error_handlers.py - Custom error handling functions
 """
 
-# TODO: Refactor API routes into organized router modules
-# This will help keep the main app.py clean as the application grows 
+from .web_routes import router as web_router
+from .api_routes import register_api_routes
+from .error_handlers import not_found_handler
+
+__all__ = ["web_router", "register_api_routes", "not_found_handler"] 

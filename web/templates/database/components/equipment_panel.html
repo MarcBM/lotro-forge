@@ -263,4 +263,6 @@
     {{ database_panel('equipment', 'Equipment', filters_content, results_content, details_content) }}
 </div>
 
-<!-- JavaScript will be loaded from external file --> 
+<!-- Equipment Panel JavaScript -->
+<script src="{{ url_for('static', path='js/database/equipment-filters.js') }}"></script>
+<script src="{{ url_for('static', path='js/database/equipment-panel.js') }}"></script> 

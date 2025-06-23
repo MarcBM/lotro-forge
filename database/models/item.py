@@ -137,6 +137,65 @@ class Item(Base):
             result['stat_values'] = self.get_stats_at_ilvl(ilvl)
         
         return result
+    
+    def to_json(self) -> Dict:
+        """
+        Convert the item to a JSON representation for API responses.
+        Returns base item data suitable for frontend consumption.
+        """
+        # Process icon URLs
+        icon_urls = []
+        if self.icon:
+            # Split hyphen-separated icon IDs and convert to URLs
+            icon_ids = self.icon.split('-')
+            icon_urls = [f"/static/icons/items/{icon_id}.png" for icon_id in icon_ids if icon_id]
+        
+        return {
+            'key': self.key,
+            'name': self.name,
+            'base_ilvl': self.base_ilvl,
+            'quality': self.quality.value.upper(),
+            'item_type': self.item_type,
+            'icon_urls': icon_urls,
+            'stat_names': [stat.stat_name for stat in self.stats]
+        }
+    
+    def to_list_json(self) -> Dict:
+        """
+        Convert the item to a minimal JSON representation for list views.
+        Returns only essential data: key, name, icon_urls, quality.
+        """
+        # Process icon URLs
+        icon_urls = []
+        if self.icon:
+            # Split hyphen-separated icon IDs and convert to URLs
+            icon_ids = self.icon.split('-')
+            icon_urls = [f"/static/icons/items/{icon_id}.png" for icon_id in icon_ids if icon_id]
+        
+        return {
+            'key': self.key,
+            'name': self.name,
+            'quality': self.quality.value.upper(),
+            'icon_urls': icon_urls
+        }
+    
+    def get_stats_json(self, ilvl: int) -> Dict:
+        """
+        Get concrete stats for this item at a specific item level.
+        Returns only the calculated stat values - no base item data.
+        """
+        stat_values = []
+        for stat in self.stats:
+            stat_value = stat.get_value(ilvl)
+            stat_values.append({
+                'stat_name': stat.stat_name,
+                'value': stat_value
+            })
+        
+        return {
+            'ilvl': ilvl,
+            'stat_values': stat_values
+        }
 
 class EquipmentItem(Item):
     """
@@ -248,6 +307,32 @@ class EquipmentItem(Item):
             'sockets': self.socket_summary
         })
         return result
+    
+    def to_json(self) -> Dict:
+        """
+        Convert the equipment item to a JSON representation for API responses.
+        Extends the base to_json with equipment-specific fields.
+        """
+        result = super().to_json()
+        result.update({
+            'slot': self.slot,
+            'armour_type': self.armour_type,
+            'scaling': self.scaling,
+            'total_sockets': self.total_sockets
+        })
+        
+        # Add socket breakdown for equipment if there are sockets
+        if self.total_sockets > 0:
+            result['sockets'] = {
+                'basic': self.sockets_basic,
+                'primary': self.sockets_primary,
+                'vital': self.sockets_vital,
+                'cloak': self.sockets_cloak,
+                'necklace': self.sockets_necklace,
+                'pvp': self.sockets_pvp
+            }
+        
+        return result
 
 class Weapon(EquipmentItem):
     """
@@ -313,6 +398,35 @@ class Weapon(EquipmentItem):
             result['calculated_dps'] = self.get_dps_at_ilvl(ilvl)
         
         return result
+    
+    def to_json(self) -> Dict:
+        """
+        Convert the weapon to a JSON representation for API responses.
+        Extends the equipment to_json with weapon-specific fields.
+        """
+        result = super().to_json()
+        result.update({
+            'weapon_type': self.weapon_type,
+            'damage_type': self.damage_type,
+            'min_damage': self.min_damage,
+            'max_damage': self.max_damage,
+            'base_dps': self.dps
+        })
+        return result
+    
+    def get_stats_json(self, ilvl: int) -> Dict:
+        """
+        Get concrete stats for this weapon at a specific item level.
+        Extends the base get_stats_json with weapon DPS calculation.
+        """
+        result = super().get_stats_json(ilvl)
+        
+        # Add calculated DPS for weapons
+        calculated_dps = self.get_dps_at_ilvl(ilvl)
+        if calculated_dps is not None:
+            result['calculated_dps'] = calculated_dps
+        
+        return result
 
 class Essence(Item):
     """
@@ -362,6 +476,31 @@ class Essence(Item):
             'tier': self.tier,
             'essence_type': self.essence_type,
             'essence_type_name': self.essence_type_name,
+        })
+        return result
+    
+    def to_json(self) -> Dict:
+        """
+        Convert the essence to a JSON representation for API responses.
+        Extends the base to_json with essence-specific fields.
+        """
+        result = super().to_json()
+        result.update({
+            'tier': self.tier,
+            'essence_type': self.essence_type,
+            'essence_type_name': self.essence_type_name
+        })
+        return result
+    
+    def to_list_json(self) -> Dict:
+        """
+        Convert the essence to a minimal JSON representation for list views.
+        Extends the base to_list_json with essential essence fields.
+        """
+        result = super().to_list_json()
+        result.update({
+            'essence_type': self.essence_type,
+            'essence_type_name': self.essence_type_name
         })
         return result
 

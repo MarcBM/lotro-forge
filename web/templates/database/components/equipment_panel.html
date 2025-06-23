@@ -63,8 +63,7 @@
             </div>
             
             <!-- EV Value -->
-            <div x-show="isBuilderMode()" class="absolute bottom-1 right-2 text-sm font-medium"
-                 :class="testMode ? getTestColorClass(index) : getEvColorClass(item.ev)">
+            <div x-show="isBuilderMode()" class="absolute bottom-1 right-2 text-sm font-medium text-lotro-secondary">
                 <span x-text="(item.ev || '0.00')"></span>
             </div>
         </div>
@@ -84,7 +83,7 @@
                 <div class="w-16 h-16 flex-shrink-0 relative">
                     <template x-if="selectedEquipment && selectedEquipment.icon_urls && Array.isArray(selectedEquipment.icon_urls)">
                         <div>
-                            <template x-for="(url, i) in selectedEquipmentIconUrls" :key="i">
+                            <template x-for="(url, i) in selectedEquipment.icon_urls.slice().reverse()" :key="i">
                                 <img :src="url" 
                                      :alt="'Equipment icon layer ' + (i + 1)"
                                      class="absolute inset-0 w-full h-full object-contain"
@@ -109,7 +108,7 @@
                                 'text-lotro-incomparable': selectedEquipment && selectedEquipment.quality === 'INCOMPARABLE',
                                 'text-lotro-legendary': selectedEquipment && selectedEquipment.quality === 'LEGENDARY'
                             }"
-                            x-text="selectedEquipmentName"></h3>
+                            x-text="selectedEquipment.name"></h3>
                     </div>
                 </div>
             </div>
@@ -118,7 +117,7 @@
             <div class="flex justify-between items-center text-sm text-lotro-secondary -mt-1">
                 <div>
                     <span>iLvl: </span>
-                    <span x-text="selectedEquipmentBaseIlvl"></span>
+                    <span x-text="selectedEquipment.base_ilvl"></span>
                 </div>
                 <div class="text-lotro-muted">
                     <!-- Weapon display logic -->
@@ -136,54 +135,64 @@
                         <span x-text="selectedEquipment ? selectedEquipment.slot : ''"></span>
                     </template>
                 </div>
-                <div class="text-lotro-muted font-medium"
+                <div class="text-lotro-muted font-medium text-lotro-secondary"
                      x-show="isBuilderMode()"
-                     :class="testMode ? 'text-lotro-rare' : (selectedEquipment ? getEvColorClass(selectedEquipment.ev) : 'text-lotro-secondary')"
-                     x-text="selectedEquipmentEv"></div>
+                     x-text="selectedEquipment.ev || '0.00'"></div>
             </div>
             
             <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
-            <template x-if="concreteEquipment && concreteEquipment.weapon_type && concreteEquipment.calculated_dps">
+            <template x-if="selectedEquipment && selectedEquipment.weapon_type && selectedEquipment.stats && selectedEquipment.stats.calculated_dps">
                 <div class="flex justify-between text-sm text-lotro-secondary mb-2">
                     <span>DPS</span>
-                    <span class="text-lotro-primary" x-text="concreteEquipment && concreteEquipment.calculated_dps ? concreteEquipment.calculated_dps.toFixed(1) : '0.0'"></span>
+                    <span class="text-lotro-primary" x-text="selectedEquipment.stats.calculated_dps.toFixed(1)"></span>
                 </div>
             </template>
             
-            <!-- ARMOUR stat above the line (only for non-weapons) -->
-            <template x-if="concreteEquipment && !concreteEquipment.weapon_type && concreteEquipmentArmour !== null">
-                <div class="flex justify-between text-sm text-lotro-secondary mb-2">
-                    <span>ARMOUR</span>
-                    <span class="text-lotro-primary" x-text="concreteEquipmentArmour"></span>
-                </div>
+            <!-- ARMOUR stat above the line (only for items with armour_type) -->
+            <template x-if="selectedEquipment && selectedEquipment.armour_type && selectedEquipment.stats && selectedEquipment.stats.stat_values">
+                <template x-for="stat in selectedEquipment.stats.stat_values" :key="'armour-' + stat.stat_name">
+                    <template x-if="stat.stat_name === 'ARMOUR'">
+                        <div class="flex justify-between text-sm text-lotro-secondary mb-2">
+                            <span>ARMOUR</span>
+                            <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
+                        </div>
+                    </template>
+                </template>
             </template>
             
             <!-- Equipment Stats -->
             <div class="border-t border-lotro-border pt-3">
                 <div class="text-sm text-lotro-secondary space-y-1">
-                    <!-- Other stats -->
-                    <template x-if="concreteEquipment && concreteEquipment.stat_values && Array.isArray(concreteEquipment.stat_values)">
+                    <!-- Other stats (skip ARMOUR if it has armour_type since it's shown above) -->
+                    <template x-if="selectedEquipment && selectedEquipment.stats && selectedEquipment.stats.stat_values && Array.isArray(selectedEquipment.stats.stat_values)">
                         <div class="space-y-1">
-                            <template x-for="stat in concreteEquipmentStats" :key="stat.stat_name">
-                                <div class="flex justify-between">
-                                    <span x-text="stat.stat_name"></span>
-                                    <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
-                                </div>
+                            <template x-for="stat in selectedEquipment.stats.stat_values" :key="stat.stat_name">
+                                <template x-if="!(selectedEquipment.armour_type && stat.stat_name === 'ARMOUR')">
+                                    <div class="flex justify-between">
+                                        <span x-text="stat.stat_name"></span>
+                                        <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
+                                    </div>
+                                </template>
                             </template>
                         </div>
                     </template>
                     
-                    <!-- Fallback when stats fail to load -->
-                    <template x-if="selectedEquipment && !concreteEquipment">
+                    <!-- Fallback when stats are loading -->
+                    <template x-if="selectedEquipment && (loadingStats || !selectedEquipment.stats || !selectedEquipment.stats.stat_values)">
                         <div class="text-lotro-muted text-center py-2">
-                            <span class="text-xs">Loading detailed stats...</span>
+                            <span class="text-xs" x-show="loadingStats">
+                                <span class="animate-pulse">Loading detailed stats...</span>
+                            </span>
+                            <span class="text-xs" x-show="!loadingStats && (!selectedEquipment.stats || !selectedEquipment.stats.stat_values)">
+                                Failed to load stats
+                            </span>
                         </div>
                     </template>
                 </div>
             </div>
             
             <!-- Socket Information -->
-            <template x-if="selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.total > 0">
+            <template x-if="selectedEquipment && selectedEquipment.total_sockets > 0">
                 <div class="flex flex-wrap gap-2 mt-2 justify-end">
                     <!-- Socket icons in order: Necklace > Cloak > Primary > Vital > Basic > PVP -->
                     
@@ -264,5 +273,5 @@
 </div>
 
 <!-- Equipment Panel JavaScript -->
-<script src="{{ url_for('static', path='js/database/equipment-filters.js') }}"></script>
-<script src="{{ url_for('static', path='js/database/equipment-panel.js') }}"></script> 
+<script src="/static/js/database/equipment-filters.js"></script>
+<script src="/static/js/database/equipment-panel.js"></script> 

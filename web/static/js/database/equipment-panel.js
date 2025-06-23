@@ -5,7 +5,7 @@ document.addEventListener('alpine:init', () => {
         loading: false,
         equipment: [],
         selectedEquipment: null,
-        concreteEquipment: null,
+        loadingStats: false,
         
         // Builder-specific properties
         isSlotFilterLocked: false, // Always false for now - builder mode integration comes later
@@ -79,7 +79,7 @@ document.addEventListener('alpine:init', () => {
                 window.EquipmentFilters.buildQueryParams(filters) :
                 new URLSearchParams(filters);
             
-            return `/api/data/equipment?${params.toString()}`;
+            return `/api/data/equipment/?${params.toString()}`;
         },
 
         async loadEquipment(offset, limit, append = false) {
@@ -128,19 +128,22 @@ document.addEventListener('alpine:init', () => {
         },
 
         async selectEquipment(equipment) {
+            // Set loading state and show basic item info immediately
+            this.loadingStats = true;
             this.selectedEquipment = equipment;
-            // Reset concrete equipment to prevent showing stale data
-            this.concreteEquipment = null;
             
             // Fetch complete concrete item (full item data + stats) using the concrete endpoint
             try {
                 const response = await fetch(`/api/data/items/${equipment.key}/concrete`);
                 if (!response.ok) {
-                    return; // Keep concreteEquipment as null
+                    this.selectedEquipment = equipment; // Keep basic item data
+                    return;
                 }
-                this.concreteEquipment = await response.json();
+                this.selectedEquipment = await response.json();
             } catch (error) {
-                this.concreteEquipment = null;
+                this.selectedEquipment = equipment; // Keep basic item data
+            } finally {
+                this.loadingStats = false;
             }
         },
         

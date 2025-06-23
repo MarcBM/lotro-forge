@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.orm import Session
 
 from database.session import SessionLocal
-from database.models.item import Item
+from database.models.items import Item
 
 # Create router
 router = APIRouter()

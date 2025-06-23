@@ -34,7 +34,7 @@
                             <option value="recent">Recent</option>
                             <option value="name">Name</option>
                             <option value="base_ilvl">Base iLvl</option>
-                            <option value="ev" x-show="'{{ panel_id }}' === 'equipment' && isBuilderMode()">Essence Value</option>
+                            <!-- EV sort option would go here when builder mode is implemented -->
                         </select>
                     </div>
                 </div>
@@ -52,15 +52,10 @@
                     
                     <!-- Load More Button or End Message -->
                     <div class="mt-4 text-center">
-                        <template x-if="hasMore">
+                        <template x-if="hasMore && items.length > 0">
                             <button @click="loadMore" 
-                                    class="bg-lotro-darker text-lotro-gold px-6 py-2 rounded border border-lotro-border hover:border-lotro-gold focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                    :disabled="loading">
-                                <span x-show="!loading">Load More</span>
-                                <span x-show="loading" class="inline-flex items-center">
-                                    <span class="animate-pulse mr-2 text-lotro-gold">●</span>
-                                    Loading...
-                                </span>
+                                    class="bg-lotro-darker text-lotro-gold px-6 py-2 rounded border border-lotro-border hover:border-lotro-gold focus:outline-none">
+                                Load More
                             </button>
                         </template>
                         <template x-if="!hasMore && items.length > 0">
@@ -85,19 +80,9 @@
                 {{ details_content }}
             </div>
             
-            <!-- Builder Mode: Fixed Bottom Equip Button -->
-            <template x-if="isBuilderMode() && hasSelectedItem()">
-                <div class="p-4 border-t border-lotro-border bg-lotro-darker flex-shrink-0">
-                    <button @click="selectItemForBuild()"
-                            class="w-full bg-lotro-gold hover:bg-lotro-gold/80 text-black font-bold py-3 px-4 rounded transition-colors duration-200">
-                        Equip <span x-text="getSelectedItemName()"></span>
-                    </button>
-                </div>
-            </template>
+            <!-- Builder mode functionality would go here when implemented -->
         </div>
     </div>
 </div>
 
-<!-- Base Panel JavaScript -->
-<script src="/static/js/database/base-panel.js"></script>
 {% endmacro %} 

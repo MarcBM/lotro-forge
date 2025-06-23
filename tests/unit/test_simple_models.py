@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.unit
 def test_item_quality_enum():
     """Test that we can import and use the ItemQuality enum."""
-    from database.models.item import ItemQuality
+    from database.models.items import ItemQuality
     
     # Test enum values
     assert ItemQuality.COMMON.value == "common"
@@ -23,7 +23,7 @@ def test_item_quality_enum():
 @pytest.mark.unit
 def test_socket_string_parsing():
     """Test socket string parsing without database."""
-    from database.models.item import EquipmentItem
+    from database.models.items import EquipmentItem
     
     # Test static method without creating instances
     result = EquipmentItem.parse_socket_string("PVS")
@@ -44,7 +44,7 @@ def test_socket_string_parsing():
 @pytest.mark.unit
 def test_essence_type_names():
     """Test essence type name mapping."""
-    from database.models.item import Essence
+    from database.models.items import Essence
     
     # Test static mapping
     assert Essence.ESSENCE_TYPE_NAMES[1] == 'Basic'

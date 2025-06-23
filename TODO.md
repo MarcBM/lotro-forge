@@ -51,7 +51,11 @@
 **Priority:** Low  
 **Description:** Investigate and optimize API call performance, specifically addressing scenarios where multiple calls are made to the same endpoint during page loads. Consider implementing request deduplication, caching strategies, or batching mechanisms to reduce redundant API calls and improve page load times.
 
+### 16. Fix Essence Icon Display Alignment
+**Priority:** Low  
+**Description:** Essence icons in the database panel are displaying slightly off-center. Adjust CSS positioning/alignment to center the icons properly within their containers.
+
 ---
 
-**Next Work Item Number:** 16
+**Next Work Item Number:** 17
 

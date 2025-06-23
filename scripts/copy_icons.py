@@ -15,7 +15,7 @@ sys.path.append(str(project_root))
 
 from database.config import DatabaseConfig
 from database.connection import DatabaseConnection
-from database.models.item import Item
+from database.models.items import Item
 
 # Paths
 LOTRO_COMPANION_ROOT = Path('/home/marcb/workspace/lotro/lotro_companion')

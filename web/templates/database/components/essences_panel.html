@@ -3,21 +3,6 @@
 {% set filters_content %}
 <!-- Essence Filters -->
 <div class="space-y-4">
-    <!-- Item Level Filter -->
-    <div>
-        <label class="block text-sm font-medium text-lotro-primary mb-2">
-            Item Level
-        </label>
-        <select x-model="selectedLevel" 
-                @change="applyFilters()"
-                class="w-full bg-lotro-darker border border-lotro-border rounded-lg px-3 py-2 text-lotro-primary focus:border-lotro-gold focus:outline-none">
-            <option value="">All Levels</option>
-            <template x-for="level in availableLevels" :key="level">
-                <option :value="level" x-text="level"></option>
-            </template>
-        </select>
-    </div>
-    
     <!-- Essence Type Filter -->
     <div>
         <label class="block text-sm font-medium text-lotro-primary mb-2">
@@ -137,14 +122,27 @@
             <!-- Essence Stats -->
             <div class="border-t border-lotro-border pt-3">
                 <div class="text-sm text-lotro-secondary space-y-1">
-                    <template x-if="concreteEssence && concreteEssence.stat_values">
+                    <!-- Stats -->
+                    <template x-if="selectedEssence && selectedEssence.stats && selectedEssence.stats.stat_values && Array.isArray(selectedEssence.stats.stat_values)">
                         <div class="space-y-1">
-                            <template x-for="stat in concreteEssence.stat_values" :key="stat.stat_name">
+                            <template x-for="stat in selectedEssence.stats.stat_values" :key="stat.stat_name">
                                 <div class="flex justify-between">
                                     <span x-text="stat.stat_name"></span>
                                     <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
                                 </div>
                             </template>
+                        </div>
+                    </template>
+                    
+                    <!-- Fallback when stats are loading -->
+                    <template x-if="selectedEssence && (loadingStats || !selectedEssence.stats || !selectedEssence.stats.stat_values)">
+                        <div class="text-lotro-muted text-center py-2">
+                            <span class="text-xs" x-show="loadingStats">
+                                <span class="animate-pulse">Loading detailed stats...</span>
+                            </span>
+                            <span class="text-xs" x-show="!loadingStats && (!selectedEssence.stats || !selectedEssence.stats.stat_values)">
+                                Failed to load stats
+                            </span>
                         </div>
                     </template>
                 </div>
@@ -177,4 +175,5 @@
 </div>
 
 <!-- Essences Panel JavaScript -->
+<script src="/static/js/database/essences-filters.js"></script>
 <script src="/static/js/database/essences-panel.js"></script> 

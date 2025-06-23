@@ -1,30 +1,27 @@
 // Essences Panel Alpine.js Component
 document.addEventListener('alpine:init', () => {
     Alpine.data('essencesPanel', () => ({
-        searchQuery: '',
+        // Component state
+        loading: false,
         essences: [],
         selectedEssence: null,
-        concreteEssence: null,
-        loading: false,
+        loadingStats: false,
         
         // Filter state
-        selectedLevel: '',
-        availableLevels: [],
         selectedEssenceType: '',
+        
+        // Filter options (populated from client-side config)
         availableEssenceTypes: [],
         
         // Sort state
-        currentSort: 'name',
+        currentSort: 'recent',
         
-        init() {
-            // Initialize with empty array to ensure reactivity
-            this.essences = [];
+        async init() {
             // Set the base panel sort dropdown to match our default
             this.$dispatch('set-sort', { panelId: 'essences', sortBy: this.currentSort });
-            // Load available filter options
-            this.loadAvailableLevels();
-            this.loadAvailableEssenceTypes();
-            // Initial load with a fixed limit of 99 (multiple of 3)
+            // Load available filter options from client-side config
+            this.loadFilterOptions();
+            // Initial load with a fixed limit of 99
             this.loadEssences(0, 99);
             
             // Listen for load-more events from the base panel
@@ -32,33 +29,17 @@ document.addEventListener('alpine:init', () => {
             // Listen for sort-change events from the base panel
             window.addEventListener('sort-change', this.handleSortChange.bind(this));
         },
-
-        async loadAvailableLevels() {
-            try {
-                const response = await fetch('/api/data/essences/levels');
-                if (!response.ok) {
-                    throw new Error('Failed to load levels');
-                }
-                const data = await response.json();
-                this.availableLevels = data.levels;
-            } catch (error) {
-                this.availableLevels = [];
-            }
-        },
-
-        async loadAvailableEssenceTypes() {
-            try {
-                const response = await fetch('/api/data/essences/types');
-                if (!response.ok) {
-                    throw new Error('Failed to load essence types');
-                }
-                const data = await response.json();
-                this.availableEssenceTypes = data.types;
-            } catch (error) {
+        
+        loadFilterOptions() {
+            // Use client-side filter configuration instead of API calls
+            if (window.EssenceFilters) {
+                this.availableEssenceTypes = window.EssenceFilters.getEssenceTypes();
+            } else {
+                console.warn('EssenceFilters not loaded, filter options will be empty');
                 this.availableEssenceTypes = [];
             }
         },
-
+        
         applyFilters() {
             // Reset to first page and reload with filters
             this.essences = [];
@@ -66,10 +47,10 @@ document.addEventListener('alpine:init', () => {
             this.$dispatch('reset-pagination-essences');
             this.loadEssences(0, 99);
         },
-
+        
         handleLoadMore(event) {
             if (event.detail.panelId !== 'essences') return;
-            this.loadMoreEssences(event.detail.offset, event.detail.limit);
+            this.loadEssences(event.detail.offset, event.detail.limit, true);
         },
 
         handleSortChange(event) {
@@ -79,28 +60,25 @@ document.addEventListener('alpine:init', () => {
         },
         
         buildApiUrl(offset, limit) {
-            const params = new URLSearchParams({
-                limit: limit.toString(),
-                skip: offset.toString()
-            });
+            const filters = {
+                limit: limit,
+                skip: offset,
+                sort: this.currentSort
+            };
             
             // Add filter parameters
-            if (this.selectedLevel) {
-                params.append('ilvl', this.selectedLevel);
-            }
             if (this.selectedEssenceType) {
-                params.append('essence_type', this.selectedEssenceType);
+                filters.essence_type = this.selectedEssenceType;
             }
             
-            // Always add sort parameter
-            if (this.currentSort) {
-                params.append('sort', this.currentSort);
-            }
+            const params = window.EssenceFilters ? 
+                window.EssenceFilters.buildQueryParams(filters) :
+                new URLSearchParams(filters);
             
-            return `/api/data/essences?${params.toString()}`;
+            return `/api/data/essences/?${params.toString()}`;
         },
 
-        async loadEssences(offset, limit) {
+        async loadEssences(offset, limit, append = false) {
             if (this.loading) return;
             
             try {
@@ -111,58 +89,34 @@ document.addEventListener('alpine:init', () => {
                 }
                 
                 const data = await response.json();
-                // Use Alpine's reactive array update
-                this.essences = data.essences;
-                // Update pagination state in the base panel
-                this.$dispatch('update-pagination-essences', { 
-                    panelId: 'essences',
-                    hasMore: data.essences.length === limit,
-                    offset: offset + limit,
-                    newItems: data.essences,
-                    totalResults: data.total
-                });
-            } catch (error) {
-                this.essences = [];
-                this.$dispatch('update-pagination-essences', { 
-                    panelId: 'essences',
-                    hasMore: false,
-                    offset: offset,
-                    newItems: [],
-                    totalResults: 0
-                });
-            } finally {
-                this.loading = false;
-            }
-        },
-
-        async loadMoreEssences(offset, limit) {
-            if (this.loading) return;
-            
-            try {
-                this.loading = true;
-                const response = await fetch(this.buildApiUrl(offset, limit));
-                if (!response.ok) {
-                    throw new Error('Failed to load more essences');
+                
+                // Update essences array based on append flag
+                if (append) {
+                    this.essences = [...this.essences, ...data.essences];
+                } else {
+                    this.essences = data.essences;
                 }
                 
-                const data = await response.json();
-                // Use Alpine's reactive array update
-                this.essences = [...this.essences, ...data.essences];
                 // Update pagination state in the base panel
                 this.$dispatch('update-pagination-essences', { 
                     panelId: 'essences',
-                    hasMore: data.essences.length === limit,
+                    hasMore: data.has_more,
                     offset: offset + limit,
                     newItems: data.essences,
                     totalResults: data.total
                 });
             } catch (error) {
+                // Handle error based on append mode
+                if (!append) {
+                    this.essences = [];
+                }
+                
                 this.$dispatch('update-pagination-essences', { 
                     panelId: 'essences',
                     hasMore: false,
                     offset: offset,
                     newItems: [],
-                    totalResults: this.essences.length
+                    totalResults: append ? this.essences.length : 0
                 });
             } finally {
                 this.loading = false;
@@ -170,16 +124,28 @@ document.addEventListener('alpine:init', () => {
         },
 
         async selectEssence(essence) {
+            // Set loading state and show basic item info immediately
+            this.loadingStats = true;
             this.selectedEssence = essence;
+            
+            // Fetch complete concrete item (full item data + stats) using the concrete endpoint
             try {
-                const response = await fetch(`/api/data/essences/${essence.key}/concrete?ilvl=${essence.base_ilvl}`);
+                const response = await fetch(`/api/data/items/${essence.key}/concrete`);
                 if (!response.ok) {
-                    throw new Error('Failed to load concrete essence');
+                    this.selectedEssence = essence; // Keep basic item data
+                    return;
                 }
-                this.concreteEssence = await response.json();
+                this.selectedEssence = await response.json();
             } catch (error) {
-                this.concreteEssence = null;
+                this.selectedEssence = essence; // Keep basic item data
+            } finally {
+                this.loadingStats = false;
             }
+        },
+        
+        // Builder mode detection (essences don't have builder mode currently)
+        isBuilderMode() {
+            return false;
         }
     }));
 }); 

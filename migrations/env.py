@@ -15,7 +15,7 @@ load_dotenv()
 # Import all models here so Alembic can detect them
 from database.models.base import Base
 from database.models.progressions import ProgressionTable, ProgressionValue
-from database.models.item import Item, EquipmentItem, ItemStat, Weapon, Essence
+from database.models.items import Item, EquipmentItem, ItemStat, Weapon, Essence
 from database.models.dps import DpsTable, DpsValue
 from database.models.user import User, UserSession
 

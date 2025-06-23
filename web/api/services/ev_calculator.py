@@ -6,7 +6,7 @@ The EV represents how many essences it would take to replicate the stats on an i
 """
 from typing import Dict, Optional
 from sqlalchemy.orm import Session
-from database.models.item import Essence
+from database.models.items import Essence
 
 class EVCalculator:
     """Service for calculating Essence Value scores."""

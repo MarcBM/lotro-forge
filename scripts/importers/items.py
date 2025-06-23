@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Set
 from dataclasses import dataclass
 from sqlalchemy.orm import Session
-from database.models.item import EquipmentItem, Weapon, Essence, ItemStat
+from database.models.items import EquipmentItem, Weapon, Essence, ItemStat
 from scripts.importers.base import BaseImporter
 from scripts.importers.dps_tables import DpsTablesImporter
 from lxml import etree

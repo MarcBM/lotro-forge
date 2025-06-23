@@ -14,7 +14,7 @@ from typing import Optional
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from database.models.item import EquipmentItem
+from database.models.items import EquipmentItem
 from database.config import get_database_url
 from database.session import SessionLocal
 

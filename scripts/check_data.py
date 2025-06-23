@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker, Session
-from database.models.item import EquipmentItem, ItemStat
+from database.models.items import EquipmentItem, ItemStat
 from database.models.progressions import ProgressionTable, TableValue
 from database.config import get_database_url
 from database.session import SessionLocal

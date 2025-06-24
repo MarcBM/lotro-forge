@@ -14,6 +14,7 @@ document.addEventListener('alpine:init', () => {
         currentUser: null,
         
         init() {
+            console.log('Navigation component initialized');
             // Navigation initialization (minimal)
             this.updateAuthState();
             

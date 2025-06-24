@@ -7,6 +7,7 @@ document.addEventListener('alpine:init', () => {
         notificationType: 'info', // 'success', 'error', 'warning', 'info'
         
         init() {
+            console.log('Notifications component initialized');
             // Listen for global notification events
             window.addEventListener('show-notification', (event) => {
                 this.displayNotification(event.detail.message, event.detail.type || 'info');

@@ -4,7 +4,7 @@ document.addEventListener('alpine:init', () => {
         utilityPanelExpanded: false,
         
         init() {
-            console.log('Utility panel initialized');
+            console.log('Utility Panel component initialized');
         },
         
         toggleUtilityPanel() {

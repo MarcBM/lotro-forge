@@ -29,7 +29,8 @@ document.addEventListener('alpine:init', () => {
         originalEmail: '',
         
         init() {
-            // Will be called from template x-init
+            console.log('Account Management component initialized');
+            this.loadUserData();
         },
         
         async loadUserData() {

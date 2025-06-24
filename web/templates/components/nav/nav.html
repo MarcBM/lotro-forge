@@ -1,7 +1,6 @@
 <!-- Navigation Component -->
-<nav class="bg-lotro-dark shadow-lg border-b border-lotro-border" 
-     x-data="navigation()"
-     x-init="init()">
+<nav class="bg-lotro-dark shadow-lg border-b border-lotro-border relative z-40" 
+     x-data="navigation()">
     <div class="max-w-7xl mx-auto px-4">
         <!-- Main Navigation Bar -->
         <div class="flex h-16 justify-between">
@@ -9,7 +8,11 @@
             <div class="flex items-center">
                 <!-- Logo -->
                 <div class="flex-shrink-0">
-                    <a href="/" class="text-xl font-bold text-lotro-gold">LotRO Forge</a>
+                    <a href="/" class="flex items-center">
+                        <img src="{{ url_for('static', path='icons/lotro-forge.png') }}" 
+                             alt="LotRO Forge" 
+                             class="h-10 w-auto">
+                    </a>
                 </div>
                 <!-- Navigation Links -->
                 <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -36,16 +39,6 @@
                 {% include "components/nav/auth-section.html" %}
             </div>
         </div>
-
-        <!-- Panel Navigation (shown on builder or database page) -->
-        <template x-if="isBuilderPage">
-            {% include "components/nav/builder-panels.html" %}
-        </template>
-
-        <!-- Database Navigation (shown on database page) -->
-        <template x-if="isDatabasePage">
-            {% include "components/nav/database-panels.html" %}
-        </template>
 
     </div>
 </nav> 

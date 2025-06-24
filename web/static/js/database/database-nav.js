@@ -5,6 +5,7 @@ document.addEventListener('alpine:init', () => {
         activePanel: 'equipment', // Default to equipment panel
         
         init() {
+            console.log('Database Navigation component initialized');
             // Listen for panel-closed events
             window.addEventListener('panel-closed', () => {
                 this.activePanel = null;

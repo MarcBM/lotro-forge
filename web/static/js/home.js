@@ -6,6 +6,7 @@ document.addEventListener('alpine:init', () => {
         authMessageType: 'info',
         
         init() {
+            console.log('Home Authentication component initialized');
             // Check URL parameters for authentication messages
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('login_required')) {

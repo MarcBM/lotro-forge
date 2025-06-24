@@ -18,6 +18,8 @@ document.addEventListener('alpine:init', () => {
         currentSort: 'recent',
         
         async init() {
+            console.log('Database Equipment Panel component initialized');
+            this.isLoading = true;
             // Set the base panel sort dropdown to match our default
             this.$dispatch('set-sort', { panelId: 'equipment', sortBy: this.currentSort });
             // Load available filter options
@@ -128,6 +130,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         async selectEquipment(equipment) {
+            if (this.selectedEquipment && this.selectedEquipment.key === equipment.key) {
+                return;
+            }
             // Set loading state and show basic item info immediately
             this.loadingStats = true;
             this.selectedEquipment = equipment;

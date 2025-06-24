@@ -10,6 +10,7 @@ document.addEventListener('alpine:init', () => {
         isAuthenticated: false,
         
         init() {
+            console.log('Authentication component initialized');
             // Initialize global auth state
             window.lotroAuth = {
                 isAuthenticated: false,

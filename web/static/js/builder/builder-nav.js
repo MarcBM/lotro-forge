@@ -9,6 +9,7 @@ document.addEventListener('alpine:init', () => {
         activePanel: null,
         
         init() {
+            console.log('Builder Navigation component initialized');
             // Listen for panel-closed events
             window.addEventListener('panel-closed', () => {
                 this.activePanel = null;
@@ -23,15 +24,6 @@ document.addEventListener('alpine:init', () => {
                 detail: panel,
                 bubbles: true 
             }));
-        },
-        
-        // Build name editing methods
-        startEditingBuildName() {
-            this.isEditingName = true;
-        },
-        
-        finishEditingBuildName() {
-            this.isEditingName = false;
         }
     }));
 }); 

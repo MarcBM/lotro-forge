@@ -17,6 +17,8 @@ document.addEventListener('alpine:init', () => {
         currentSort: 'recent',
         
         async init() {
+            console.log('Database Essences Panel component initialized');
+            this.isLoading = true;
             // Set the base panel sort dropdown to match our default
             this.$dispatch('set-sort', { panelId: 'essences', sortBy: this.currentSort });
             // Load available filter options from client-side config

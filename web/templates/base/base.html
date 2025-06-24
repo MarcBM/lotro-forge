@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LotRO Forge{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='favicon.ico') }}">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{{ url_for('static', path='js/tailwind-config.js') }}"></script>
@@ -19,10 +21,10 @@
 </head>
 <body class="bg-lotro-darker text-white overflow-hidden">
     <!-- Global Components -->
-    <div x-data="notifications()" x-init="init()">
+    <div x-data="notifications()">
         {% include "components/toast.html" %}
     </div>
-    
+
     <div x-data="authentication()" class="flex flex-col h-screen">
         <!-- Fixed Navigation Bar -->
         <div class="flex-none">

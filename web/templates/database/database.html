@@ -6,12 +6,54 @@
 <!-- Database Component -->
 <div id="database-component" 
      x-data="databaseNavigation()"
-     x-init="init()"
-     @open-panel.window="activePanel = $event.detail"
-     class="bg-lotro-darker">
+     class="bg-lotro-darker h-full">
 
     <!-- Main content area -->
-    <div class="w-full max-w-7xl mx-auto px-4 py-4">
+    <div class="w-full max-w-7xl mx-auto px-4 pb-4">
+        <!-- Database Tab Navigation -->
+        <div class="flex justify-center space-x-4 pb-4 mb-6 border-b border-lotro-border">
+            <button @click="openPanel('equipment')" 
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'equipment'}">
+                Equipment
+            </button>
+            <button @click="openPanel('traceries')"
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'traceries'}">
+                Traceries
+            </button>
+            <button @click="openPanel('sets')"
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'sets'}">
+                Sets
+            </button>
+            <button @click="openPanel('essences')"
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'essences'}">
+                Essences
+            </button>
+            <button @click="openPanel('traits')"
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'traits'}">
+                Traits
+            </button>
+            <button @click="openPanel('buffs')"
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'buffs'}">
+                Buffs
+            </button>
+            <button @click="openPanel('misc')"
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'misc'}">
+                Misc
+            </button>
+            <button @click="openPanel('sources')"
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': activePanel === 'sources'}">
+                Sources
+            </button>
+        </div>
+        
         <!-- Panel Content -->
         <div class="w-full">
             {% include "database/components/equipment_panel.html" %}

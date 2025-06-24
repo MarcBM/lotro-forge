@@ -5,6 +5,7 @@ document.addEventListener('alpine:init', () => {
         selectedSlot: '',
         equippedItems: {},
         build: {},
+
         calculatedStats: {
             morale: 0,
             power: 0,
@@ -222,6 +223,8 @@ document.addEventListener('alpine:init', () => {
                 }
             }
         },
+        
+
         
         canItemBeEquippedInSlot(item, builderSlot) {
             if (!item || !item.slot || !builderSlot) return false;

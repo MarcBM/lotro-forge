@@ -1,0 +1,59 @@
+{% from "components/icons.html" import icon %}
+
+<!-- Floating Left Utility Panel Component -->
+<div x-data="utilityPanel()" x-init="init()">
+    <!-- Expand/Collapse Toggle Button -->
+    <button @click="toggleUtilityPanel()" 
+            class="fixed left-4 top-1/2 transform -translate-y-1/2 z-50 w-10 h-10 bg-lotro-dark border border-lotro-border rounded-lg shadow-lg text-lotro-primary hover:text-lotro-gold transition-all duration-300 flex items-center justify-center"
+            :class="utilityPanelExpanded ? 'opacity-0' : 'opacity-100'"
+            title="Show Build Tools">
+        {{ icon("chevron-right", "w-5 h-5") }}
+    </button>
+
+    <!-- Main Utility Panel -->
+    <div class="fixed left-4 top-1/2 transform -translate-y-1/2 z-50 bg-lotro-dark border border-lotro-border rounded-lg shadow-lg p-3 w-16"
+         x-show="utilityPanelExpanded"
+         x-transition:enter="transition ease-out duration-300 transform"
+         x-transition:enter-start="opacity-0 -translate-x-full"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         x-transition:leave="transition ease-in duration-300 transform"
+         x-transition:leave-start="opacity-100 translate-x-0"
+         x-transition:leave-end="opacity-0 -translate-x-full">
+        
+        <!-- Save/Load Actions -->
+        <div class="flex flex-col gap-2 pb-2 border-b border-lotro-border">
+            <button @click="saveBuild()" 
+                    class="w-10 h-10 bg-lotro-blue hover:bg-lotro-gold text-white rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    title="Save Build">
+                {{ icon("save", "w-5 h-5") }}
+            </button>
+            <button @click="loadBuild()" 
+                    class="w-10 h-10 bg-lotro-button hover:bg-lotro-gold text-white rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    title="Load Build">
+                {{ icon("load", "w-5 h-5") }}
+            </button>
+            <button @click="importBuild()" 
+                    class="w-10 h-10 bg-lotro-button-hover hover:bg-lotro-gold text-white rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    title="Import Build">
+                {{ icon("import", "w-5 h-5") }}
+            </button>
+            <button @click="openOptions()" 
+                    class="w-10 h-10 bg-lotro-border hover:bg-lotro-gold text-white rounded-lg transition-colors duration-200 flex items-center justify-center"
+                    title="Options">
+                {{ icon("settings", "w-5 h-5") }}
+            </button>
+        </div>
+        
+        <!-- Collapse Button -->
+        <div class="pt-2">
+            <button @click="toggleUtilityPanel()" 
+                    class="w-10 h-10 text-lotro-primary hover:text-lotro-gold transition-colors duration-200 flex items-center justify-center"
+                    title="Hide Build Tools">
+                {{ icon("chevron-left", "w-5 h-5") }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Utility Panel JavaScript -->
+<script src="{{ url_for('static', path='js/builder/utility-panel.js') }}"></script> 

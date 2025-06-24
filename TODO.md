@@ -31,6 +31,10 @@
 **Priority:** Medium  
 **Description:** Replace current static API documentation with interactive Swagger UI to improve API exploration and testing experience.
 
+### 17. Set Up Icon Sprite System
+**Priority:** Medium  
+**Description:** Implement image importing system to stitch all individual icons together into one large PNG sprite sheet. Use CSS sprite techniques or other methods to extract and display specific icons from the larger image. This will reduce HTTP requests and improve page load performance by loading all icons in a single request.
+
 ### 9. Fix Builder Display on Large Screens
 **Priority:** Low  
 **Description:** Ensure the character builder interface displays consistently and properly on larger screen sizes.
@@ -57,5 +61,5 @@
 
 ---
 
-**Next Work Item Number:** 17
+**Next Work Item Number:** 18
 

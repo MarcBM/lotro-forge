@@ -1,43 +1,46 @@
 {% extends "base/base.html" %}
+{% from "components/icons.html" import icon %}
 
 {% block title %}Builder - LotRO Forge{% endblock %}
 
 {% block content %}
-<div class="w-full h-[calc(100vh-12rem)] -mx-6 -my-6">
-        <!-- Builder Component -->
-        <div id="builder-component" 
-            x-data="characterBuilder()"
+<div class="w-full h-[calc(100vh-12rem)] -mx-6 -my-6 relative">
+    <!-- Builder Component -->
+    <div id="builder-component" 
+        x-data="characterBuilder()"
+        x-init="init()"
+        @open-panel.window="openPanel($event.detail)"
+        class="bg-lotro-darker h-full">
+        
+        <!-- Utility Panel Component -->
+        {% include "builder/utility-panel.html" %}
+        
+        <!-- Include panel components -->
+        {% include "builder/panels/legendary_panel.html" %}
+        {% include "builder/panels/traits_panel.html" %}
+        {% include "builder/panels/buffs_panel.html" %}
+        {% include "builder/panels/misc_panel.html" %}
+        {% include "builder/panels/optimise_panel.html" %}
+        {% include "builder/panels/equipment_selection.html" %}
 
-            x-init="init()"
-            @open-panel.window="openPanel($event.detail)"
-            class="bg-lotro-darker h-full">
+        <!-- Main content area -->
+        <div class="w-full px-[5%] py-4 h-full flex items-start justify-center gap-0 -mt-12">
+            <!-- Left outside spacer - shows dark blue background -->
+            <div class="w-60 h-full flex-grow"></div>
             
-            <!-- Include panel components -->
-            {% include "builder/panels/legendary_panel.html" %}
-            {% include "builder/panels/traits_panel.html" %}
-            {% include "builder/panels/buffs_panel.html" %}
-            {% include "builder/panels/misc_panel.html" %}
-            {% include "builder/panels/optimise_panel.html" %}
-            {% include "builder/panels/equipment_selection.html" %}
-
-            <!-- Main content area with outside spacers -->
-            <div class="w-full px-[5%] py-4 h-full flex items-start justify-center gap-0 -mt-12">
-                <!-- Left outside spacer - shows dark blue background -->
-                <div class="w-60 h-full flex-grow"></div>
-                
-                <!-- Main Character Sheet Section -->
-                <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border h-full relative max-w-[1400px] min-w-[1200px] max-h-[950px]">
-                    <div class="grid grid-cols-[320px_1fr_450px] gap-5 p-4 h-full items-start justify-items-center">
-                        {% include "builder/columns/legendary_items.html" %}
-                        {% include "builder/columns/character_info.html" %}
-                        {% include "builder/columns/character_stats.html" %}
-                    </div>
+            <!-- Main Character Sheet Section -->
+            <div class="bg-lotro-dark rounded-lg shadow-lg border border-lotro-border h-full relative max-w-[1400px] min-w-[1200px] max-h-[950px]">
+                <div class="grid grid-cols-[320px_1fr_450px] gap-5 p-4 h-full items-start justify-items-center">
+                    {% include "builder/columns/legendary_items.html" %}
+                    {% include "builder/columns/character_info.html" %}
+                    {% include "builder/columns/character_stats.html" %}
                 </div>
-
-                <!-- Right outside spacer - shows dark blue background -->
-                <div class="w-28 h-full flex-grow"></div>
             </div>
+
+            <!-- Right outside spacer - shows dark blue background -->
+            <div class="w-28 h-full flex-grow"></div>
         </div>
+    </div>
 </div>
 
 <!-- Hide elements until Alpine.js is ready -->

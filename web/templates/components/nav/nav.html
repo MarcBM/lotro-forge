@@ -4,9 +4,9 @@
      x-init="init()">
     <div class="max-w-7xl mx-auto px-4">
         <!-- Main Navigation Bar -->
-        <div class="flex h-16" :class="{'justify-between': !isBuilderPage}">
+        <div class="flex h-16 justify-between">
             <!-- Left side - Main navigation -->
-            <div class="flex items-center" :class="{'w-1/4': isBuilderPage}">
+            <div class="flex items-center">
                 <!-- Logo -->
                 <div class="flex-shrink-0">
                     <a href="/" class="text-xl font-bold text-lotro-gold">LotRO Forge</a>
@@ -31,13 +31,8 @@
                 </div>
             </div>
 
-            <!-- Center - Build Name and Save (only on builder page) -->
-            <template x-if="isBuilderPage">
-                {% include "components/nav/builder-center.html" %}
-            </template>
-
             <!-- Right side - Account section -->
-            <div class="flex items-center" :class="{'w-1/4 justify-end': isBuilderPage}">
+            <div class="flex items-center">
                 {% include "components/nav/auth-section.html" %}
             </div>
         </div>

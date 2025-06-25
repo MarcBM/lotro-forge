@@ -15,7 +15,15 @@ document.addEventListener('alpine:init', () => {
         filterOptions: [],
         
         // Sort state
-        currentSort: 'recent',
+        currentSort: 'name',
+        availableSortOptions: [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ],
+        
+        // Search state
+        searchQuery: '',
         
         async init() {
             console.log('Database Buffs Panel component initialized (placeholder)');
@@ -26,8 +34,6 @@ document.addEventListener('alpine:init', () => {
             
             // Listen for buffs-specific events from database controller
             window.addEventListener('database-load-more-buffs', this.handleLoadMore.bind(this));
-            window.addEventListener('database-sort-changed-buffs', this.handleSortChange.bind(this));
-            window.addEventListener('database-search-changed-buffs', this.handleSearchChange.bind(this));
             
             // Listen for panel activation to load initial data
             window.addEventListener('panel-opened-buffs', this.handlePanelOpened.bind(this));
@@ -59,14 +65,14 @@ document.addEventListener('alpine:init', () => {
             console.log('Load more buffs requested (placeholder)');
         },
 
-        handleSortChange(event) {
-            this.currentSort = event.detail.sortBy;
-            console.log('Buffs sort changed (placeholder):', this.currentSort);
+        handleSortChange() {
+            // Handle sort change directly on the panel (placeholder)
+            console.log(`Buffs sort changed to: ${this.currentSort} (placeholder)`);
         },
         
-        handleSearchChange(event) {
-            // Placeholder - would handle search
-            console.log('Buffs search changed (placeholder)');
+        handleSearchChange() {
+            // Handle search change directly on the panel (placeholder)
+            console.log(`Buffs search changed to: ${this.searchQuery} (placeholder)`);
         },
         
         // Builder mode detection

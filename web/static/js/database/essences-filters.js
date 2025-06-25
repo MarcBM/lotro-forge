@@ -32,6 +32,18 @@ class EssenceFilters {
     }
     
     /**
+     * Get available sort options for essences
+     * @returns {Array} Array of sort option objects
+     */
+    static getSortOptions() {
+        return [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ];
+    }
+    
+    /**
      * Build query parameters for essences API call
      * @param {Object} filters - Filter configuration object
      * @returns {URLSearchParams} URL search parameters
@@ -46,7 +58,8 @@ class EssenceFilters {
         // Essence type filtering
         if (filters.essence_type) params.append('essence_type', filters.essence_type);
         
-
+        // Search
+        if (filters.search) params.append('search', filters.search);
         
         // Sorting
         if (filters.sort) params.append('sort', filters.sort);

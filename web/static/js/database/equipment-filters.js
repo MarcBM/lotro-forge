@@ -84,6 +84,18 @@ class EquipmentFilters {
     }
     
     /**
+     * Get available sort options for equipment
+     * @returns {Array} Array of sort option objects
+     */
+    static getSortOptions() {
+        return [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ];
+    }
+    
+    /**
      * Build query parameters for equipment API call
      * @param {Object} filters - Filter configuration object
      * @returns {URLSearchParams} URL search parameters
@@ -100,13 +112,14 @@ class EquipmentFilters {
             filters.slots.forEach(slot => params.append('slots', slot));
         }
         
+        // Search
+        if (filters.search) params.append('search', filters.search);
+        
         // Sorting
         if (filters.sort) params.append('sort', filters.sort);
         
         return params;
     }
-    
-
 }
 
 // Export for use in other modules

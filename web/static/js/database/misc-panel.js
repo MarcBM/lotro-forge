@@ -15,7 +15,15 @@ document.addEventListener('alpine:init', () => {
         filterOptions: [],
         
         // Sort state
-        currentSort: 'recent',
+        currentSort: 'name',
+        availableSortOptions: [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ],
+        
+        // Search state
+        searchQuery: '',
         
         async init() {
             console.log('Database Misc Panel component initialized (placeholder)');
@@ -26,8 +34,6 @@ document.addEventListener('alpine:init', () => {
             
             // Listen for misc-specific events from database controller
             window.addEventListener('database-load-more-misc', this.handleLoadMore.bind(this));
-            window.addEventListener('database-sort-changed-misc', this.handleSortChange.bind(this));
-            window.addEventListener('database-search-changed-misc', this.handleSearchChange.bind(this));
             
             // Listen for panel activation to load initial data
             window.addEventListener('panel-opened-misc', this.handlePanelOpened.bind(this));
@@ -59,14 +65,14 @@ document.addEventListener('alpine:init', () => {
             console.log('Load more misc items requested (placeholder)');
         },
 
-        handleSortChange(event) {
-            this.currentSort = event.detail.sortBy;
-            console.log('Misc sort changed (placeholder):', this.currentSort);
+        handleSortChange() {
+            // Handle sort change directly on the panel (placeholder)
+            console.log(`Misc sort changed to: ${this.currentSort} (placeholder)`);
         },
         
-        handleSearchChange(event) {
-            // Placeholder - would handle search
-            console.log('Misc search changed (placeholder)');
+        handleSearchChange() {
+            // Handle search change directly on the panel (placeholder)
+            console.log(`Misc search changed to: ${this.searchQuery} (placeholder)`);
         },
         
         // Builder mode detection

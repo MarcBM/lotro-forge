@@ -27,6 +27,9 @@ async def query_equipment(
     # Filtering
     slots: Optional[List[str]] = Query(None, description="Equipment slots to filter by"),
     
+    # Search
+    search: Optional[str] = Query(None, description="Search query for item names"),
+    
     # Sorting
     sort: str = Query("recent", description="Sort by: recent, name, base_ilvl"),
     
@@ -42,6 +45,11 @@ async def query_equipment(
         # Apply slot filtering
         if slots:
             query = query.filter(EquipmentItem.slot.in_(slots))
+        
+        # Apply search filtering
+        if search:
+            search_term = f"%{search.lower()}%"
+            query = query.filter(EquipmentItem.name.ilike(search_term))
         
         # Apply sorting
         if sort == "name":

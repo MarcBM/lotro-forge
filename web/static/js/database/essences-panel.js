@@ -16,7 +16,11 @@ document.addEventListener('alpine:init', () => {
         availableEssenceTypes: [],
         
         // Sort state
-        currentSort: 'recent',
+        currentSort: 'name',
+        availableSortOptions: [],
+        
+        // Search state
+        searchQuery: '',
         
         async init() {
             console.log('Database Essences Panel component initialized');
@@ -27,8 +31,6 @@ document.addEventListener('alpine:init', () => {
             
             // Listen for essences-specific events from database controller
             window.addEventListener('database-load-more-essences', this.handleLoadMore.bind(this));
-            window.addEventListener('database-sort-changed-essences', this.handleSortChange.bind(this));
-            window.addEventListener('database-search-changed-essences', this.handleSearchChange.bind(this));
             
             // Listen for panel activation to load initial data
             window.addEventListener('panel-opened-essences', this.handlePanelOpened.bind(this));
@@ -49,9 +51,11 @@ document.addEventListener('alpine:init', () => {
             // Use client-side filter configuration instead of API calls
             if (window.EssenceFilters) {
                 this.availableEssenceTypes = window.EssenceFilters.getEssenceTypes();
+                this.availableSortOptions = window.EssenceFilters.getSortOptions();
             } else {
-                console.warn('EssenceFilters not loaded, filter options will be empty');
+                console.warn('EssenceFilters not loaded, filter and sort options will be empty');
                 this.availableEssenceTypes = [];
+                this.availableSortOptions = [];
             }
         },
         
@@ -64,13 +68,15 @@ document.addEventListener('alpine:init', () => {
             this.loadEssences(event.detail.offset, event.detail.limit, true);
         },
 
-        handleSortChange(event) {
-            this.currentSort = event.detail.sortBy;
+        handleSortChange() {
+            // Handle sort change directly on the panel
+            console.log(`Essences sort changed to: ${this.currentSort}`);
             this.resetAndLoad(); // Reload with new sort
         },
         
-        handleSearchChange(event) {
-            // Handle search from centralized controller
+        handleSearchChange() {
+            // Handle search change directly on the panel
+            console.log(`Essences search changed to: ${this.searchQuery}`);
             this.resetAndLoad(); // Reload with search
         },
         
@@ -84,6 +90,11 @@ document.addEventListener('alpine:init', () => {
             // Add filter parameters
             if (this.selectedEssenceType) {
                 filters.essence_type = this.selectedEssenceType;
+            }
+            
+            // Add search query from database controller
+            if (this.searchQuery) {
+                filters.search = this.searchQuery;
             }
             
             const params = window.EssenceFilters ? 

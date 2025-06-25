@@ -15,7 +15,15 @@ document.addEventListener('alpine:init', () => {
         filterOptions: [],
         
         // Sort state
-        currentSort: 'recent',
+        currentSort: 'name',
+        availableSortOptions: [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ],
+        
+        // Search state
+        searchQuery: '',
         
         async init() {
             console.log('Database Traceries Panel component initialized (placeholder)');
@@ -26,8 +34,6 @@ document.addEventListener('alpine:init', () => {
             
             // Listen for traceries-specific events from database controller
             window.addEventListener('database-load-more-traceries', this.handleLoadMore.bind(this));
-            window.addEventListener('database-sort-changed-traceries', this.handleSortChange.bind(this));
-            window.addEventListener('database-search-changed-traceries', this.handleSearchChange.bind(this));
             
             // Listen for panel activation to load initial data
             window.addEventListener('panel-opened-traceries', this.handlePanelOpened.bind(this));
@@ -59,14 +65,14 @@ document.addEventListener('alpine:init', () => {
             console.log('Load more traceries requested (placeholder)');
         },
 
-        handleSortChange(event) {
-            this.currentSort = event.detail.sortBy;
-            console.log('Traceries sort changed (placeholder):', this.currentSort);
+        handleSortChange() {
+            // Handle sort change directly on the panel (placeholder)
+            console.log(`Traceries sort changed to: ${this.currentSort} (placeholder)`);
         },
         
-        handleSearchChange(event) {
-            // Placeholder - would handle search
-            console.log('Traceries search changed (placeholder)');
+        handleSearchChange() {
+            // Handle search change directly on the panel (placeholder)
+            console.log(`Traceries search changed to: ${this.searchQuery} (placeholder)`);
         },
         
         // Builder mode detection

@@ -30,6 +30,18 @@ class SetsFilters {
     }
     
     /**
+     * Get available sort options for sets
+     * @returns {Array} Array of sort option objects
+     */
+    static getSortOptions() {
+        return [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ];
+    }
+    
+    /**
      * Build query parameters for sets API call
      * @param {Object} filters - Filter configuration object
      * @returns {URLSearchParams} URL search parameters

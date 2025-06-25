@@ -17,7 +17,11 @@ document.addEventListener('alpine:init', () => {
         filterOptions: [], // Will be populated from equipment-filters.js
         
         // Sort state
-        currentSort: 'recent',
+        currentSort: 'name',
+        availableSortOptions: [],
+        
+        // Search state
+        searchQuery: '',
         
         async init() {
             console.log('Database Equipment Panel component initialized');
@@ -27,8 +31,6 @@ document.addEventListener('alpine:init', () => {
             
             // Listen for equipment-specific events from database controller
             window.addEventListener('database-load-more-equipment', this.handleLoadMore.bind(this));
-            window.addEventListener('database-sort-changed-equipment', this.handleSortChange.bind(this));
-            window.addEventListener('database-search-changed-equipment', this.handleSearchChange.bind(this));
             
             // Listen for panel activation to load initial data
             window.addEventListener('panel-opened-equipment', this.handlePanelOpened.bind(this));
@@ -69,9 +71,11 @@ document.addEventListener('alpine:init', () => {
             // Use client-side filter configuration instead of API call
             if (window.EquipmentFilters) {
                 this.filterOptions = window.EquipmentFilters.getSlotGroups();
+                this.availableSortOptions = window.EquipmentFilters.getSortOptions();
             } else {
-                console.warn('EquipmentFilters not loaded, filter options will be empty');
+                console.warn('EquipmentFilters not loaded, filter and sort options will be empty');
                 this.filterOptions = [];
+                this.availableSortOptions = [];
             }
         },
         
@@ -84,13 +88,15 @@ document.addEventListener('alpine:init', () => {
             this.loadEquipment(event.detail.offset, event.detail.limit, true);
         },
 
-        handleSortChange(event) {
-            this.currentSort = event.detail.sortBy;
+        handleSortChange() {
+            // Handle sort change directly on the panel
+            console.log(`Equipment sort changed to: ${this.currentSort}`);
             this.resetAndLoad(); // Reload with new sort
         },
         
-        handleSearchChange(event) {
-            // Handle search from centralized controller
+        handleSearchChange() {
+            // Handle search change directly on the panel
+            console.log(`Equipment search changed to: ${this.searchQuery}`);
             this.resetAndLoad(); // Reload with search
         },
         
@@ -107,6 +113,11 @@ document.addEventListener('alpine:init', () => {
                 if (selectedGroup) {
                     filters.slots = selectedGroup.slots;
                 }
+            }
+            
+            // Add search query from database controller
+            if (this.searchQuery) {
+                filters.search = this.searchQuery;
             }
             
             const params = window.EquipmentFilters ? 

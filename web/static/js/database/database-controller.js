@@ -10,9 +10,7 @@ document.addEventListener('alpine:init', () => {
             hasMore: true,
             offset: 0,
             totalResults: null,
-            currentlyShowing: 0,
-            sortBy: 'recent',
-            searchQuery: ''
+            currentlyShowing: 0
         },
         
         init() {
@@ -51,51 +49,7 @@ document.addEventListener('alpine:init', () => {
             window.dispatchEvent(new CustomEvent(`database-load-more-${panelId}`, {
                 detail: {
                     offset: this.pagination.offset,
-                    limit: 99,
-                    sortBy: this.pagination.sortBy,
-                    searchQuery: this.pagination.searchQuery
-                }
-            }));
-        },
-        
-        // Sort change handler - dispatches panel-specific event
-        handleSort(panelId) {
-            if (!panelId) return;
-            
-            console.log(`Sort changed to: ${this.pagination.sortBy} for ${panelId} panel`);
-            
-            // Reset pagination for new sort
-            this.pagination.offset = 0;
-            this.pagination.hasMore = true;
-            this.pagination.loading = false;
-            this.pagination.currentlyShowing = 0;
-            
-            // Dispatch panel-specific event
-            window.dispatchEvent(new CustomEvent(`database-sort-changed-${panelId}`, {
-                detail: {
-                    sortBy: this.pagination.sortBy,
-                    searchQuery: this.pagination.searchQuery
-                }
-            }));
-        },
-        
-        // Search change handler - dispatches panel-specific event
-        handleSearch(panelId) {
-            if (!panelId) return;
-            
-            console.log(`Search changed to: ${this.pagination.searchQuery} for ${panelId} panel`);
-            
-            // Reset pagination for new search
-            this.pagination.offset = 0;
-            this.pagination.hasMore = true;
-            this.pagination.loading = false;
-            this.pagination.currentlyShowing = 0;
-            
-            // Dispatch panel-specific event
-            window.dispatchEvent(new CustomEvent(`database-search-changed-${panelId}`, {
-                detail: {
-                    searchQuery: this.pagination.searchQuery,
-                    sortBy: this.pagination.sortBy
+                    limit: 99
                 }
             }));
         },

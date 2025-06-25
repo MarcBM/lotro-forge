@@ -28,6 +28,9 @@ async def query_essences(
     essence_type: Optional[int] = Query(None, description="Filter by essence type"),
     tier: Optional[int] = Query(None, description="Filter by tier"),
     
+    # Search
+    search: Optional[str] = Query(None, description="Search query for item names"),
+    
     # Sorting
     sort: str = Query("recent", description="Sort by: recent, name, base_ilvl"),
     
@@ -47,6 +50,11 @@ async def query_essences(
         # Apply tier filtering
         if tier is not None:
             query = query.filter(Essence.tier == tier)
+        
+        # Apply search filtering
+        if search:
+            search_term = f"%{search.lower()}%"
+            query = query.filter(Essence.name.ilike(search_term))
         
         # Apply sorting
         if sort == "name":

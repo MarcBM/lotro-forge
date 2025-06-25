@@ -15,7 +15,15 @@ document.addEventListener('alpine:init', () => {
         filterOptions: [],
         
         // Sort state
-        currentSort: 'recent',
+        currentSort: 'name',
+        availableSortOptions: [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ],
+        
+        // Search state
+        searchQuery: '',
         
         async init() {
             console.log('Database Sources Panel component initialized (placeholder)');
@@ -26,8 +34,6 @@ document.addEventListener('alpine:init', () => {
             
             // Listen for sources-specific events from database controller
             window.addEventListener('database-load-more-sources', this.handleLoadMore.bind(this));
-            window.addEventListener('database-sort-changed-sources', this.handleSortChange.bind(this));
-            window.addEventListener('database-search-changed-sources', this.handleSearchChange.bind(this));
             
             // Listen for panel activation to load initial data
             window.addEventListener('panel-opened-sources', this.handlePanelOpened.bind(this));
@@ -59,14 +65,14 @@ document.addEventListener('alpine:init', () => {
             console.log('Load more sources requested (placeholder)');
         },
 
-        handleSortChange(event) {
-            this.currentSort = event.detail.sortBy;
-            console.log('Sources sort changed (placeholder):', this.currentSort);
+        handleSortChange() {
+            // Handle sort change directly on the panel (placeholder)
+            console.log(`Sources sort changed to: ${this.currentSort} (placeholder)`);
         },
         
-        handleSearchChange(event) {
-            // Placeholder - would handle search
-            console.log('Sources search changed (placeholder)');
+        handleSearchChange() {
+            // Handle search change directly on the panel (placeholder)
+            console.log(`Sources search changed to: ${this.searchQuery} (placeholder)`);
         },
         
         // Builder mode detection

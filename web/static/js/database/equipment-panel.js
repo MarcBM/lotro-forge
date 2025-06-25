@@ -3,6 +3,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('equipmentPanel', () => ({
         // Component state
         loading: false,
+        dataLoaded: false,
         equipment: [],
         selectedEquipment: null,
         loadingStats: false,
@@ -12,25 +13,37 @@ document.addEventListener('alpine:init', () => {
         selectedSlot: '',
         
         // Filter options
-        filterOptions: [], // Will be populated from API
+        filterOptions: [], // Will be populated from equipment-filters.js
         
         // Sort state
         currentSort: 'recent',
         
         async init() {
             console.log('Database Equipment Panel component initialized');
-            this.isLoading = true;
-            // Set the base panel sort dropdown to match our default
-            this.$dispatch('set-sort', { panelId: 'equipment', sortBy: this.currentSort });
+            this.loading = false;
             // Load available filter options
             await this.loadFilterOptions();
-            // Initial load with a fixed limit of 99
-            this.loadEquipment(0, 99);
             
-            // Listen for load-more events from the base panel
-            window.addEventListener('load-more', this.handleLoadMore.bind(this));
-            // Listen for sort-change events from the base panel
-            window.addEventListener('sort-change', this.handleSortChange.bind(this));
+            // Listen for events from database controller
+            window.addEventListener('database-load-more', this.handleLoadMore.bind(this));
+            window.addEventListener('database-sort-changed', this.handleSortChange.bind(this));
+            window.addEventListener('database-search-changed', this.handleSearchChange.bind(this));
+            
+            // Listen for panel activation to load initial data
+            window.addEventListener('panel-opened-equipment', this.handlePanelOpened.bind(this));
+        },
+        
+        async handlePanelOpened() {
+            if (this.dataLoaded) return;
+            console.log('Equipment panel opened - loading initial data');
+            this.dataLoaded = true;
+            // Reset pagination and load initial data
+            this.resetAndLoad();
+        },
+        
+        resetAndLoad() {
+            this.equipment = [];
+            this.loadEquipment(0, 99);
         },
         
         loadFilterOptions() {
@@ -45,21 +58,21 @@ document.addEventListener('alpine:init', () => {
         
         applyFilters() {
             // Reset to first page and reload with filters
-            this.equipment = [];
-            // Reset pagination state to indicate this is a fresh search
-            this.$dispatch('reset-pagination-equipment');
-            this.loadEquipment(0, 99);
+            this.resetAndLoad();
         },
         
         handleLoadMore(event) {
-            if (event.detail.panelId !== 'equipment') return;
             this.loadEquipment(event.detail.offset, event.detail.limit, true);
         },
 
         handleSortChange(event) {
-            if (event.detail.panelId !== 'equipment') return;
             this.currentSort = event.detail.sortBy;
-            this.applyFilters(); // Reload with new sort
+            this.resetAndLoad(); // Reload with new sort
+        },
+        
+        handleSearchChange(event) {
+            // Handle search from centralized controller
+            this.resetAndLoad(); // Reload with search
         },
         
         buildApiUrl(offset, limit) {
@@ -103,27 +116,28 @@ document.addEventListener('alpine:init', () => {
                     this.equipment = data.equipment;
                 }
                 
-                // Update pagination state in the base panel
-                this.$dispatch('update-pagination-equipment', { 
-                    panelId: 'equipment',
-                    hasMore: data.has_more,
-                    offset: offset + limit,
-                    newItems: data.equipment,
-                    totalResults: data.total
-                });
+                // Update pagination state in the database controller
+                window.dispatchEvent(new CustomEvent('update-database-pagination', {
+                    detail: {
+                        hasMore: data.has_more,
+                        offset: offset + limit,
+                        totalResults: data.total
+                    }
+                }));
             } catch (error) {
                 // Handle error based on append mode
                 if (!append) {
                     this.equipment = [];
                 }
                 
-                this.$dispatch('update-pagination-equipment', { 
-                    panelId: 'equipment',
-                    hasMore: false,
-                    offset: offset,
-                    newItems: [],
-                    totalResults: append ? this.equipment.length : 0
-                });
+                // Update pagination state on error
+                window.dispatchEvent(new CustomEvent('update-database-pagination', {
+                    detail: {
+                        hasMore: false,
+                        offset: offset,
+                        totalResults: 0
+                    }
+                }));
             } finally {
                 this.loading = false;
             }

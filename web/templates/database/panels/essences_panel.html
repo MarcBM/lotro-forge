@@ -1,7 +1,14 @@
-{% from "database/components/base_panel.html" import database_panel %}
+{% extends "database/base_panel.html" %}
 
-{% set filters_content %}
-<!-- Essence Filters -->
+{% block panel_title %}Essences Database{% endblock %}
+
+{% block panel_wrapper %}
+<div x-data="essencesPanel('essences')" 
+     x-show="activePanel === 'essences'"
+     class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
+{% endblock %}
+
+{% block filter_column %}
 <div class="space-y-4">
     <!-- Essence Type Filter -->
     <div>
@@ -18,10 +25,9 @@
         </select>
     </div>
 </div>
-{% endset %}
+{% endblock %}
 
-{% set results_content %}
-<!-- Essences Grid -->
+{% block results_grid %}
 <div class="grid grid-cols-3 gap-4">
     <template x-for="(essence, index) in essences" :key="essence.key">
         <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
@@ -32,9 +38,9 @@
             
             <!-- Main Content -->
             <div class="flex items-center gap-3 h-full pt-2">
-                <!-- Essence Icon (layered) -->
+                <!-- Essence Icon -->
                 <div class="w-10 h-10 flex-shrink-0 relative">
-                    <template x-if="essence.icon_urls">
+                    <template x-if="essence.icon_urls && Array.isArray(essence.icon_urls)">
                         <template x-for="(url, i) in [...essence.icon_urls].reverse()" :key="i">
                             <img :src="url" 
                                  :alt="'Essence icon layer ' + (i + 1)"
@@ -42,7 +48,7 @@
                                  @error="$el.style.display='none'">
                         </template>
                     </template>
-                    <template x-if="!essence.icon_urls">
+                    <template x-if="!essence.icon_urls || !Array.isArray(essence.icon_urls)">
                         <div class="w-full h-full bg-lotro-button rounded"></div>
                     </template>
                 </div>
@@ -66,27 +72,28 @@
         </div>
     </template>
 </div>
-{% endset %}
+{% endblock %}
 
-{% set details_content %}
-<!-- Essence Details -->
+{% block details_column %}
 <template x-if="selectedEssence">
     <div class="space-y-4">
         <!-- Icon and Title -->
         <div class="space-y-2">
             <!-- Icon and Title -->
             <div class="flex items-start gap-4">
-                <!-- Essence Icon (layered) -->
+                <!-- Essence Icon -->
                 <div class="w-16 h-16 flex-shrink-0 relative">
-                    <template x-if="selectedEssence.icon_urls">
-                        <template x-for="(url, i) in [...selectedEssence.icon_urls].reverse()" :key="i">
-                            <img :src="url" 
-                                 :alt="'Essence icon layer ' + (i + 1)"
-                                 class="absolute inset-0 w-full h-full object-contain"
-                                 @error="$el.style.display='none'">
-                        </template>
+                    <template x-if="selectedEssence && selectedEssence.icon_urls && Array.isArray(selectedEssence.icon_urls)">
+                        <div>
+                            <template x-for="(url, i) in selectedEssence.icon_urls.slice().reverse()" :key="i">
+                                <img :src="url" 
+                                     :alt="'Essence icon layer ' + (i + 1)"
+                                     class="absolute inset-0 w-full h-full object-contain"
+                                     @error="$el.style.display='none'">
+                            </template>
+                        </div>
                     </template>
-                    <template x-if="!selectedEssence.icon_urls">
+                    <template x-if="!selectedEssence || !selectedEssence.icon_urls || !Array.isArray(selectedEssence.icon_urls)">
                         <div class="w-full h-full bg-lotro-button rounded"></div>
                     </template>
                 </div>
@@ -97,11 +104,11 @@
                     <div class="h-16 flex items-center">
                         <h3 class="text-xl font-bold line-clamp-2"
                             :class="{
-                                'text-lotro-common': selectedEssence.quality === 'COMMON',
-                                'text-lotro-uncommon': selectedEssence.quality === 'UNCOMMON',
-                                'text-lotro-rare': selectedEssence.quality === 'RARE',
-                                'text-lotro-incomparable': selectedEssence.quality === 'INCOMPARABLE',
-                                'text-lotro-legendary': selectedEssence.quality === 'LEGENDARY'
+                                'text-lotro-common': selectedEssence && selectedEssence.quality === 'COMMON',
+                                'text-lotro-uncommon': selectedEssence && selectedEssence.quality === 'UNCOMMON',
+                                'text-lotro-rare': selectedEssence && selectedEssence.quality === 'RARE',
+                                'text-lotro-incomparable': selectedEssence && selectedEssence.quality === 'INCOMPARABLE',
+                                'text-lotro-legendary': selectedEssence && selectedEssence.quality === 'LEGENDARY'
                             }"
                             x-text="selectedEssence.name"></h3>
                     </div>
@@ -147,7 +154,7 @@
                     </template>
                 </div>
             </div>
-            
+
             <!-- Missing Features Placeholder -->
             <div class="border-t border-lotro-border pt-3 mt-4">
                 <div class="bg-lotro-uncommon/10 border border-lotro-uncommon/30 rounded-lg p-3">
@@ -168,12 +175,14 @@
         Select an essence to view details
     </div>
 </template>
-{% endset %}
+{% endblock %}
 
-<div x-data="essencesPanel">
-    {{ database_panel('essences', 'Essences Database', filters_content, results_content, details_content) }}
+{% block panel_wrapper_end %}
 </div>
+{% endblock %}
 
+{% block panel_scripts %}
 <!-- Essences Panel JavaScript -->
-<script src="/static/js/database/essences-filters.js"></script>
-<script src="/static/js/database/essences-panel.js"></script> 
+<script src="{{ url_for('static', path='js/database/essences-filters.js') }}"></script>
+<script src="{{ url_for('static', path='js/database/essences-panel.js') }}"></script>
+{% endblock %} 

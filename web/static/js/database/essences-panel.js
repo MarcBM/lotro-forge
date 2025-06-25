@@ -1,6 +1,8 @@
 // Essences Panel Alpine.js Component
 document.addEventListener('alpine:init', () => {
-    Alpine.data('essencesPanel', () => ({
+    Alpine.data('essencesPanel', (panelId) => ({
+        // Panel identification
+        panelId: panelId,
         // Component state
         loading: false,
         essences: [],
@@ -18,18 +20,29 @@ document.addEventListener('alpine:init', () => {
         
         async init() {
             console.log('Database Essences Panel component initialized');
-            this.isLoading = true;
-            // Set the base panel sort dropdown to match our default
-            this.$dispatch('set-sort', { panelId: 'essences', sortBy: this.currentSort });
+            this.loading = false;
+            
             // Load available filter options from client-side config
             this.loadFilterOptions();
-            // Initial load with a fixed limit of 99
-            this.loadEssences(0, 99);
             
-            // Listen for load-more events from the base panel
-            window.addEventListener('load-more', this.handleLoadMore.bind(this));
-            // Listen for sort-change events from the base panel
-            window.addEventListener('sort-change', this.handleSortChange.bind(this));
+            // Listen for essences-specific events from database controller
+            window.addEventListener('database-load-more-essences', this.handleLoadMore.bind(this));
+            window.addEventListener('database-sort-changed-essences', this.handleSortChange.bind(this));
+            window.addEventListener('database-search-changed-essences', this.handleSearchChange.bind(this));
+            
+            // Listen for panel activation to load initial data
+            window.addEventListener('panel-opened-essences', this.handlePanelOpened.bind(this));
+        },
+        
+        async handlePanelOpened() {
+            console.log('Essences panel opened - loading fresh data');
+            // Always reload data when panel is opened (fresh start)
+            this.resetAndLoad();
+        },
+        
+        resetAndLoad() {
+            this.essences = [];
+            this.loadEssences(0, 99);
         },
         
         loadFilterOptions() {
@@ -44,21 +57,21 @@ document.addEventListener('alpine:init', () => {
         
         applyFilters() {
             // Reset to first page and reload with filters
-            this.essences = [];
-            // Reset pagination state to indicate this is a fresh search
-            this.$dispatch('reset-pagination-essences');
-            this.loadEssences(0, 99);
+            this.resetAndLoad();
         },
         
         handleLoadMore(event) {
-            if (event.detail.panelId !== 'essences') return;
             this.loadEssences(event.detail.offset, event.detail.limit, true);
         },
 
         handleSortChange(event) {
-            if (event.detail.panelId !== 'essences') return;
             this.currentSort = event.detail.sortBy;
-            this.applyFilters(); // Reload with new sort
+            this.resetAndLoad(); // Reload with new sort
+        },
+        
+        handleSearchChange(event) {
+            // Handle search from centralized controller
+            this.resetAndLoad(); // Reload with search
         },
         
         buildApiUrl(offset, limit) {
@@ -99,33 +112,39 @@ document.addEventListener('alpine:init', () => {
                     this.essences = data.essences;
                 }
                 
-                // Update pagination state in the base panel
-                this.$dispatch('update-pagination-essences', { 
-                    panelId: 'essences',
-                    hasMore: data.has_more,
-                    offset: offset + limit,
-                    newItems: data.essences,
-                    totalResults: data.total
-                });
+                // Update pagination state in the database controller
+                window.dispatchEvent(new CustomEvent('update-database-pagination', {
+                    detail: {
+                        hasMore: data.has_more,
+                        offset: offset + limit,
+                        totalResults: data.total,
+                        currentlyShowing: this.essences.length
+                    }
+                }));
             } catch (error) {
                 // Handle error based on append mode
                 if (!append) {
                     this.essences = [];
                 }
                 
-                this.$dispatch('update-pagination-essences', { 
-                    panelId: 'essences',
-                    hasMore: false,
-                    offset: offset,
-                    newItems: [],
-                    totalResults: append ? this.essences.length : 0
-                });
+                // Update pagination state on error
+                window.dispatchEvent(new CustomEvent('update-database-pagination', {
+                    detail: {
+                        hasMore: false,
+                        offset: offset,
+                        totalResults: 0,
+                        currentlyShowing: this.essences.length
+                    }
+                }));
             } finally {
                 this.loading = false;
             }
         },
 
         async selectEssence(essence) {
+            if (this.selectedEssence && this.selectedEssence.key === essence.key) {
+                return;
+            }
             // Set loading state and show basic item info immediately
             this.loadingStats = true;
             this.selectedEssence = essence;
@@ -147,7 +166,9 @@ document.addEventListener('alpine:init', () => {
         
         // Builder mode detection (essences don't have builder mode currently)
         isBuilderMode() {
-            return false;
+            // Check if we're in the builder by looking for the builder component
+            const builderComponent = document.getElementById('builder-component');
+            return builderComponent && this.$el && builderComponent.contains(this.$el);
         }
     }));
 }); 

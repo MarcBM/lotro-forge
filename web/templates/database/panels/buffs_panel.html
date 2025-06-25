@@ -1,0 +1,62 @@
+{% extends "database/base_panel.html" %}
+
+{% block panel_title %}Buffs Database{% endblock %}
+
+{% block panel_wrapper %}
+<div x-data="buffsPanel('buffs')" 
+     x-show="activePanel === 'buffs'"
+     class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
+{% endblock %}
+
+{% block filter_column %}
+<div class="space-y-4">
+    <!-- Buff Type Filter -->
+    <div>
+        <label class="block text-sm font-medium text-lotro-primary mb-2">
+            Type
+        </label>
+        <select x-model="selectedType" 
+                @change="applyFilters()"
+                class="w-full bg-lotro-darker border border-lotro-border rounded-lg px-3 py-2 text-lotro-primary focus:border-lotro-gold focus:outline-none">
+            <option value="">All Types</option>
+            <!-- Placeholder options - will be populated from filters -->
+            <option value="food">Food Buffs</option>
+            <option value="scroll">Scroll Buffs</option>
+            <option value="consumable">Consumable Buffs</option>
+        </select>
+    </div>
+    
+    <!-- Coming Soon Notice -->
+    <div class="bg-lotro-uncommon/10 border border-lotro-uncommon/30 rounded-lg p-3">
+        <h4 class="text-sm font-medium text-lotro-uncommon mb-2">🚧 Coming Soon</h4>
+    </div>
+</div>
+{% endblock %}
+
+{% block results_grid %}
+<div class="flex items-center justify-center h-64">
+    <div class="text-center space-y-4">
+        <div class="text-6xl text-lotro-muted">✨</div>
+        <h3 class="text-xl font-medium text-lotro-primary">Buffs Database</h3>
+        <p class="text-lotro-secondary">Coming Soon</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block details_column %}
+<div class="text-center space-y-4 py-8">
+    <div class="text-4xl text-lotro-muted">🔮</div>
+    <h3 class="text-lg font-medium text-lotro-primary">Buff Details</h3>
+    <p class="text-sm text-lotro-secondary">Coming Soon</p>
+</div>
+{% endblock %}
+
+{% block panel_wrapper_end %}
+</div>
+{% endblock %}
+
+{% block panel_scripts %}
+<!-- Buffs Panel JavaScript -->
+<script src="{{ url_for('static', path='js/database/buffs-filters.js') }}"></script>
+<script src="{{ url_for('static', path='js/database/buffs-panel.js') }}"></script>
+{% endblock %} 

@@ -1,5 +1,10 @@
 /* Custom styles for LOTRO Forge */
 
+/* Alpine.js x-cloak directive - hides elements until Alpine is ready */
+[x-cloak] { 
+    display: none !important; 
+}
+
 
 
 /* Custom Scrollbar Styling */

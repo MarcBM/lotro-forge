@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from .base import Base
+from .items.item_quality import ItemQuality
 
 
 class DpsTable(Base):
@@ -40,7 +41,6 @@ class DpsTable(Base):
     
     def get_quality_factor(self, quality) -> float:
         """Get the quality factor for this DPS table."""
-        from .item import ItemQuality  # Import here to avoid circular imports
         
         quality_map = {
             ItemQuality.COMMON: self.quality_common or 1.0,

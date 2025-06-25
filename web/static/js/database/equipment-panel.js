@@ -1,9 +1,10 @@
 // Equipment Panel Alpine.js Component
 document.addEventListener('alpine:init', () => {
-    Alpine.data('equipmentPanel', () => ({
+    Alpine.data('equipmentPanel', (panelId) => ({
+        // Panel identification
+        panelId: panelId,
         // Component state
         loading: false,
-        dataLoaded: false,
         equipment: [],
         selectedEquipment: null,
         loadingStats: false,
@@ -24,20 +25,38 @@ document.addEventListener('alpine:init', () => {
             // Load available filter options
             await this.loadFilterOptions();
             
-            // Listen for events from database controller
-            window.addEventListener('database-load-more', this.handleLoadMore.bind(this));
-            window.addEventListener('database-sort-changed', this.handleSortChange.bind(this));
-            window.addEventListener('database-search-changed', this.handleSearchChange.bind(this));
+            // Listen for equipment-specific events from database controller
+            window.addEventListener('database-load-more-equipment', this.handleLoadMore.bind(this));
+            window.addEventListener('database-sort-changed-equipment', this.handleSortChange.bind(this));
+            window.addEventListener('database-search-changed-equipment', this.handleSearchChange.bind(this));
             
             // Listen for panel activation to load initial data
             window.addEventListener('panel-opened-equipment', this.handlePanelOpened.bind(this));
+            
+            // Check if we're on the database page and equipment is the default panel
+            this.checkDatabasePageInitialLoad();
+        },
+        
+        checkDatabasePageInitialLoad() {
+            // Check if we're on the database page by looking for the database component
+            const databaseComponent = document.getElementById('database-component');
+            if (!databaseComponent) return;
+            
+            // Check if equipment is the default/active panel by checking the panel manager
+            // We'll use a small delay to ensure the panel manager has initialized
+            setTimeout(() => {
+                // Get the panel manager component from the database component
+                const panelManagerData = Alpine.$data(databaseComponent);
+                if (panelManagerData && panelManagerData.activePanel === 'equipment' && this.equipment.length === 0) {
+                    console.log('Database page loaded with equipment as default panel - loading initial data');
+                    this.handlePanelOpened();
+                }
+            }, 100);
         },
         
         async handlePanelOpened() {
-            if (this.dataLoaded) return;
-            console.log('Equipment panel opened - loading initial data');
-            this.dataLoaded = true;
-            // Reset pagination and load initial data
+            console.log('Equipment panel opened - loading fresh data');
+            // Always reload data when panel is opened (fresh start)
             this.resetAndLoad();
         },
         
@@ -121,7 +140,8 @@ document.addEventListener('alpine:init', () => {
                     detail: {
                         hasMore: data.has_more,
                         offset: offset + limit,
-                        totalResults: data.total
+                        totalResults: data.total,
+                        currentlyShowing: this.equipment.length
                     }
                 }));
             } catch (error) {
@@ -135,7 +155,8 @@ document.addEventListener('alpine:init', () => {
                     detail: {
                         hasMore: false,
                         offset: offset,
-                        totalResults: 0
+                        totalResults: 0,
+                        currentlyShowing: this.equipment.length
                     }
                 }));
             } finally {

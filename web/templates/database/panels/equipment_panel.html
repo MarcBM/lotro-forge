@@ -2,8 +2,11 @@
 
 {% block panel_title %}Equipment Database{% endblock %}
 
+{% block panel_wrapper %}
 <div x-data="equipmentPanel('equipment')" 
-     x-show="activePanel === 'equipment'">
+     x-show="activePanel === 'equipment'"
+     class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
+{% endblock %}
 
 {% block filter_column %}
 <div class="space-y-4">
@@ -64,116 +67,26 @@
                     }"
                     x-text="item.name"></h3>
             </div>
+            
+            <!-- EV Value -->
+            <div x-show="isBuilderMode()" class="absolute bottom-1 right-2 text-sm font-medium text-lotro-secondary">
+                <span x-text="(item.ev || '0.00')"></span>
+            </div>
         </div>
     </template>
 </div>
 {% endblock %}
 
 {% block details_column %}
-<template x-if="selectedEquipment">
-    <div class="space-y-4">
-        <!-- Icon and Title -->
-        <div class="space-y-2">
-            <!-- Icon and Title -->
-            <div class="flex items-start gap-4">
-                <!-- Equipment Icon (layered) -->
-                <div class="w-16 h-16 flex-shrink-0 relative">
-                    <template x-if="selectedEquipment && selectedEquipment.icon_urls && Array.isArray(selectedEquipment.icon_urls)">
-                        <div>
-                            <template x-for="(url, i) in selectedEquipment.icon_urls.slice().reverse()" :key="i">
-                                <img :src="url" 
-                                     :alt="'Equipment icon layer ' + (i + 1)"
-                                     class="absolute inset-0 w-full h-full object-contain"
-                                     @error="$el.style.display='none'">
-                            </template>
-                        </div>
-                    </template>
-                    <template x-if="!selectedEquipment || !selectedEquipment.icon_urls || !Array.isArray(selectedEquipment.icon_urls)">
-                        <div class="w-full h-full bg-lotro-button rounded"></div>
-                    </template>
-                </div>
-                
-                <!-- Equipment Info -->
-                <div class="flex-1 min-w-0">
-                    <!-- Title area with fixed height -->
-                    <div class="h-16 flex items-center">
-                        <h3 class="text-xl font-bold line-clamp-2"
-                            :class="{
-                                'text-lotro-common': selectedEquipment && selectedEquipment.quality === 'COMMON',
-                                'text-lotro-uncommon': selectedEquipment && selectedEquipment.quality === 'UNCOMMON',
-                                'text-lotro-rare': selectedEquipment && selectedEquipment.quality === 'RARE',
-                                'text-lotro-incomparable': selectedEquipment && selectedEquipment.quality === 'INCOMPARABLE',
-                                'text-lotro-legendary': selectedEquipment && selectedEquipment.quality === 'LEGENDARY'
-                            }"
-                            x-text="selectedEquipment.name"></h3>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Baseline Stats Row -->
-            <div class="flex justify-between items-center text-sm text-lotro-secondary -mt-1">
-                <div>
-                    <span>iLvl: </span>
-                    <span x-text="selectedEquipment.base_ilvl"></span>
-                </div>
-                <div class="text-lotro-muted">
-                    <!-- Weapon display logic -->
-                    <template x-if="selectedEquipment && selectedEquipment.weapon_type">
-                        <span x-text="selectedEquipment ? selectedEquipment.weapon_type : ''"></span>
-                    </template>
-                    <!-- Regular equipment display logic -->
-                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot === 'OFF_HAND'">
-                        <span x-text="selectedEquipment ? selectedEquipment.armour_type : ''"></span>
-                    </template>
-                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot !== 'OFF_HAND'">
-                        <span x-text="selectedEquipment ? (selectedEquipment.slot + ' / ' + selectedEquipment.armour_type) : ''"></span>
-                    </template>
-                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && !selectedEquipment.armour_type">
-                        <span x-text="selectedEquipment ? selectedEquipment.slot : ''"></span>
-                    </template>
-                </div>
-            </div>
-            
-            <!-- Equipment Stats -->
-            <div class="border-t border-lotro-border pt-3">
-                <div class="text-sm text-lotro-secondary space-y-1">
-                    <!-- Other stats -->
-                    <template x-if="selectedEquipment && selectedEquipment.stats && selectedEquipment.stats.stat_values && Array.isArray(selectedEquipment.stats.stat_values)">
-                        <div class="space-y-1">
-                            <template x-for="stat in selectedEquipment.stats.stat_values" :key="stat.stat_name">
-                                <div class="flex justify-between">
-                                    <span x-text="stat.stat_name"></span>
-                                    <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-                    
-                    <!-- Fallback when stats are loading -->
-                    <template x-if="selectedEquipment && (loadingStats || !selectedEquipment.stats || !selectedEquipment.stats.stat_values)">
-                        <div class="text-lotro-muted text-center py-2">
-                            <span class="text-xs" x-show="loadingStats">
-                                <span class="animate-pulse">Loading detailed stats...</span>
-                            </span>
-                            <span class="text-xs" x-show="!loadingStats && (!selectedEquipment.stats || !selectedEquipment.stats.stat_values)">
-                                Failed to load stats
-                            </span>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-<template x-if="!selectedEquipment">
-    <div class="text-lotro-secondary text-center py-4">
-        Select an equipment item to view details
-    </div>
-</template>
+{% include "database/panels/components/equipment_details.html" %}
 {% endblock %}
 
+{% block panel_wrapper_end %}
 </div>
+{% endblock %}
 
+{% block panel_scripts %}
 <!-- Equipment Panel JavaScript -->
 <script src="{{ url_for('static', path='js/database/equipment-filters.js') }}"></script>
-<script src="{{ url_for('static', path='js/database/equipment-panel.js') }}"></script> 
+<script src="{{ url_for('static', path='js/database/equipment-panel.js') }}"></script>
+{% endblock %}

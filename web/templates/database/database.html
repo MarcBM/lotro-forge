@@ -18,69 +18,58 @@
                 Equipment
             </button>
             <button @click="openPanel('traceries')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200 opacity-50 cursor-not-allowed"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('traceries')}"
-                    disabled>
-                Traceries (Coming Soon)
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('traceries')}">
+                Traceries
             </button>
             <button @click="openPanel('sets')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200 opacity-50 cursor-not-allowed"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('sets')}"
-                    disabled>
-                Sets (Coming Soon)
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('sets')}">
+                Sets
             </button>
             <button @click="openPanel('essences')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200 opacity-50 cursor-not-allowed"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('essences')}"
-                    disabled>
-                Essences (Coming Soon)
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('essences')}">
+                Essences
             </button>
             <button @click="openPanel('traits')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200 opacity-50 cursor-not-allowed"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('traits')}"
-                    disabled>
-                Traits (Coming Soon)
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('traits')}">
+                Traits
             </button>
             <button @click="openPanel('buffs')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200 opacity-50 cursor-not-allowed"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('buffs')}"
-                    disabled>
-                Buffs (Coming Soon)
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('buffs')}">
+                Buffs
             </button>
             <button @click="openPanel('misc')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200 opacity-50 cursor-not-allowed"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('misc')}"
-                    disabled>
-                Misc (Coming Soon)
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('misc')}">
+                Misc
             </button>
             <button @click="openPanel('sources')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200 opacity-50 cursor-not-allowed"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('sources')}"
-                    disabled>
-                Sources (Coming Soon)
+                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
+                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('sources')}">
+                Sources
             </button>
+
         </div>
         
         <!-- Panel Content -->
         <div class="w-full">
-            <!-- Equipment Panel - Using template inheritance approach -->
+            <!-- All Database Panels - Using template inheritance approach -->
             {% include "database/panels/equipment_panel.html" %}
-            
-            {# Other panels - COMMENTED OUT until refactored to new structure #}
-            {# {% include "database/components/traceries_panel.html" %} #}
-            {# {% include "database/components/sets_panel.html" %} #}
-            {# {% include "database/components/essences_panel.html" %} #}
-            {# {% include "database/components/traits_panel.html" %} #}
-            {# {% include "database/components/buffs_panel.html" %} #}
-            {# {% include "database/components/misc_panel.html" %} #}
-            {# {% include "database/components/sources_panel.html" %} #}
+            {% include "database/panels/traceries_panel.html" %}
+            {% include "database/panels/sets_panel.html" %}
+            {% include "database/panels/essences_panel.html" %}
+            {% include "database/panels/traits_panel.html" %}
+            {% include "database/panels/buffs_panel.html" %}
+            {% include "database/panels/misc_panel.html" %}
+            {% include "database/panels/sources_panel.html" %}
+        </div>
     </div>
 </div>
 
-<!-- Hide elements until Alpine.js is ready -->
-<style>
-    [x-cloak] { display: none !important; }
-</style>
 
 
 {% endblock %}
@@ -90,10 +79,4 @@
 <script src="{{ url_for('static', path='js/components/panel-manager.js') }}"></script>
 <!-- Database Controller JavaScript -->
 <script src="{{ url_for('static', path='js/database/database-controller.js') }}"></script>
-
-<!-- Legacy JavaScript for non-refactored panels - COMMENTED OUT -->
-<!-- <script src="{{ url_for('static', path='js/database/database-nav.js') }}"></script> -->
-<!-- <script src="{{ url_for('static', path='js/database/base-panel.js') }}"></script> -->
-<!-- <script src="{{ url_for('static', path='js/database/essences-filters.js') }}"></script> -->
-<!-- <script src="{{ url_for('static', path='js/database/essences-panel.js') }}"></script> -->
 {% endblock %}

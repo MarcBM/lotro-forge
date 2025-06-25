@@ -1,7 +1,9 @@
 <!-- Base Database Panel Layout -->
 <!-- Category panels extend this by defining filter_column, results_grid, and details_column blocks -->
 
+{% block panel_wrapper %}
 <div class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
+{% endblock %}
     
     <!-- Container to limit max width and center content -->
     <div class="w-full max-w-[1400px] h-full flex gap-4">
@@ -30,7 +32,7 @@
                         </div>
                         <!-- Sort By dropdown -->
                         <select x-model="pagination.sortBy" 
-                                @change="handleSort()"
+                                @change="handleSort(panelId)"
                                 class="bg-lotro-darker text-lotro-primary px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
                             <option value="recent">Recent</option>
                             <option value="name">Name</option>
@@ -41,9 +43,9 @@
                 <div class="flex gap-2">
                     <input type="text" 
                            x-model="pagination.searchQuery"
-                           @input.debounce.300ms="handleSearch()"
+                           @input.debounce.300ms="handleSearch(panelId)"
                            placeholder="Search..." 
-                           class="flex-1 bg-lotro-darker text-lotro-primary px-4 py-2 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
+                           class="flex-1 bg-lotro-darker text-lotro-primary px-4 py-2 rounded border border-lotro-border focus:outline-none">
                 </div>
             </div>
 
@@ -59,7 +61,7 @@
                     <!-- Load More Button or End Message -->
                     <div class="mt-4 text-center">
                         <template x-if="pagination.hasMore && !pagination.loading">
-                            <button @click="loadMore()" 
+                            <button @click="loadMore(panelId)" 
                                     class="bg-lotro-darker text-lotro-gold px-6 py-2 rounded border border-lotro-border hover:border-lotro-gold focus:outline-none">
                                 Load More
                             </button>
@@ -96,4 +98,10 @@
             </div>
         </div>
     </div>
+{% block panel_wrapper_end %}
 </div> 
+{% endblock %}
+
+<!-- Panel-specific JavaScript includes -->
+{% block panel_scripts %}
+{% endblock %}

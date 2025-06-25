@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="8" fill="#2A2B35" stroke="#4A4B55" stroke-width="2"/>
+  <g transform="translate(16,12)">
+    <!-- Crystal shape -->
+    <path d="M16 4 L28 16 L16 36 L4 16 Z" fill="#6366F1" stroke="#4338CA" stroke-width="2"/>
+    <!-- Inner facets -->
+    <path d="M16 4 L22 16 L16 28 L10 16 Z" fill="#818CF8" opacity="0.8"/>
+    <!-- Highlight -->
+    <path d="M16 4 L19 12 L16 20 L13 12 Z" fill="#C7D2FE" opacity="0.6"/>
+  </g>
+</svg> 

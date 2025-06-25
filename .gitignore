@@ -226,8 +226,8 @@ $RECYCLE.BIN/
 # Project Specific
 # =================================================================
 # Generated static files (copied by import scripts)
-web/static/icons/
-web/static/images/
+web/static/icons/items/
+web/static/icons/sockets/
 
 # Log files and directories
 *.log

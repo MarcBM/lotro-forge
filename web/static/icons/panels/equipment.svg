@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="8" fill="#2A2B35" stroke="#4A4B55" stroke-width="2"/>
+  <g transform="translate(16,8)">
+    <!-- Sword blade -->
+    <rect x="14" y="4" width="4" height="32" fill="#C5A572" rx="2"/>
+    <!-- Crossguard -->
+    <rect x="8" y="32" width="16" height="3" fill="#8B7355" rx="1.5"/>
+    <!-- Handle -->
+    <rect x="13" y="35" width="6" height="12" fill="#654321" rx="3"/>
+    <!-- Pommel -->
+    <circle cx="16" cy="50" r="3" fill="#8B7355"/>
+  </g>
+</svg> 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="8" fill="#2A2B35" stroke="#4A4B55" stroke-width="2"/>
+  <g transform="translate(20,8)">
+    <!-- Bottle -->
+    <path d="M8 12 L8 20 Q8 24 12 24 L16 24 Q20 24 20 20 L20 12 Q20 8 16 8 L12 8 Q8 8 8 12 Z" fill="#8B5CF6" stroke="#7C3AED" stroke-width="2"/>
+    <!-- Neck -->
+    <rect x="12" y="4" width="4" height="8" fill="#A78BFA" stroke="#8B5CF6" stroke-width="1"/>
+    <!-- Cork -->
+    <rect x="11" y="2" width="6" height="4" fill="#92400E" stroke="#78350F" stroke-width="1" rx="1"/>
+    <!-- Liquid -->
+    <ellipse cx="14" cy="20" rx="5" ry="3" fill="#C4B5FD" opacity="0.8"/>
+    <!-- Bubble -->
+    <circle cx="16" cy="18" r="1" fill="#E0E7FF" opacity="0.6"/>
+  </g>
+</svg> 

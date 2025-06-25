@@ -198,6 +198,45 @@ document.addEventListener('alpine:init', () => {
             }
         },
         
+        async updateItemLevel(event) {
+            if (!this.selectedEquipment) return;
+            
+            const newIlvl = parseInt(event.target.textContent.trim());
+            const currentIlvl = this.selectedEquipment.concrete_ilvl || this.selectedEquipment.base_ilvl;
+            
+            // Validate the input
+            if (isNaN(newIlvl) || newIlvl < 1 || newIlvl > 999) {
+                // Reset to current value
+                event.target.textContent = currentIlvl;
+                return;
+            }
+            
+            // Don't update if it's the same level
+            if (newIlvl === currentIlvl) return;
+            
+            console.log(`Updating equipment ${this.selectedEquipment.name} to ilvl ${newIlvl}`);
+            
+            try {
+                this.loadingStats = true;
+                const response = await fetch(`/api/data/items/${this.selectedEquipment.key}/stats?ilvl=${newIlvl}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch stats at new level');
+                }
+                const newStats = await response.json();
+                
+                // Update the stats in selectedEquipment while keeping all other data
+                this.selectedEquipment.stats = newStats;
+                this.selectedEquipment.concrete_ilvl = newIlvl;
+                
+            } catch (error) {
+                console.error('Error updating item level:', error);
+                // Reset to previous ilvl on error
+                event.target.textContent = currentIlvl;
+            } finally {
+                this.loadingStats = false;
+            }
+        },
+        
         // Builder mode detection
         isBuilderMode() {
             // Check if we're in the builder by looking for the builder component

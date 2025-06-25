@@ -43,9 +43,13 @@
 
             <!-- Baseline Stats Row -->
             <div class="flex justify-between items-center text-sm text-lotro-secondary -mt-1">
-                <div>
+                <div class="flex items-baseline gap-1">
                     <span>iLvl: </span>
-                    <span x-text="selectedEquipment.base_ilvl"></span>
+                    <span contenteditable="true"
+                          @blur="updateItemLevel($event)"
+                          @keydown.enter="$event.target.blur()"
+                          class="text-lotro-primary border-b border-transparent hover:border-lotro-border focus:border-lotro-gold focus:outline-none cursor-text px-1"
+                          x-text="selectedEquipment.concrete_ilvl || selectedEquipment.base_ilvl"></span>
                 </div>
                 <div class="text-lotro-muted">
                     <!-- Weapon display logic -->

@@ -11,52 +11,90 @@
     <!-- Main content area with Database Controller Context -->
     <div class="w-full max-w-7xl mx-auto px-4 pb-4" x-data="databaseController()">
         <!-- Database Tab Navigation -->
-        <div class="flex justify-center space-x-4 pb-4 mb-6 border-b border-lotro-border">
+        <div class="flex justify-center gap-2 relative pl-10">
+            <!-- Equipment Tab -->
             <button @click="openPanel('equipment')" 
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('equipment')}">
-                Equipment
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('equipment'),
+                        'hover:translate-y-1': !isPanelActive('equipment')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/equipment.svg') }}" alt="Equipment" class="w-12 h-12">
             </button>
+            
+            <!-- Traceries Tab -->
             <button @click="openPanel('traceries')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('traceries')}">
-                Traceries
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('traceries'),
+                        'hover:translate-y-1': !isPanelActive('traceries')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/traceries.svg') }}" alt="Traceries" class="w-12 h-12">
             </button>
+            
+            <!-- Sets Tab -->
             <button @click="openPanel('sets')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('sets')}">
-                Sets
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('sets'),
+                        'hover:translate-y-1': !isPanelActive('sets')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/sets.svg') }}" alt="Sets" class="w-12 h-12">
             </button>
+            
+            <!-- Essences Tab -->
             <button @click="openPanel('essences')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('essences')}">
-                Essences
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('essences'),
+                        'hover:translate-y-1': !isPanelActive('essences')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/essences.svg') }}" alt="Essences" class="w-12 h-12">
             </button>
+            
+            <!-- Traits Tab -->
             <button @click="openPanel('traits')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('traits')}">
-                Traits
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('traits'),
+                        'hover:translate-y-1': !isPanelActive('traits')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/traits.svg') }}" alt="Traits" class="w-12 h-12">
             </button>
+            
+            <!-- Buffs Tab -->
             <button @click="openPanel('buffs')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('buffs')}">
-                Buffs
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('buffs'),
+                        'hover:translate-y-1': !isPanelActive('buffs')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/buffs.svg') }}" alt="Buffs" class="w-12 h-12">
             </button>
+            
+            <!-- Misc Tab -->
             <button @click="openPanel('misc')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('misc')}">
-                Misc
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('misc'),
+                        'hover:translate-y-1': !isPanelActive('misc')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/misc.svg') }}" alt="Misc" class="w-12 h-12">
             </button>
+            
+            <!-- Sources Tab -->
             <button @click="openPanel('sources')"
-                    class="text-lotro-primary hover:text-lotro-gold px-4 py-2 rounded transition-colors duration-200"
-                    :class="{'text-lotro-gold border-b-2 border-lotro-gold': isPanelActive('sources')}">
-                Sources
+                    class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
+                    :class="{
+                        'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('sources'),
+                        'hover:translate-y-1': !isPanelActive('sources')
+                    }">
+                <img src="{{ url_for('static', path='icons/panels/sources.svg') }}" alt="Sources" class="w-12 h-12">
             </button>
-
         </div>
         
         <!-- Panel Content -->
-        <div class="w-full">
+        <div class="w-full relative z-10">
             <!-- All Database Panels - Using template inheritance approach -->
             {% include "database/panels/equipment_panel.html" %}
             {% include "database/panels/traceries_panel.html" %}

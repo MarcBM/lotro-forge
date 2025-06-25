@@ -1,8 +1,25 @@
 /* Custom styles for LOTRO Forge */
 
+/* Define CSS custom properties as fallback for Tailwind config timing issues */
+:root {
+    --lotro-gold: #E6D5AC;
+    --lotro-darker: #111827;
+    --lotro-dark: #1F2937;
+    --lotro-border: #2D3748;
+}
+
 /* Alpine.js x-cloak directive - hides elements until Alpine is ready */
 [x-cloak] { 
     display: none !important; 
+}
+
+/* Ensure tab colors always work regardless of Tailwind timing */
+.bg-lotro-darker {
+    background-color: var(--lotro-darker) !important;
+}
+
+.border-lotro-gold {
+    border-color: var(--lotro-gold) !important;
 }
 
 

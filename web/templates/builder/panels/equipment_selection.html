@@ -1,29 +1,18 @@
 <!-- Equipment Selection Modal for Builder -->
-<div x-show="activePanel === 'equipment'" 
-     x-transition:enter="transition-all duration-300 ease-out"
-     x-transition:enter-start="opacity-0 transform scale-95"
-     x-transition:enter-end="opacity-100 transform scale-100"
-     x-transition:leave="transition-all duration-200 ease-in"
-     x-transition:leave-start="opacity-100 transform scale-100"
-     x-transition:leave-end="opacity-0 transform scale-95"
-     @click.away="closePanel('equipment')"
-     @keydown.escape.window="closePanel('equipment')"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2"
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2"
      style="display: none;">
     
-    <div class="bg-lotro-dark rounded-lg shadow-xl border border-lotro-border w-full max-w-[75vw] h-[75vh] flex flex-col"
-         @click.stop>
+    <div class="bg-lotro-dark rounded-lg shadow-xl border border-lotro-border w-full max-w-[75vw] h-[75vh] flex flex-col">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between p-4 border-b border-lotro-border flex-shrink-0">
             <div class="flex items-center space-x-4">
                 <h3 class="text-lotro-gold font-bold text-xl">Select Equipment</h3>
-                <div x-show="selectedSlot" class="text-gray-300 text-sm">
-                    Slot: <span x-text="selectedSlot" class="text-lotro-gold font-medium capitalize"></span>
+                <div class="text-gray-300 text-sm">
+                    Slot: <span class="text-lotro-gold font-medium capitalize">HEAD</span>
                 </div>
             </div>
-            <button @click="closeSelection()" 
-                    class="text-gray-400 hover:text-lotro-gold transition-colors duration-200 p-1">
+            <button class="text-gray-400 hover:text-lotro-gold transition-colors duration-200 p-1">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -33,11 +22,9 @@
         <!-- Equipment Panel Content -->
         <div class="flex-1 overflow-hidden p-2">
             <!-- Use the original database equipment panel -->
-            <div class="h-full" x-data="{ activePanel: 'equipment' }">
+            <div class="h-full">
                 {% include "database/panels/equipment_panel.html" %}
             </div>
         </div>
     </div>
-</div>
-
-<!-- JavaScript loaded from external file --> 
+</div> 

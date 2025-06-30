@@ -12,9 +12,32 @@ document.addEventListener('alpine:init', () => {
             race: ''
         },
 
-        // Equipment slots
+        // Equipment slots - all slots initialized as null
         equipment: {
-            // Equipment slots will be defined as needed
+            // Jewellery slots
+            LEFT_EAR: null,
+            RIGHT_EAR: null,
+            NECK: null,
+            POCKET: null,
+            LEFT_WRIST: null,
+            RIGHT_WRIST: null,
+            LEFT_FINGER: null,
+            RIGHT_FINGER: null,
+            
+            // Armour slots
+            HEAD: null,
+            SHOULDERS: null,
+            BACK: null,
+            CHEST: null,
+            HANDS: null,
+            LEGS: null,
+            FEET: null,
+            
+            // Weapon slots
+            MAIN_HAND: null,
+            OFF_HAND: null,
+            RANGED: null,
+            CLASS: null
         },
 
         // Essences

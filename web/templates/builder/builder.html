@@ -5,23 +5,26 @@
 
 {% block content %}
 <div class="w-full h-[calc(100vh-12rem)] -mx-6 -my-6 relative" x-data="panelManager()">
-    <!-- Builder Component -->
-    <div id="builder-component" 
-        x-data="buildState"
-        class="bg-lotro-darker h-full">
-            
-        <!-- Utility Panel Component -->
-        {% include "builder/utility-panel.html" %}
+    <!-- Database Controller Wrapper -->
+    <div x-data="databaseController()">
+        <!-- Builder Component -->
+        <div id="builder-component" 
+            x-data="buildState"
+            class="bg-lotro-darker h-full">
+                
+            <!-- Utility Panel Component -->
+            {% include "builder/utility-panel.html" %}
 
-        <!-- Main content area -->
-        <div class="w-full px-[5%] pt-6 pb-4 h-full flex items-start justify-center gap-0 relative" x-data="databaseController()">
-            <!-- Main Character Sheet Section -->
-            <div class="grid grid-cols-[130px_330px_1fr_460px] gap-0 p-4 items-start">
-                <!-- Invisible spacer column to balance layout -->
-                <div></div>
-                {% include "builder/columns/legendary_items.html" %}
-                {% include "builder/columns/character_info.html" %}
-                {% include "builder/columns/character_stats.html" %}
+            <!-- Main content area -->
+            <div class="w-full px-[5%] pt-6 pb-4 h-full flex items-start justify-center gap-0 relative">
+                <!-- Main Character Sheet Section -->
+                <div class="grid grid-cols-[130px_330px_1fr_460px] gap-0 p-4 items-start">
+                    <!-- Invisible spacer column to balance layout -->
+                    <div></div>
+                    {% include "builder/columns/legendary_items.html" %}
+                    {% include "builder/columns/character_info.html" %}
+                    {% include "builder/columns/character_stats.html" %}
+                </div>
             </div>
         </div>
     </div>

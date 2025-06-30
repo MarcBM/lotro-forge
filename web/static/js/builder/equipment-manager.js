@@ -4,12 +4,16 @@
  */
 document.addEventListener('alpine:init', () => {
     Alpine.data('equipmentManager', () => ({
-        // Properties will be defined as needed
+        // Reference to the build state component
+        buildState: null,
         
         // Methods will be added as needed
         init() {
             console.log('Equipment Manager initialized');
-            // Initialization logic
+            // Get direct reference to build state component
+            const buildStateElement = document.getElementById('builder-component');
+            this.buildState = Alpine.$data(buildStateElement);
+            console.log('Build state reference obtained');
         },
 
         /**
@@ -17,7 +21,16 @@ document.addEventListener('alpine:init', () => {
          * @param {string} slotName - The name of the equipment slot
          */
         printSlot(slotName) {
-            console.log(`Equipment slot clicked: ${slotName}`);
+            try {
+                const currentItem = this.getEquipment(slotName);
+                if (currentItem) {
+                    console.log(`${slotName}: ${currentItem.name || 'Unknown Item'}`);
+                } else {
+                    console.log(`${slotName}: Empty`);
+                }
+            } catch (error) {
+                console.log(`Equipment slot clicked: ${slotName} (Build state not accessible)`);
+            }
         },
 
         /**
@@ -26,7 +39,7 @@ document.addEventListener('alpine:init', () => {
          * @returns {Object|null} The equipment item or null if empty
          */
         getEquipment(slotName) {
-            return this.$parent.equipment[slotName] || null;
+            return this.buildState.equipment[slotName] || null;
         },
 
         /**
@@ -35,7 +48,7 @@ document.addEventListener('alpine:init', () => {
          * @param {Object} item - The equipment item to set
          */
         updateEquipment(slotName, item) {
-            this.$parent.equipment[slotName] = item;
+            this.buildState.equipment[slotName] = item;
             console.log(`Updated equipment for ${slotName}:`, item);
         }
     }));

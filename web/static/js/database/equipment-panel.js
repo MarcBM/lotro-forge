@@ -49,7 +49,7 @@ document.addEventListener('alpine:init', () => {
             setTimeout(() => {
                 // Get the panel manager component from the database component
                 const panelManagerData = Alpine.$data(databaseComponent);
-                if (panelManagerData && panelManagerData.activePanel === 'equipment' && this.equipment.length === 0) {
+                if (panelManagerData && panelManagerData.isPanelActive('equipment') && this.equipment.length === 0) {
                     console.log('Database page loaded with equipment as default panel - loading initial data');
                     this.handlePanelOpened();
                 }

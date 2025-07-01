@@ -4,7 +4,7 @@
 
 {% block panel_wrapper %}
 <div x-data="equipmentPanel('equipment')" 
-     x-show="activePanel === 'equipment'"
+     x-show="isPanelActive('equipment')"
      class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
 {% endblock %}
 

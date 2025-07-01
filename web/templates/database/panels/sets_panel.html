@@ -4,7 +4,7 @@
 
 {% block panel_wrapper %}
 <div x-data="setsPanel('sets')" 
-     x-show="activePanel === 'sets'"
+     x-show="isPanelActive('sets')"
      class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
 {% endblock %}
 
@@ -30,20 +30,17 @@
 {% endblock %}
 
 {% block results_grid %}
-<div class="flex items-center justify-center h-64">
-    <div class="text-center space-y-4">
-        <div class="text-6xl text-lotro-muted">🎯</div>
-        <h3 class="text-xl font-medium text-lotro-primary">Sets Database</h3>
-        <p class="text-lotro-secondary">Coming Soon</p>
+<div class="grid grid-cols-3 gap-4">
+    <!-- Sets results will be displayed here -->
+    <div class="text-lotro-secondary text-center py-4">
+        Sets data coming soon
     </div>
 </div>
 {% endblock %}
 
 {% block details_column %}
-<div class="text-center space-y-4 py-8">
-    <div class="text-4xl text-lotro-muted">📦</div>
-    <h3 class="text-lg font-medium text-lotro-primary">Set Details</h3>
-    <p class="text-sm text-lotro-secondary">Coming Soon</p>
+<div class="text-lotro-secondary text-center py-4">
+    Sets details coming soon
 </div>
 {% endblock %}
 

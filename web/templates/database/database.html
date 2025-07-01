@@ -5,7 +5,7 @@
 {% block content %}
 <!-- Database Component with Panel Manager Context -->
 <div id="database-component" 
-     x-data="panelManager({ defaultPanel: 'equipment' })"
+     x-data="panelManager({ defaultPanels: ['equipment'] })"
      class="bg-lotro-darker h-full">
 
     <!-- Main content area with Database Controller Context -->
@@ -13,7 +13,7 @@
         <!-- Database Tab Navigation -->
         <div class="flex justify-center gap-2 relative pl-10">
             <!-- Equipment Tab -->
-            <button @click="openPanel('equipment')" 
+            <button @click="closePanel(); openPanel('equipment')" 
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('equipment'),
@@ -23,7 +23,7 @@
             </button>
             
             <!-- Traceries Tab -->
-            <button @click="openPanel('traceries')"
+            <button @click="closePanel(); openPanel('traceries')"
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('traceries'),
@@ -33,7 +33,7 @@
             </button>
             
             <!-- Sets Tab -->
-            <button @click="openPanel('sets')"
+            <button @click="closePanel(); openPanel('sets')"
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('sets'),
@@ -43,7 +43,7 @@
             </button>
             
             <!-- Essences Tab -->
-            <button @click="openPanel('essences')"
+            <button @click="closePanel(); openPanel('essences')"
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('essences'),
@@ -53,7 +53,7 @@
             </button>
             
             <!-- Traits Tab -->
-            <button @click="openPanel('traits')"
+            <button @click="closePanel(); openPanel('traits')"
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('traits'),
@@ -63,7 +63,7 @@
             </button>
             
             <!-- Buffs Tab -->
-            <button @click="openPanel('buffs')"
+            <button @click="closePanel(); openPanel('buffs')"
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('buffs'),
@@ -73,7 +73,7 @@
             </button>
             
             <!-- Misc Tab -->
-            <button @click="openPanel('misc')"
+            <button @click="closePanel(); openPanel('misc')"
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('misc'),
@@ -83,7 +83,7 @@
             </button>
             
             <!-- Sources Tab -->
-            <button @click="openPanel('sources')"
+            <button @click="closePanel(); openPanel('sources')"
                     class="flex flex-col items-center gap-2 p-2 pb-4 rounded-t-lg border border-b-0 border-lotro-border bg-lotro-dark hover:bg-lotro-darker transition-all duration-200 transform"
                     :class="{
                         'bg-lotro-darker translate-y-3 shadow-lg': isPanelActive('sources'),

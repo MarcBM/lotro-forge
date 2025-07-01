@@ -4,65 +4,98 @@
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('panelManager', (config = {}) => ({
-        // Panel state
-        activePanel: config.defaultPanel || null,
+        // Panel state - now a list of active panels
+        activePanels: config.defaultPanels || [],
         
         init() {
             console.log('Panel Manager initialized');
         },
         
         // Core panel management
-        openPanel(panelId) {
-            if (!panelId) {
-                console.warn('No panel ID provided');
+        openPanel(panelIds) {
+            // Handle both single panel ID (string) and multiple panel IDs (array)
+            const panelsToOpen = Array.isArray(panelIds) ? panelIds : [panelIds];
+            
+            if (panelsToOpen.length === 0) {
+                console.warn('No panel IDs provided');
                 return false;
             }
             
-            console.log('Opening panel:', panelId);
-            const previousPanel = this.activePanel;
-            this.activePanel = panelId;
+            console.log('Opening panels:', panelsToOpen);
             
-            // Dispatch panel-specific event for components to listen to
-            window.dispatchEvent(new CustomEvent(`panel-opened-${panelId}`, {
-                detail: {
-                    panelId: panelId,
-                    previousPanel: previousPanel,
-                    timestamp: Date.now()
-                },
-                bubbles: true 
-            }));
+            // Add panels to active list if they're not already there
+            const newlyOpened = [];
+            panelsToOpen.forEach(panelId => {
+                if (!this.activePanels.includes(panelId)) {
+                    this.activePanels.push(panelId);
+                    newlyOpened.push(panelId);
+                }
+            });
+            
+            // Dispatch panel-specific events for newly opened panels
+            newlyOpened.forEach(panelId => {
+                window.dispatchEvent(new CustomEvent(`panel-opened-${panelId}`, {
+                    detail: {
+                        panelId: panelId,
+                        allActivePanels: [...this.activePanels],
+                        timestamp: Date.now()
+                    },
+                    bubbles: true 
+                }));
+            });
             
             return true;
         },
         
-        closePanel(panelId = null) {
-            const targetPanel = panelId || this.activePanel;
-            if (!targetPanel) return false;
+        closePanel(panelIds = null) {
+            // Handle both single panel ID (string) and multiple panel IDs (array)
+            let panelsToClose;
+            if (panelIds) {
+                if (Array.isArray(panelIds)) {
+                    panelsToClose = panelIds;
+                } else {
+                    panelsToClose = [panelIds];
+                }
+            } else {
+                panelsToClose = [...this.activePanels];
+            }
             
-            console.log('Closing panel:', targetPanel);
-            const previousPanel = this.activePanel;
-            this.activePanel = null;
+            if (panelsToClose.length === 0) return false;
             
-            // Dispatch panel-specific close event
-            window.dispatchEvent(new CustomEvent(`panel-closed-${targetPanel}`, {
-                detail: {
-                    panelId: targetPanel,
-                    previousPanel: previousPanel,
-                    timestamp: Date.now()
-                },
-                bubbles: true 
-            }));
+            console.log('Closing panels:', panelsToClose);
+            
+            // Remove panels from active list
+            const newlyClosed = [];
+            panelsToClose.forEach(panelId => {
+                const index = this.activePanels.indexOf(panelId);
+                if (index > -1) {
+                    this.activePanels.splice(index, 1);
+                    newlyClosed.push(panelId);
+                }
+            });
+            
+            // Dispatch panel-specific close events for newly closed panels
+            newlyClosed.forEach(panelId => {
+                window.dispatchEvent(new CustomEvent(`panel-closed-${panelId}`, {
+                    detail: {
+                        panelId: panelId,
+                        allActivePanels: [...this.activePanels],
+                        timestamp: Date.now()
+                    },
+                    bubbles: true 
+                }));
+            });
             
             return true;
         },
         
         // Panel state queries
         isPanelActive(panelId) {
-            return this.activePanel === panelId;
+            return this.activePanels.includes(panelId);
         },
         
-        getActivePanel() {
-            return this.activePanel;
+        getActivePanels() {
+            return [...this.activePanels];
         }
     }));
 }); 

@@ -4,7 +4,7 @@
 
 {% block panel_wrapper %}
 <div x-data="essencesPanel('essences')" 
-     x-show="activePanel === 'essences'"
+     x-show="isPanelActive('essences')"
      class="h-[calc(100vh-20rem)] w-full flex gap-4 justify-center items-start">
 {% endblock %}
 

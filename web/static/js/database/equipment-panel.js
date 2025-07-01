@@ -9,8 +9,7 @@ document.addEventListener('alpine:init', () => {
         selectedEquipment: null,
         loadingStats: false,
         
-        // Builder-specific properties
-        isSlotFilterLocked: false, // Always false for now - builder mode integration comes later
+        // Filter properties
         selectedSlot: '',
         
         // Filter options
@@ -237,11 +236,6 @@ document.addEventListener('alpine:init', () => {
             }
         },
         
-        // Builder mode detection
-        isBuilderMode() {
-            // Check if we're in the builder by looking for the builder component
-            const builderComponent = document.getElementById('builder-component');
-            return builderComponent && this.$el && builderComponent.contains(this.$el);
-        }
+
     }));
 }); 

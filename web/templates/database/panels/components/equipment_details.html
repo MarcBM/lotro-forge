@@ -67,9 +67,7 @@
                         <span x-text="selectedEquipment ? selectedEquipment.slot : ''"></span>
                     </template>
                 </div>
-                <div class="text-lotro-muted font-medium text-lotro-secondary"
-                     x-show="isBuilderMode()"
-                     x-text="selectedEquipment.ev || '0.00'"></div>
+
             </div>
             
             <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
@@ -179,17 +177,15 @@
             </template>
             
             <!-- Missing Features Placeholder -->
-            <template x-if="!isBuilderMode()">
-                <div class="border-t border-lotro-border pt-2 mt-3">
-                    <div class="bg-lotro-uncommon/10 border border-lotro-uncommon/30 rounded-lg p-2">
-                        <h4 class="text-xs font-medium text-lotro-uncommon mb-1">⚠️ Missing Features</h4>
-                        <div class="text-xs text-lotro-uncommon/80 space-y-0.5">
-                            <div>• Class restrictions & Set bonuses</div>
-                            <div>• Source information</div>
-                        </div>
+            <div class="border-t border-lotro-border pt-2 mt-3">
+                <div class="bg-lotro-uncommon/10 border border-lotro-uncommon/30 rounded-lg p-2">
+                    <h4 class="text-xs font-medium text-lotro-uncommon mb-1">⚠️ Missing Features</h4>
+                    <div class="text-xs text-lotro-uncommon/80 space-y-0.5">
+                        <div>• Class restrictions & Set bonuses</div>
+                        <div>• Source information</div>
                     </div>
                 </div>
-            </template>
+            </div>
         </div>
     </div>
 </template>

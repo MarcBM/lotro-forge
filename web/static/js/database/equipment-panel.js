@@ -32,7 +32,7 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-equipment', this.handleLoadMore.bind(this));
             
             // Listen for panel activation to load initial data
-            window.addEventListener('panel-opened-equipment', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-opened-equipment', this.resetAndLoad.bind(this));
             
             // Check if we're on the database page and equipment is the default panel
             this.checkDatabasePageInitialLoad();
@@ -50,15 +50,9 @@ document.addEventListener('alpine:init', () => {
                 const panelManagerData = Alpine.$data(databaseComponent);
                 if (panelManagerData && panelManagerData.isPanelActive('equipment') && this.equipment.length === 0) {
                     console.log('Database page loaded with equipment as default panel - loading initial data');
-                    this.handlePanelOpened();
+                    this.resetAndLoad();
                 }
             }, 100);
-        },
-        
-        async handlePanelOpened() {
-            console.log('Equipment panel opened - loading fresh data');
-            // Always reload data when panel is opened (fresh start)
-            this.resetAndLoad();
         },
         
         resetAndLoad() {
@@ -78,25 +72,8 @@ document.addEventListener('alpine:init', () => {
             }
         },
         
-        applyFilters() {
-            // Reset to first page and reload with filters
-            this.resetAndLoad();
-        },
-        
         handleLoadMore(event) {
             this.loadEquipment(event.detail.offset, event.detail.limit, true);
-        },
-
-        handleSortChange() {
-            // Handle sort change directly on the panel
-            console.log(`Equipment sort changed to: ${this.currentSort}`);
-            this.resetAndLoad(); // Reload with new sort
-        },
-        
-        handleSearchChange() {
-            // Handle search change directly on the panel
-            console.log(`Equipment search changed to: ${this.searchQuery}`);
-            this.resetAndLoad(); // Reload with search
         },
         
         buildApiUrl(offset, limit) {

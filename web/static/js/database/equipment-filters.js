@@ -7,28 +7,38 @@
 
 // Slot grouping configuration for dropdown display
 const EQUIPMENT_SLOT_GROUPS = {
-    "Ear": ["EAR", "LEFT_EAR", "RIGHT_EAR"],
-    "Neck": ["NECK"],
-    "Pocket": ["POCKET"],
-    "Wrist": ["WRIST", "LEFT_WRIST", "RIGHT_WRIST"],
-    "Finger": ["FINGER", "LEFT_FINGER", "RIGHT_FINGER"],
-    "Head": ["HEAD"],
-    "Shoulder": ["SHOULDER"],
-    "Back": ["BACK"],
-    "Chest": ["CHEST"],
-    "Hands": ["HAND"],
-    "Legs": ["LEGS"],
-    "Feet": ["FEET"],
-    "Main Hand": ["MAIN_HAND", "EITHER_HAND"],
-    "Off Hand": ["OFF_HAND", "EITHER_HAND"],
-    "Ranged Item": ["RANGED_ITEM"],
-    "Class Slot": ["CLASS_SLOT"]
+    "EAR": ["EAR", "LEFT_EAR", "RIGHT_EAR"],
+    "LEFT_EAR": ["EAR", "LEFT_EAR"],
+    "RIGHT_EAR": ["EAR", "RIGHT_EAR"],
+    "NECK": ["NECK"],
+    "POCKET": ["POCKET"],
+    "WRIST": ["WRIST", "LEFT_WRIST", "RIGHT_WRIST"],
+    "LEFT_WRIST": ["WRIST", "LEFT_WRIST"],
+    "RIGHT_WRIST": ["WRIST", "RIGHT_WRIST"],
+    "FINGER": ["FINGER", "LEFT_FINGER", "RIGHT_FINGER"],
+    "LEFT_FINGER": ["FINGER", "LEFT_FINGER"],
+    "RIGHT_FINGER": ["FINGER", "RIGHT_FINGER"],
+    "HEAD": ["HEAD"],
+    "SHOULDER": ["SHOULDER"],
+    "BACK": ["BACK"],
+    "CHEST": ["CHEST"],
+    "HAND": ["HAND"],
+    "LEGS": ["LEGS"],
+    "FEET": ["FEET"],
+    "MAIN_HAND": ["MAIN_HAND", "EITHER_HAND"],
+    "OFF_HAND": ["OFF_HAND", "EITHER_HAND"],
+    "RANGED_ITEM": ["RANGED_ITEM"],
+    "CLASS_SLOT": ["CLASS_SLOT"]
 };
+
+const BUILDER_ONLY_SLOT_GROUPS = [
+    "Left Ear", "Right Ear", "Left Wrist", "Right Wrist", "Left Finger", "Right Finger"
+];
 
 // Ordered list for consistent dropdown display
 const EQUIPMENT_SLOT_GROUP_ORDER = [
-    "Ear", "Neck", "Pocket", "Wrist", "Finger", 
-    "Head", "Shoulder", "Back", "Chest", "Hands", "Legs", "Feet",
+    "Ear", "Left Ear", "Right Ear", "Neck", "Pocket", "Wrist", "Left Wrist", "Right Wrist", "Finger", "Left Finger", "Right Finger", 
+    "Head", "Shoulder", "Back", "Chest", "Hand", "Legs", "Feet",
     "Main Hand", "Off Hand", "Ranged Item", "Class Slot"
 ];
 
@@ -58,25 +68,21 @@ class EquipmentFilters {
     
     /**
      * Get all slot groups with their display names and database slots
-     * @param {Array} availableSlots - Optional array of slots available in database
      * @returns {Array} Array of slot group objects
      */
-    static getSlotGroups(availableSlots = null) {
+    static getSlotGroups(builderMode = false) {
         const groups = [];
         
         for (const groupName of EQUIPMENT_SLOT_GROUP_ORDER) {
-            const slots = EQUIPMENT_SLOT_GROUPS[groupName];
             
-            // If availableSlots is provided, filter to only groups with available slots
-            if (availableSlots) {
-                const hasAvailableSlots = slots.some(slot => availableSlots.includes(slot));
-                if (!hasAvailableSlots) continue;
+            // If not builder mode, exclude groups that are only available in builder mode
+            if (!builderMode && BUILDER_ONLY_SLOT_GROUPS.includes(groupName)) {
+                continue;
             }
             
             groups.push({
-                key: groupName.toUpperCase().replace(/\s+/g, "_"),  // e.g., "MAIN_HAND"
-                label: groupName,  // e.g., "Main Hand"
-                slots: slots  // The actual database slots this group represents
+                key: groupName.toUpperCase().replace(/\s+/g, "_"),
+                label: groupName
             });
         }
         
@@ -87,45 +93,72 @@ class EquipmentFilters {
      * Get available sort options for equipment
      * @returns {Array} Array of sort option objects
      */
-    static getSortOptions() {
-        return [
-            { value: 'name', label: 'Name' },
-            { value: 'recent', label: 'Recent' },
-            { value: 'base_ilvl', label: 'Base iLvl' }
-        ];
+    static getSortOptions(builderMode = false) {
+        const options = [];
+        if (builderMode) {
+            options.push({ value: 'ev', label: 'EV' });
+        }
+        options.push({ value: 'name', label: 'Name' });
+        options.push({ value: 'recent', label: 'Recent' });
+        options.push({ value: 'base_ilvl', label: 'Base iLvl' });
+        return options;
     }
     
     /**
-     * Build query parameters for equipment API call
-     * @param {Object} filters - Filter configuration object
-     * @returns {URLSearchParams} URL search parameters
+     * Get all available filters with their options and lock status
+     * @returns {Object} Object containing all filter configurations
      */
-    static buildQueryParams(filters) {
+    static getAllFilters(builderMode = false) {
+        return {
+            sort: {
+                options: this.getSortOptions(builderMode)
+            },
+            search: {
+                value: ''
+            },
+            slot: {
+                options: this.getSlotGroups(builderMode),
+                locked: false
+            }
+            // Future filters (quality, level, etc.) will be added here
+        };
+    }
+    
+    /**
+     * Build the complete API URL for equipment requests using filterState
+     * @param {Object} filterState - The current filter state object
+     * @param {number} offset - Pagination offset
+     * @param {number} limit - Pagination limit
+     * @returns {string} Complete API URL with query parameters
+     */
+    static buildApiUrl(filterState, offset = 0, limit = 99) {
         const params = new URLSearchParams();
         
         // Pagination
-        if (filters.limit) params.append('limit', filters.limit);
-        if (filters.skip) params.append('skip', filters.skip);
+        params.append('limit', limit);
+        params.append('skip', offset);
         
-        // Slot filtering - supports both groups and individual slots
-        if (filters.slots && filters.slots.length > 0) {
-            filters.slots.forEach(slot => params.append('slots', slot));
+        // Slot filtering - convert slot filter to actual slots array
+        if (filterState.slot) {
+            const selectedGroup = EQUIPMENT_SLOT_GROUPS[filterState.slot];
+            if (selectedGroup) {
+                selectedGroup.forEach(slot => params.append('slots', slot));
+            }
         }
         
         // Search
-        if (filters.search) params.append('search', filters.search);
+        if (filterState.search) {
+            params.append('search', filterState.search);
+        }
         
         // Sorting
-        if (filters.sort) params.append('sort', filters.sort);
-        
-        return params;
+        if (filterState.sort) {
+            params.append('sort', filterState.sort);
+        }
+
+        return `/api/data/equipment/?${params.toString()}`;
     }
 }
 
 // Export for use in other modules
 window.EquipmentFilters = EquipmentFilters;
-
-// Also export constants for direct access
-window.EQUIPMENT_SLOT_GROUPS = EQUIPMENT_SLOT_GROUPS;
-window.EQUIPMENT_SLOT_GROUP_ORDER = EQUIPMENT_SLOT_GROUP_ORDER;
-window.EQUIPMENT_SLOTS = EQUIPMENT_SLOTS;

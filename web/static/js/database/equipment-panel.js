@@ -9,30 +9,34 @@ document.addEventListener('alpine:init', () => {
         selectedEquipment: null,
         loadingStats: false,
         
+        // Builder mode properties
+        equipmentManager: null,
+
         // Filter properties
-        selectedSlot: '',
-        
-        // Filter options
-        filterOptions: [], // Will be populated from equipment-filters.js
-        
-        // Sort state
-        currentSort: 'name',
-        availableSortOptions: [],
-        
-        // Search state
-        searchQuery: '',
+        filterOptions: {},
+        filterState: {
+            sort: 'name',
+            search: '',
+            slot: ''
+            // Future filters...
+        },
         
         async init() {
             console.log('Database Equipment Panel component initialized');
             this.loading = false;
+            
+            // Check builder context and setup
+            this.checkBuilderContext();
+
             // Load available filter options
-            await this.loadFilterOptions();
+            this.loadFilterOptions();
             
             // Listen for equipment-specific events from database controller
             window.addEventListener('database-load-more-equipment', this.handleLoadMore.bind(this));
             
             // Listen for panel activation to load initial data
-            window.addEventListener('panel-opened-equipment', this.resetAndLoad.bind(this));
+            window.addEventListener('panel-opened-equipment', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-equipment', this.handlePanelClosed.bind(this));
             
             // Check if we're on the database page and equipment is the default panel
             this.checkDatabasePageInitialLoad();
@@ -44,71 +48,62 @@ document.addEventListener('alpine:init', () => {
             if (!databaseComponent) return;
             
             // Check if equipment is the default/active panel by checking the panel manager
-            // We'll use a small delay to ensure the panel manager has initialized
-            setTimeout(() => {
-                // Get the panel manager component from the database component
-                const panelManagerData = Alpine.$data(databaseComponent);
-                if (panelManagerData && panelManagerData.isPanelActive('equipment') && this.equipment.length === 0) {
-                    console.log('Database page loaded with equipment as default panel - loading initial data');
-                    this.resetAndLoad();
-                }
-            }, 100);
+            // Get the panel manager component from the database component
+            const panelManagerData = Alpine.$data(databaseComponent);
+            if (panelManagerData && panelManagerData.isPanelActive('equipment') && this.equipment.length === 0) {
+                this.resetAndLoad();
+            }
+        },
+        
+        async checkBuilderContext() {
+            const equipmentSection = document.getElementById('equipment-section');
+            if (!equipmentSection) return;
+            
+            this.equipmentManager = Alpine.$data(equipmentSection);
+            // this.filterState.sort = 'ev';
+        },
+        
+        loadFilterOptions() {
+            // Use client-side filter configuration instead of API call
+            if (window.EquipmentFilters) {
+                this.filterOptions = window.EquipmentFilters.getAllFilters(this.equipmentManager != null);
+            } else {
+                console.warn('EquipmentFilters not loaded, filter and sort options will be empty');
+                this.filterOptions = {};
+            }
         },
         
         resetAndLoad() {
             this.equipment = [];
             this.loadEquipment(0, 99);
         },
-        
-        loadFilterOptions() {
-            // Use client-side filter configuration instead of API call
-            if (window.EquipmentFilters) {
-                this.filterOptions = window.EquipmentFilters.getSlotGroups();
-                this.availableSortOptions = window.EquipmentFilters.getSortOptions();
-            } else {
-                console.warn('EquipmentFilters not loaded, filter and sort options will be empty');
-                this.filterOptions = [];
-                this.availableSortOptions = [];
+
+        handlePanelOpened() {
+            if (this.equipmentManager) {
+                Object.keys(this.equipmentManager.lockedFilters).forEach(filterKey => {
+                    if (this.equipmentManager.lockedFilters[filterKey]) {
+                        this.filterState[filterKey] = this.equipmentManager.lockedFilters[filterKey];
+                        this.filterOptions[filterKey].locked = true;
+                    }
+                });
             }
+            this.resetAndLoad();
+        },
+
+        handlePanelClosed() {
+            this.selectedEquipment = null;
         },
         
         handleLoadMore(event) {
             this.loadEquipment(event.detail.offset, event.detail.limit, true);
         },
-        
-        buildApiUrl(offset, limit) {
-            const filters = {
-                limit: limit,
-                skip: offset,
-                sort: this.currentSort
-            };
-            
-            // Convert selected slot to actual slot values
-            if (this.selectedSlot && window.EquipmentFilters) {
-                const selectedGroup = this.filterOptions.find(option => option.key === this.selectedSlot);
-                if (selectedGroup) {
-                    filters.slots = selectedGroup.slots;
-                }
-            }
-            
-            // Add search query from database controller
-            if (this.searchQuery) {
-                filters.search = this.searchQuery;
-            }
-            
-            const params = window.EquipmentFilters ? 
-                window.EquipmentFilters.buildQueryParams(filters) :
-                new URLSearchParams(filters);
-            
-            return `/api/data/equipment/?${params.toString()}`;
-        },
 
         async loadEquipment(offset, limit, append = false) {
             if (this.loading) return;
-            
+
             try {
                 this.loading = true;
-                const response = await fetch(this.buildApiUrl(offset, limit));
+                const response = await fetch(window.EquipmentFilters.buildApiUrl(this.filterState, offset, limit));
                 if (!response.ok) {
                     throw new Error('Failed to load equipment');
                 }
@@ -132,6 +127,7 @@ document.addEventListener('alpine:init', () => {
                     }
                 }));
             } catch (error) {
+                console.error("Error loading equipment: ", error);
                 // Handle error based on append mode
                 if (!append) {
                     this.equipment = [];
@@ -212,7 +208,5 @@ document.addEventListener('alpine:init', () => {
                 this.loadingStats = false;
             }
         },
-        
-
     }));
 }); 

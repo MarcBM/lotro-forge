@@ -31,19 +31,19 @@
                             <span x-text="getResultsText()"></span>
                         </div>
                         <!-- Sort By dropdown -->
-                        <select x-model="currentSort" 
-                                @change="handleSortChange()"
+                        <select x-model="filterState.sort" 
+                                @change="resetAndLoad()"
                                 class="bg-lotro-darker text-lotro-primary px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
-                            <template x-for="option in availableSortOptions" :key="option.value">
-                                <option :value="option.value" x-text="option.label"></option>
+                            <template x-for="option in filterOptions.sort.options" :key="option.value">
+                                <option :value="option.value" x-text="option.label" :selected="option.value === filterState.sort"></option>
                             </template>
                         </select>
                     </div>
                 </div>
                 <div class="flex gap-2">
                     <input type="text" 
-                           x-model="searchQuery"
-                           @input.debounce.300ms="handleSearchChange()"
+                           x-model="filterState.search"
+                           @input.debounce.300ms="resetAndLoad()"
                            placeholder="Search..." 
                            class="flex-1 bg-lotro-darker text-lotro-primary px-4 py-2 rounded border border-lotro-border focus:outline-none">
                 </div>

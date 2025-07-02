@@ -7,6 +7,12 @@ document.addEventListener('alpine:init', () => {
         // Reference to the build state component
         buildState: null,
         
+        // Locked filters for equipment selection
+        lockedFilters: {
+            slot: null, // Will be set to 'HEAD', 'CHEST', etc.
+            // Future: quality: null, level: null, etc.
+        },
+        
         // Methods will be added as needed
         init() {
             console.log('Equipment Manager initialized');
@@ -50,6 +56,15 @@ document.addEventListener('alpine:init', () => {
         updateEquipment(slotName, item) {
             this.buildState.equipment[slotName] = item;
             console.log(`Updated equipment for ${slotName}:`, item);
+        },
+
+        /**
+         * Open equipment selection modal for a specific slot
+         * @param {string} slotName - The name of the equipment slot
+         */
+        openEquipmentSelection(slotName) {
+            this.lockedFilters.slot = slotName;
+            this.openPanel(['equipment-selection', 'equipment']);
         }
     }));
 }); 

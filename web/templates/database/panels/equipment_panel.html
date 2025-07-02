@@ -11,14 +11,21 @@
 {% block filter_column %}
 <div class="space-y-4">
     <!-- Slot Filter -->
-    <div>
-        <label class="block text-sm font-medium text-lotro-primary mb-2">Slot</label>
-        <select x-model="selectedSlot" 
+    <div x-show="filterOptions.slot">
+        <label class="block text-sm font-medium text-lotro-primary mb-2">
+            Slot
+        </label>
+        <select x-model="filterState.slot" 
                 @change="resetAndLoad()"
+                :disabled="filterOptions.slot?.locked"
+                :class="filterOptions.slot?.locked ? 'cursor-not-allowed opacity-50' : ''"
                 class="w-full rounded-lg px-3 py-2 bg-lotro-darker border border-lotro-border text-lotro-primary focus:border-lotro-gold focus:outline-none">
-            <option value="">All Slots</option>
-            <template x-for="filterOption in filterOptions" :key="filterOption.key">
-                <option :value="filterOption.key" x-text="filterOption.label"></option>
+            <option value="" :selected="!filterState.slot">All Slots</option>
+            <template x-for="option in filterOptions.slot?.options" :key="option.key">
+                <option :value="option.key" 
+                        :disabled="filterOptions.slot?.locked"
+                        :selected="filterState.slot === option.key"
+                        x-text="option.label"></option>
             </template>
         </select>
     </div>

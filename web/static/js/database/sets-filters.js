@@ -1,37 +1,12 @@
 /**
- * Sets Filter Configuration
- * 
- * This file contains the client-side filter configuration for set types,
- * removing the need for API calls to get filter options.
- * 
- * NOTE: This is a placeholder implementation for future development.
+ * Client-side filter configuration for sets.
+ * Provides static filter options and URL building.
  */
 
-// Set type configuration (placeholder)
-const SET_TYPES = {
-    'equipment': 'Equipment Sets',
-    'jewelry': 'Jewelry Sets'
-};
-
-/**
- * Sets Filter Helper Class
- */
 class SetsFilters {
     
     /**
-     * Get all set types with their display names
-     * @returns {Array} Array of set type objects
-     */
-    static getSetTypes() {
-        return Object.entries(SET_TYPES).map(([key, name]) => ({
-            key: key,
-            label: name
-        }));
-    }
-    
-    /**
-     * Get available sort options for sets
-     * @returns {Array} Array of sort option objects
+     * Returns available sort options
      */
     static getSortOptions() {
         return [
@@ -42,26 +17,39 @@ class SetsFilters {
     }
     
     /**
-     * Build query parameters for sets API call
-     * @param {Object} filters - Filter configuration object
-     * @returns {URLSearchParams} URL search parameters
+     * Returns all filter configurations
      */
-    static buildQueryParams(filters) {
+    static getAllFilters() {
+        return {
+            sort: {
+                options: this.getSortOptions()
+            },
+            search: {
+                value: ''
+            }
+        };
+    }
+    
+    /**
+     * Builds API URL with filter parameters
+     */
+    static buildApiUrl(filterState, offset = 0, limit = 99) {
         const params = new URLSearchParams();
         
-        // Pagination
-        if (filters.limit) params.append('limit', filters.limit);
-        if (filters.skip) params.append('skip', filters.skip);
+        params.append('limit', limit);
+        params.append('skip', offset);
         
-        // Type filtering
-        if (filters.type) params.append('type', filters.type);
+        if (filterState.search) {
+            params.append('search', filterState.search);
+        }
         
-        // Sorting
-        if (filters.sort) params.append('sort', filters.sort);
-        
-        return params;
+        if (filterState.sort) {
+            params.append('sort', filterState.sort);
+        }
+
+        return `/api/data/sets/?${params.toString()}`;
     }
 }
 
-// Make available globally
+// Export globally
 window.SetsFilters = SetsFilters; 

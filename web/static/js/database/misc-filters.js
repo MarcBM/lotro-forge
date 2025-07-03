@@ -1,57 +1,55 @@
 /**
- * Misc Items Filter Configuration
- * 
- * This file contains the client-side filter configuration for miscellaneous item categories,
- * removing the need for API calls to get filter options.
- * 
- * NOTE: This is a placeholder implementation for future development.
+ * Client-side filter configuration for misc items.
+ * Provides static filter options and URL building.
  */
 
-// Miscellaneous item category configuration (placeholder)
-const MISC_CATEGORIES = {
-    'quest': 'Quest Items',
-    'crafting': 'Crafting Materials',
-    'decorative': 'Decorative Items',
-    'consumable': 'Consumable Items'
-};
-
-/**
- * Misc Items Filter Helper Class
- */
 class MiscFilters {
     
     /**
-     * Get all misc item categories with their display names
-     * @returns {Array} Array of misc category objects
+     * Returns available sort options
      */
-    static getMiscCategories() {
-        return Object.entries(MISC_CATEGORIES).map(([key, name]) => ({
-            key: key,
-            label: name
-        }));
+    static getSortOptions() {
+        return [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ];
     }
     
     /**
-     * Build query parameters for misc items API call
-     * @param {Object} filters - Filter configuration object
-     * @returns {URLSearchParams} URL search parameters
+     * Returns all filter configurations
      */
-    static buildQueryParams(filters) {
+    static getAllFilters() {
+        return {
+            sort: {
+                options: this.getSortOptions()
+            },
+            search: {
+                value: ''
+            }
+        };
+    }
+    
+    /**
+     * Builds API URL with filter parameters
+     */
+    static buildApiUrl(filterState, offset = 0, limit = 99) {
         const params = new URLSearchParams();
         
-        // Pagination
-        if (filters.limit) params.append('limit', filters.limit);
-        if (filters.skip) params.append('skip', filters.skip);
+        params.append('limit', limit);
+        params.append('skip', offset);
         
-        // Category filtering
-        if (filters.category) params.append('category', filters.category);
+        if (filterState.search) {
+            params.append('search', filterState.search);
+        }
         
-        // Sorting
-        if (filters.sort) params.append('sort', filters.sort);
-        
-        return params;
+        if (filterState.sort) {
+            params.append('sort', filterState.sort);
+        }
+
+        return `/api/data/misc/?${params.toString()}`;
     }
 }
 
-// Make available globally
+// Export globally
 window.MiscFilters = MiscFilters; 

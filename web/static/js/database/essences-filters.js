@@ -1,11 +1,9 @@
 /**
- * Essences Filter Configuration
- * 
- * This file contains the client-side filter configuration for essence types and tiers,
- * removing the need for API calls to get filter options.
+ * Client-side filter configuration for essences.
+ * Provides static filter options and URL building.
  */
 
-// Essence type configuration
+// Essence type mapping
 const ESSENCE_TYPES = {
     1: 'Basic',
     18: 'PVP', 
@@ -15,25 +13,20 @@ const ESSENCE_TYPES = {
     23: 'Vital'
 };
 
-/**
- * Essence Filter Helper Class
- */
 class EssenceFilters {
     
     /**
-     * Get all essence types with their display names
-     * @returns {Array} Array of essence type objects
+     * Returns essence types as {value, label} objects
      */
     static getEssenceTypes() {
         return Object.entries(ESSENCE_TYPES).map(([id, name]) => ({
-            id: parseInt(id),
-            name: name
+            value: parseInt(id),
+            label: name
         }));
     }
     
     /**
-     * Get available sort options for essences
-     * @returns {Array} Array of sort option objects
+     * Returns available sort options
      */
     static getSortOptions() {
         return [
@@ -44,32 +37,47 @@ class EssenceFilters {
     }
     
     /**
-     * Build query parameters for essences API call
-     * @param {Object} filters - Filter configuration object
-     * @returns {URLSearchParams} URL search parameters
+     * Returns all filter configurations
      */
-    static buildQueryParams(filters) {
+    static getAllFilters() {
+        return {
+            sort: {
+                options: this.getSortOptions()
+            },
+            search: {
+                value: ''
+            },
+            essence_type: {
+                options: this.getEssenceTypes(),
+                locked: false
+            }
+        };
+    }
+    
+    /**
+     * Builds API URL with filter parameters
+     */
+    static buildApiUrl(filterState, offset = 0, limit = 99) {
         const params = new URLSearchParams();
         
-        // Pagination
-        if (filters.limit) params.append('limit', filters.limit);
-        if (filters.skip) params.append('skip', filters.skip);
+        params.append('limit', limit);
+        params.append('skip', offset);
         
-        // Essence type filtering
-        if (filters.essence_type) params.append('essence_type', filters.essence_type);
+        if (filterState.essence_type) {
+            params.append('essence_type', filterState.essence_type);
+        }
         
-        // Search
-        if (filters.search) params.append('search', filters.search);
+        if (filterState.search) {
+            params.append('search', filterState.search);
+        }
         
-        // Sorting
-        if (filters.sort) params.append('sort', filters.sort);
-        
-        return params;
+        if (filterState.sort) {
+            params.append('sort', filterState.sort);
+        }
+
+        return `/api/data/essences/?${params.toString()}`;
     }
 }
 
-// Export for use in other modules
+// Export globally
 window.EssenceFilters = EssenceFilters;
-
-// Also export constants for direct access
-window.ESSENCE_TYPES = ESSENCE_TYPES;

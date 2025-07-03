@@ -55,9 +55,9 @@ async def query_equipment(
         if sort == "name":
             query = query.order_by(EquipmentItem.name.asc())
         elif sort == "base_ilvl":
-            query = query.order_by(EquipmentItem.base_ilvl.desc())
+            query = query.order_by(EquipmentItem.base_ilvl.desc(), EquipmentItem.name.asc())
         else:  # recent or default
-            query = query.order_by(EquipmentItem.key.desc())
+            query = query.order_by(EquipmentItem.key.desc(), EquipmentItem.name.asc())
         
         # Get total count for pagination info (before applying limit/offset)
         total_count = query.count()
@@ -69,7 +69,7 @@ async def query_equipment(
         equipment_data = [item.to_list_json() for item in equipment_items]
         
         return {
-            "equipment": equipment_data,
+            "result": equipment_data,
             "total": total_count,
             "limit": limit,
             "skip": skip,

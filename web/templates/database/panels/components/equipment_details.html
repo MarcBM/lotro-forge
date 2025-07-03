@@ -1,7 +1,7 @@
 <!-- Equipment Details Template -->
 <!-- This template contains the detailed view shown when an equipment item is selected -->
 
-<template x-if="selectedEquipment">
+<template x-if="selectedData">
     <div class="space-y-4">
         <!-- Icon and Title -->
         <div class="space-y-2">
@@ -9,9 +9,9 @@
             <div class="flex items-start gap-4">
                 <!-- Equipment Icon (layered) -->
                 <div class="w-16 h-16 flex-shrink-0 relative">
-                    <template x-if="selectedEquipment && selectedEquipment.icon_urls && Array.isArray(selectedEquipment.icon_urls)">
+                    <template x-if="selectedData && selectedData.icon_urls && Array.isArray(selectedData.icon_urls)">
                         <div>
-                            <template x-for="(url, i) in selectedEquipment.icon_urls.slice().reverse()" :key="i">
+                            <template x-for="(url, i) in selectedData.icon_urls.slice().reverse()" :key="i">
                                 <img :src="url" 
                                      :alt="'Equipment icon layer ' + (i + 1)"
                                      class="absolute inset-0 w-full h-full object-contain"
@@ -19,7 +19,7 @@
                             </template>
                         </div>
                     </template>
-                    <template x-if="!selectedEquipment || !selectedEquipment.icon_urls || !Array.isArray(selectedEquipment.icon_urls)">
+                    <template x-if="!selectedData || !selectedData.icon_urls || !Array.isArray(selectedData.icon_urls)">
                         <div class="w-full h-full bg-lotro-button rounded"></div>
                     </template>
                 </div>
@@ -30,13 +30,13 @@
                     <div class="h-16 flex items-center">
                         <h3 class="text-xl font-bold line-clamp-2"
                             :class="{
-                                'text-lotro-common': selectedEquipment && selectedEquipment.quality === 'COMMON',
-                                'text-lotro-uncommon': selectedEquipment && selectedEquipment.quality === 'UNCOMMON',
-                                'text-lotro-rare': selectedEquipment && selectedEquipment.quality === 'RARE',
-                                'text-lotro-incomparable': selectedEquipment && selectedEquipment.quality === 'INCOMPARABLE',
-                                'text-lotro-legendary': selectedEquipment && selectedEquipment.quality === 'LEGENDARY'
+                                'text-lotro-common': selectedData && selectedData.quality === 'COMMON',
+                                'text-lotro-uncommon': selectedData && selectedData.quality === 'UNCOMMON',
+                                'text-lotro-rare': selectedData && selectedData.quality === 'RARE',
+                                'text-lotro-incomparable': selectedData && selectedData.quality === 'INCOMPARABLE',
+                                'text-lotro-legendary': selectedData && selectedData.quality === 'LEGENDARY'
                             }"
-                            x-text="selectedEquipment.name"></h3>
+                            x-text="selectedData.name"></h3>
                     </div>
                 </div>
             </div>
@@ -49,38 +49,38 @@
                           @blur="updateItemLevel($event)"
                           @keydown.enter="$event.target.blur()"
                           class="text-lotro-primary border-b border-transparent bg-lotro-darker hover:border-lotro-border focus:border-lotro-gold focus:outline-none cursor-text px-1 pt-0.5"
-                          x-text="selectedEquipment.concrete_ilvl || selectedEquipment.base_ilvl"></span>
+                          x-text="selectedData.concrete_ilvl || selectedData.base_ilvl"></span>
                 </div>
                 <div class="text-lotro-muted">
                     <!-- Weapon display logic -->
-                    <template x-if="selectedEquipment && selectedEquipment.weapon_type">
-                        <span x-text="selectedEquipment ? selectedEquipment.weapon_type : ''"></span>
+                    <template x-if="selectedData && selectedData.weapon_type">
+                        <span x-text="selectedData ? selectedData.weapon_type : ''"></span>
                     </template>
                     <!-- Regular equipment display logic -->
-                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot === 'OFF_HAND'">
-                        <span x-text="selectedEquipment ? selectedEquipment.armour_type : ''"></span>
+                    <template x-if="selectedData && !selectedData.weapon_type && selectedData.armour_type && selectedData.slot === 'OFF_HAND'">
+                        <span x-text="selectedData ? selectedData.armour_type : ''"></span>
                     </template>
-                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && selectedEquipment.armour_type && selectedEquipment.slot !== 'OFF_HAND'">
-                        <span x-text="selectedEquipment ? (selectedEquipment.slot + ' / ' + selectedEquipment.armour_type) : ''"></span>
+                    <template x-if="selectedData && !selectedData.weapon_type && selectedData.armour_type && selectedData.slot !== 'OFF_HAND'">
+                        <span x-text="selectedData ? (selectedData.slot + ' / ' + selectedData.armour_type) : ''"></span>
                     </template>
-                    <template x-if="selectedEquipment && !selectedEquipment.weapon_type && !selectedEquipment.armour_type">
-                        <span x-text="selectedEquipment ? selectedEquipment.slot : ''"></span>
+                    <template x-if="selectedData && !selectedData.weapon_type && !selectedData.armour_type">
+                        <span x-text="selectedData ? selectedData.slot : ''"></span>
                     </template>
                 </div>
 
             </div>
             
             <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
-            <template x-if="selectedEquipment && selectedEquipment.weapon_type && selectedEquipment.stats && selectedEquipment.stats.calculated_dps">
+            <template x-if="selectedData && selectedData.weapon_type && selectedData.stats && selectedData.stats.calculated_dps">
                 <div class="flex justify-between text-sm text-lotro-secondary mb-2">
                     <span>DPS</span>
-                    <span class="text-lotro-primary" x-text="selectedEquipment.stats.calculated_dps.toFixed(1)"></span>
+                    <span class="text-lotro-primary" x-text="selectedData.stats.calculated_dps.toFixed(1)"></span>
                 </div>
             </template>
             
             <!-- ARMOUR stat above the line (only for items with armour_type) -->
-            <template x-if="selectedEquipment && selectedEquipment.armour_type && selectedEquipment.stats && selectedEquipment.stats.stat_values">
-                <template x-for="stat in selectedEquipment.stats.stat_values" :key="'armour-' + stat.stat_name">
+            <template x-if="selectedData && selectedData.armour_type && selectedData.stats && selectedData.stats.stat_values">
+                <template x-for="stat in selectedData.stats.stat_values" :key="'armour-' + stat.stat_name">
                     <template x-if="stat.stat_name === 'ARMOUR'">
                         <div class="flex justify-between text-sm text-lotro-secondary mb-2">
                             <span>ARMOUR</span>
@@ -94,10 +94,10 @@
             <div class="border-t border-lotro-border pt-3">
                 <div class="text-sm text-lotro-secondary space-y-1">
                     <!-- Other stats (skip ARMOUR if it has armour_type since it's shown above) -->
-                    <template x-if="selectedEquipment && selectedEquipment.stats && selectedEquipment.stats.stat_values && Array.isArray(selectedEquipment.stats.stat_values)">
+                    <template x-if="selectedData && selectedData.stats && selectedData.stats.stat_values && Array.isArray(selectedData.stats.stat_values)">
                         <div class="space-y-1">
-                            <template x-for="stat in selectedEquipment.stats.stat_values" :key="stat.stat_name">
-                                <template x-if="!(selectedEquipment.armour_type && stat.stat_name === 'ARMOUR')">
+                            <template x-for="stat in selectedData.stats.stat_values" :key="stat.stat_name">
+                                <template x-if="!(selectedData.armour_type && stat.stat_name === 'ARMOUR')">
                                     <div class="flex justify-between">
                                         <span x-text="stat.stat_name"></span>
                                         <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
@@ -108,12 +108,12 @@
                     </template>
                     
                     <!-- Fallback when stats are loading -->
-                    <template x-if="selectedEquipment && (loadingStats || !selectedEquipment.stats || !selectedEquipment.stats.stat_values)">
+                    <template x-if="selectedData && (loading || !selectedData.stats || !selectedData.stats.stat_values)">
                         <div class="text-lotro-muted text-center py-2">
-                            <span class="text-xs" x-show="loadingStats">
+                            <span class="text-xs" x-show="loading">
                                 <span class="animate-pulse">Loading detailed stats...</span>
                             </span>
-                            <span class="text-xs" x-show="!loadingStats && (!selectedEquipment.stats || !selectedEquipment.stats.stat_values)">
+                            <span class="text-xs" x-show="!loading && (!selectedData.stats || !selectedData.stats.stat_values)">
                                 Failed to load stats
                             </span>
                         </div>
@@ -122,12 +122,12 @@
             </div>
             
             <!-- Socket Information -->
-            <template x-if="selectedEquipment && selectedEquipment.total_sockets > 0">
+            <template x-if="selectedData && selectedData.total_sockets > 0">
                 <div class="flex flex-wrap gap-2 mt-2 justify-end">
                     <!-- Socket icons in order: Necklace > Cloak > Primary > Vital > Basic > PVP -->
                     
                     <!-- Necklace sockets (type 20) -->
-                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.necklace) || 0" :key="'necklace-' + i">
+                    <template x-for="i in (selectedData && selectedData.sockets && selectedData.sockets.necklace) || 0" :key="'necklace-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-20.png" alt="Necklace socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-20.png" alt="Necklace socket overlay" class="absolute inset-0 w-full h-full">
@@ -135,7 +135,7 @@
                     </template>
                     
                     <!-- Cloak sockets (type 19) -->
-                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.cloak) || 0" :key="'cloak-' + i">
+                    <template x-for="i in (selectedData && selectedData.sockets && selectedData.sockets.cloak) || 0" :key="'cloak-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-19.png" alt="Cloak socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-19.png" alt="Cloak socket overlay" class="absolute inset-0 w-full h-full">
@@ -143,7 +143,7 @@
                     </template>
                     
                     <!-- Primary sockets (type 22) -->
-                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.primary) || 0" :key="'primary-' + i">
+                    <template x-for="i in (selectedData && selectedData.sockets && selectedData.sockets.primary) || 0" :key="'primary-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-22.png" alt="Primary socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-22.png" alt="Primary socket overlay" class="absolute inset-0 w-full h-full">
@@ -151,7 +151,7 @@
                     </template>
                     
                     <!-- Vital sockets (type 23) -->
-                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.vital) || 0" :key="'vital-' + i">
+                    <template x-for="i in (selectedData && selectedData.sockets && selectedData.sockets.vital) || 0" :key="'vital-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-23.png" alt="Vital socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-23.png" alt="Vital socket overlay" class="absolute inset-0 w-full h-full">
@@ -159,7 +159,7 @@
                     </template>
                     
                     <!-- Basic sockets (type 1) -->
-                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.basic) || 0" :key="'basic-' + i">
+                    <template x-for="i in (selectedData && selectedData.sockets && selectedData.sockets.basic) || 0" :key="'basic-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-1.png" alt="Basic socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-1.png" alt="Basic socket overlay" class="absolute inset-0 w-full h-full">
@@ -167,7 +167,7 @@
                     </template>
                     
                     <!-- PVP sockets (type 18) -->
-                    <template x-for="i in (selectedEquipment && selectedEquipment.sockets && selectedEquipment.sockets.pvp) || 0" :key="'pvp-' + i">
+                    <template x-for="i in (selectedData && selectedData.sockets && selectedData.sockets.pvp) || 0" :key="'pvp-' + i">
                         <div class="w-8 h-8 relative flex-shrink-0">
                             <img src="/static/icons/sockets/background-18.png" alt="PVP socket background" class="absolute inset-0 w-full h-full">
                             <img src="/static/icons/sockets/overlay-18.png" alt="PVP socket overlay" class="absolute inset-0 w-full h-full">
@@ -189,7 +189,7 @@
         </div>
     </div>
 </template>
-<template x-if="!selectedEquipment">
+<template x-if="!selectedData">
     <div class="text-lotro-secondary text-center py-4">
         Select an equipment item to view details
     </div>

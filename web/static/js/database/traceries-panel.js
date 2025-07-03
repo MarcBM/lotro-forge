@@ -1,84 +1,71 @@
-// Traceries Panel Alpine.js Component (Placeholder)
+// Alpine.js component for traceries database panel
 document.addEventListener('alpine:init', () => {
     Alpine.data('traceriesPanel', (panelId) => ({
-        // Panel identification
         panelId: panelId,
-        // Component state
-        loading: false,
-        traceries: [],
-        selectedTracery: null,
+        databaseController: null,
         
         // Filter state
-        selectedType: '',
-        
-        // Filter options
-        filterOptions: [],
-        
-        // Sort state
-        currentSort: 'name',
-        availableSortOptions: [
-            { value: 'name', label: 'Name' },
-            { value: 'recent', label: 'Recent' },
-            { value: 'base_ilvl', label: 'Base iLvl' }
-        ],
-        
-        // Search state
-        searchQuery: '',
-        
-        async init() {
-            console.log('Database Traceries Panel component initialized (placeholder)');
-            this.loading = false;
-            
-            // Load available filter options
-            this.loadFilterOptions();
-            
-            // Listen for traceries-specific events from database controller
-            window.addEventListener('database-load-more-traceries', this.handleLoadMore.bind(this));
-            
-            // Listen for panel activation to load initial data
-            window.addEventListener('panel-opened-traceries', this.handlePanelOpened.bind(this));
+        filterOptions: {},
+        filterState: {
+            sort: 'name',
+            search: ''
         },
         
-        async handlePanelOpened() {
-            console.log('Traceries panel opened - showing placeholder (fresh)');
-            // For now, just show the placeholder content
-            // When implemented, this would reload traceries data with current filters
+        async init() {
+            const databaseControlElement = document.getElementById('database-controller');
+            if (!databaseControlElement) {
+                console.error('Database controller element not found');
+                return;
+            }
+            this.databaseController = Alpine.$data(databaseControlElement);
+            
+            this.loadFilterOptions();
+            
+            // Event listeners
+            window.addEventListener('database-load-more-traceries', this.handleLoadMore.bind(this));
+            window.addEventListener('panel-opened-traceries', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-traceries', this.handlePanelClosed.bind(this));
+            
+            console.log('Database Traceries Panel component initialized');
         },
         
         loadFilterOptions() {
-            // Use client-side filter configuration
+            // Load filter options from client-side config
             if (window.TraceriesFilters) {
-                this.filterOptions = window.TraceriesFilters.getTraceryTypes();
+                this.filterOptions = window.TraceriesFilters.getAllFilters();
             } else {
-                console.warn('TraceriesFilters not loaded, filter options will be empty');
-                this.filterOptions = [];
+                console.warn('TraceriesFilters not loaded, filter and sort options will be empty');
+                this.filterOptions = {};
             }
         },
-        
-        applyFilters() {
-            // Placeholder - would reset and reload with filters
-            console.log('Traceries filters applied (placeholder)');
+
+        handlePanelOpened() {
+            // this.loadData(); // Commented out - placeholder panel
+        },
+
+        handlePanelClosed() {
+            this.databaseController.clearData();
+            this.filterState.search = '';
         },
         
         handleLoadMore(event) {
-            // Placeholder - would load more traceries
-            console.log('Load more traceries requested (placeholder)');
+            this.loadData(event.detail.offset, event.detail.limit, true);
         },
 
-        handleSortChange() {
-            // Handle sort change directly on the panel (placeholder)
-            console.log(`Traceries sort changed to: ${this.currentSort} (placeholder)`);
+        async loadData(offset = 0, limit = 99, append = false) {
+            const apiUrl = window.TraceriesFilters.buildApiUrl(this.filterState, offset, limit);
+            const listOptions = {
+                offset: offset,
+                limit: limit,
+                append: append
+            };
+            
+            await this.databaseController.queryApi(apiUrl, listOptions);
         },
-        
-        handleSearchChange() {
-            // Handle search change directly on the panel (placeholder)
-            console.log(`Traceries search changed to: ${this.searchQuery} (placeholder)`);
-        },
-        
-        // Builder mode detection
-        isBuilderMode() {
-            const builderComponent = document.getElementById('builder-component');
-            return builderComponent && this.$el && builderComponent.contains(this.$el);
+
+        async selectTracery(tracery) {
+            const apiUrl = `/api/data/items/${tracery.key}/concrete`;
+            await this.databaseController.selectSpecificData(apiUrl, tracery);
         }
     }));
 }); 

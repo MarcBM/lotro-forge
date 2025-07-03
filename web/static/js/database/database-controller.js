@@ -1,6 +1,6 @@
-// Database Controller - Pure pagination utility
-// Provides pagination state and helpers for database content
-// No panel-specific logic - just pagination coordination
+// Database Controller - Handles pagination and data loading for database panels
+// Manages loading states, data lists, and selected items
+// Provides API query utilities and event dispatching
 
 document.addEventListener('alpine:init', () => {
     Alpine.data('databaseController', () => ({
@@ -12,20 +12,16 @@ document.addEventListener('alpine:init', () => {
             totalResults: null,
             currentlyShowing: 0
         },
+
+        dataList: [],
+        selectedData: null,
+        loading: false,
         
         init() {
             console.log('Database Controller (pagination utility) initialized');
-            
-            // Listen for pagination updates from data providers
-            window.addEventListener('update-database-pagination', this.handlePaginationUpdate.bind(this));
         },
         
-        // Handle pagination updates from data providers
-        handlePaginationUpdate(event) {
-            this.updatePagination(event.detail);
-        },
-        
-        // Results text helper
+        // Get current results status text
         getResultsText() {
             if (this.pagination.totalResults && this.pagination.currentlyShowing > 0) {
                 return `Showing ${this.pagination.currentlyShowing} of ${this.pagination.totalResults} results`;
@@ -38,14 +34,13 @@ document.addEventListener('alpine:init', () => {
             }
         },
         
-        // Load more handler - dispatches panel-specific event
+        // Trigger load more data for a panel
         loadMore(panelId) {
             if (this.pagination.loading || !panelId) return;
             
             console.log(`Load more requested for ${panelId} panel`);
             this.pagination.loading = true;
             
-            // Dispatch panel-specific event
             window.dispatchEvent(new CustomEvent(`database-load-more-${panelId}`, {
                 detail: {
                     offset: this.pagination.offset,
@@ -54,19 +49,77 @@ document.addEventListener('alpine:init', () => {
             }));
         },
         
-        // Update pagination state (called by data providers after loading)
-        updatePagination(paginationData) {
-            this.pagination.hasMore = paginationData.hasMore;
-            this.pagination.offset = paginationData.offset;
-            this.pagination.loading = false;
-            
-            if (paginationData.totalResults !== undefined) {
-                this.pagination.totalResults = paginationData.totalResults;
+        // Query API endpoint and handle pagination/list updates
+        async queryApi(apiUrl, listOptions = null) {
+            if (this.loading) return;
+
+            let result = null;
+
+            try {
+                this.loading = true;
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('Failed to load data');
+                }
+                
+                const data = await response.json();
+                result = data.result;
+                
+                if (listOptions) {
+                    if (listOptions.append) {
+                        this.dataList = [...this.dataList, ...result];
+                    } else {
+                        this.dataList = result;
+                    }
+                    this.pagination.totalResults = data.total;
+                    this.pagination.currentlyShowing = this.dataList.length;
+                    this.pagination.hasMore = data.has_more;
+                    this.pagination.offset = listOptions.offset + listOptions.limit;
+                }
+            } catch (error) {
+                console.error("Error loading data: ", error);
+
+                if (listOptions) {
+                    if (!listOptions.append) {
+                        this.dataList = [];
+                    }
+
+                    this.pagination.hasMore = false;
+                    this.pagination.offset = listOptions.offset;
+                    this.pagination.totalResults = 0;
+                    this.pagination.currentlyShowing = this.dataList.length;
+                }
+            } finally {
+                this.loading = false;
             }
-            
-            if (paginationData.currentlyShowing !== undefined) {
-                this.pagination.currentlyShowing = paginationData.currentlyShowing;
+
+            return result;
+        },
+
+        // Load detailed data for a selected item
+        async selectSpecificData(apiUrl, data) {
+            if (this.loading || (this.selectedData && this.selectedData.key === data.key)) {
+                return;
             }
-        }
+            try {
+                this.selectedData = await this.queryApi(apiUrl);
+            } catch (error) {
+                console.error("Error loading specific item: ", error);
+            }
+        },
+
+        // Clear all data and reset pagination state
+        clearData() {
+            // Clear data immediately to prevent template errors
+            // Use empty object instead of null to prevent Alpine.js evaluation issues
+            this.selectedData = {};
+            this.dataList = [];
+            
+            // Reset pagination state
+            this.pagination.offset = 0;
+            this.pagination.totalResults = null;
+            this.pagination.currentlyShowing = 0;
+            this.pagination.hasMore = false;
+        },
     }));
 }); 

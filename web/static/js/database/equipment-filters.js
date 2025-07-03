@@ -1,11 +1,8 @@
 /**
- * Equipment Filter Configuration
- * 
- * This file contains the client-side filter configuration for equipment slots,
- * removing the need for API calls to get filter options.
+ * Client-side equipment filter configuration to avoid API calls for filter options
  */
 
-// Slot grouping configuration for dropdown display
+// Maps slot groups to their database slots
 const EQUIPMENT_SLOT_GROUPS = {
     "EAR": ["EAR", "LEFT_EAR", "RIGHT_EAR"],
     "LEFT_EAR": ["EAR", "LEFT_EAR"],
@@ -31,18 +28,19 @@ const EQUIPMENT_SLOT_GROUPS = {
     "CLASS_SLOT": ["CLASS_SLOT"]
 };
 
+// Slots only shown in character builder
 const BUILDER_ONLY_SLOT_GROUPS = [
     "Left Ear", "Right Ear", "Left Wrist", "Right Wrist", "Left Finger", "Right Finger"
 ];
 
-// Ordered list for consistent dropdown display
+// Display order for slot dropdown
 const EQUIPMENT_SLOT_GROUP_ORDER = [
     "Ear", "Left Ear", "Right Ear", "Neck", "Pocket", "Wrist", "Left Wrist", "Right Wrist", "Finger", "Left Finger", "Right Finger", 
     "Head", "Shoulder", "Back", "Chest", "Hand", "Legs", "Feet",
     "Main Hand", "Off Hand", "Ranged Item", "Class Slot"
 ];
 
-// All possible equipment slots (for reference and validation)
+// All valid equipment slots
 const EQUIPMENT_SLOTS = [
     "EAR", "LEFT_EAR", "RIGHT_EAR",
     "NECK",
@@ -61,21 +59,14 @@ const EQUIPMENT_SLOTS = [
     "CLASS_SLOT"
 ];
 
-/**
- * Equipment Filter Helper Class
- */
 class EquipmentFilters {
     
-    /**
-     * Get all slot groups with their display names and database slots
-     * @returns {Array} Array of slot group objects
-     */
+    // Get slot groups for dropdown, excluding builder-only slots if not in builder mode
     static getSlotGroups(builderMode = false) {
         const groups = [];
         
         for (const groupName of EQUIPMENT_SLOT_GROUP_ORDER) {
             
-            // If not builder mode, exclude groups that are only available in builder mode
             if (!builderMode && BUILDER_ONLY_SLOT_GROUPS.includes(groupName)) {
                 continue;
             }
@@ -89,10 +80,7 @@ class EquipmentFilters {
         return groups;
     }
     
-    /**
-     * Get available sort options for equipment
-     * @returns {Array} Array of sort option objects
-     */
+    // Get sort options, including EV if in builder mode
     static getSortOptions(builderMode = false) {
         const options = [];
         if (builderMode) {
@@ -104,10 +92,7 @@ class EquipmentFilters {
         return options;
     }
     
-    /**
-     * Get all available filters with their options and lock status
-     * @returns {Object} Object containing all filter configurations
-     */
+    // Get all filter options and their states
     static getAllFilters(builderMode = false) {
         return {
             sort: {
@@ -120,25 +105,16 @@ class EquipmentFilters {
                 options: this.getSlotGroups(builderMode),
                 locked: false
             }
-            // Future filters (quality, level, etc.) will be added here
         };
     }
     
-    /**
-     * Build the complete API URL for equipment requests using filterState
-     * @param {Object} filterState - The current filter state object
-     * @param {number} offset - Pagination offset
-     * @param {number} limit - Pagination limit
-     * @returns {string} Complete API URL with query parameters
-     */
+    // Build API URL with current filters and pagination
     static buildApiUrl(filterState, offset = 0, limit = 99) {
         const params = new URLSearchParams();
         
-        // Pagination
         params.append('limit', limit);
         params.append('skip', offset);
         
-        // Slot filtering - convert slot filter to actual slots array
         if (filterState.slot) {
             const selectedGroup = EQUIPMENT_SLOT_GROUPS[filterState.slot];
             if (selectedGroup) {
@@ -146,12 +122,10 @@ class EquipmentFilters {
             }
         }
         
-        // Search
         if (filterState.search) {
             params.append('search', filterState.search);
         }
         
-        // Sorting
         if (filterState.sort) {
             params.append('sort', filterState.sort);
         }
@@ -160,5 +134,4 @@ class EquipmentFilters {
     }
 }
 
-// Export for use in other modules
 window.EquipmentFilters = EquipmentFilters;

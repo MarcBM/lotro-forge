@@ -10,26 +10,7 @@
 
 {% block filter_column %}
 <div class="space-y-4">
-    <!-- Trait Category Filter -->
-    <div>
-        <label class="block text-sm font-medium text-lotro-primary mb-2">
-            Category
-        </label>
-        <select x-model="selectedCategory" 
-                @change="applyFilters()"
-                class="w-full bg-lotro-darker border border-lotro-border rounded-lg px-3 py-2 text-lotro-primary focus:border-lotro-gold focus:outline-none">
-            <option value="">All Categories</option>
-            <!-- Placeholder options - will be populated from filters -->
-            <option value="class">Class Traits</option>
-            <option value="virtue">Virtue Traits</option>
-            <option value="deed">Deed Traits</option>
-        </select>
-    </div>
-    
-    <!-- Coming Soon Notice -->
-    <div class="bg-lotro-uncommon/10 border border-lotro-uncommon/30 rounded-lg p-3">
-        <h4 class="text-sm font-medium text-lotro-uncommon mb-2">🚧 Coming Soon</h4>
-    </div>
+    <!-- No filters defined yet -->
 </div>
 {% endblock %}
 

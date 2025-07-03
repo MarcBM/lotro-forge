@@ -32,7 +32,7 @@
                         </div>
                         <!-- Sort By dropdown -->
                         <select x-model="filterState.sort" 
-                                @change="resetAndLoad()"
+                                @change="loadData()"
                                 class="bg-lotro-darker text-lotro-primary px-3 py-1 rounded border border-lotro-border focus:border-lotro-gold focus:outline-none">
                             <template x-for="option in filterOptions.sort.options" :key="option.value">
                                 <option :value="option.value" x-text="option.label" :selected="option.value === filterState.sort"></option>
@@ -43,7 +43,7 @@
                 <div class="flex gap-2">
                     <input type="text" 
                            x-model="filterState.search"
-                           @input.debounce.300ms="resetAndLoad()"
+                           @input.debounce.300ms="loadData()"
                            placeholder="Search..." 
                            class="flex-1 bg-lotro-darker text-lotro-primary px-4 py-2 rounded border border-lotro-border focus:outline-none">
                 </div>
@@ -90,11 +90,19 @@
             
             <!-- Scrollable Details Content -->
             <div class="flex-1 overflow-y-auto p-4">
-                {% block details_column %}
-                <div class="text-lotro-secondary text-center py-4">
-                    No details defined
-                </div>
-                {% endblock %}
+                <!-- Only show details when selectedData has actual content -->
+                <template x-if="selectedData && Object.keys(selectedData).length > 0">
+                    {% block details_column %}
+                    <div class="text-lotro-secondary text-center py-4">
+                        No details defined
+                    </div>
+                    {% endblock %}
+                </template>
+                <template x-if="!selectedData || Object.keys(selectedData).length === 0">
+                    <div class="text-lotro-secondary text-center py-4">
+                        Select an item to view details
+                    </div>
+                </template>
             </div>
         </div>
     </div>

@@ -1,42 +1,33 @@
-// Sets Panel Alpine.js Component (Placeholder)
+// Alpine.js component for sets database panel
 document.addEventListener('alpine:init', () => {
     Alpine.data('setsPanel', (panelId) => ({
-        // Panel identification
         panelId: panelId,
-        // Component state
-        loading: false,
-        sets: [],
-        selectedSet: null,
+        databaseController: null,
         
         // Filter state
-        selectedType: '',
-        
-        // Filter options
-        filterOptions: [],
-        
-        // Sort state
-        currentSort: 'name',
-        availableSortOptions: [
-            { value: 'name', label: 'Name' },
-            { value: 'recent', label: 'Recent' },
-            { value: 'base_ilvl', label: 'Base iLvl' }
-        ],
-        
-        // Search state
-        searchQuery: '',
+        filterOptions: {},
+        filterState: {
+            sort: 'name',
+            search: ''
+        },
         
         async init() {
-            console.log('Database Sets Panel component initialized (placeholder)');
-            this.loading = false;
+            const databaseControlElement = document.getElementById('database-controller');
+            if (!databaseControlElement) {
+                console.error('Database controller element not found');
+                return;
+            }
+            this.databaseController = Alpine.$data(databaseControlElement);
             
-            // Load available filter options
             this.loadFilterOptions();
             
-            // Listen for sets-specific events from database controller
-            window.addEventListener('database-load-more-sets', this.handleLoadMore.bind(this));
+            // Setup event listeners
             
-            // Listen for panel activation to load initial data
+            window.addEventListener('database-load-more-sets', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-sets', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-sets', this.handlePanelClosed.bind(this));
+            
+            console.log('Database Sets Panel component initialized');
         },
         
         async handlePanelOpened() {
@@ -46,39 +37,42 @@ document.addEventListener('alpine:init', () => {
         },
         
         loadFilterOptions() {
-            // Use client-side filter configuration
+            // Load filter options from client-side config
             if (window.SetsFilters) {
-                this.filterOptions = window.SetsFilters.getSetTypes();
+                this.filterOptions = window.SetsFilters.getAllFilters();
             } else {
-                console.warn('SetsFilters not loaded, filter options will be empty');
-                this.filterOptions = [];
+                console.warn('SetsFilters not loaded, filter and sort options will be empty');
+                this.filterOptions = {};
             }
         },
-        
-        applyFilters() {
-            // Placeholder - would reset and reload with filters
-            console.log('Sets filters applied (placeholder)');
+
+        handlePanelOpened() {
+            // this.loadData(); // Commented out - placeholder panel
+        },
+
+        handlePanelClosed() {
+            this.databaseController.clearData();
+            this.filterState.search = '';
         },
         
         handleLoadMore(event) {
-            // Placeholder - would load more sets
-            console.log('Load more sets requested (placeholder)');
+            this.loadData(event.detail.offset, event.detail.limit, true);
         },
 
-        handleSortChange() {
-            // Handle sort change directly on the panel (placeholder)
-            console.log(`Sets sort changed to: ${this.currentSort} (placeholder)`);
+        async loadData(offset = 0, limit = 99, append = false) {
+            const apiUrl = window.SetsFilters.buildApiUrl(this.filterState, offset, limit);
+            const listOptions = {
+                offset: offset,
+                limit: limit,
+                append: append
+            };
+            
+            await this.databaseController.queryApi(apiUrl, listOptions);
         },
-        
-        handleSearchChange() {
-            // Handle search change directly on the panel (placeholder)
-            console.log(`Sets search changed to: ${this.searchQuery} (placeholder)`);
-        },
-        
-        // Builder mode detection
-        isBuilderMode() {
-            const builderComponent = document.getElementById('builder-component');
-            return builderComponent && this.$el && builderComponent.contains(this.$el);
+
+        async selectSet(set) {
+            const apiUrl = `/api/data/items/${set.key}/concrete`;
+            await this.databaseController.selectSpecificData(apiUrl, set);
         }
     }));
 }); 

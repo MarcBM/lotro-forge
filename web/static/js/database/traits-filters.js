@@ -1,57 +1,55 @@
 /**
- * Traits Filter Configuration
- * 
- * This file contains the client-side filter configuration for trait categories and types,
- * removing the need for API calls to get filter options.
- * 
- * NOTE: This is a placeholder implementation for future development.
+ * Client-side filter configuration for traits.
+ * Provides static filter options and URL building.
  */
 
-// Trait category configuration (placeholder)
-const TRAIT_CATEGORIES = {
-    'class': 'Class Traits',
-    'virtue': 'Virtue Traits', 
-    'deed': 'Deed Traits',
-    'racial': 'Racial Traits'
-};
-
-/**
- * Traits Filter Helper Class
- */
 class TraitsFilters {
     
     /**
-     * Get all trait categories with their display names
-     * @returns {Array} Array of trait category objects
+     * Returns available sort options
      */
-    static getTraitCategories() {
-        return Object.entries(TRAIT_CATEGORIES).map(([key, name]) => ({
-            key: key,
-            label: name
-        }));
+    static getSortOptions() {
+        return [
+            { value: 'name', label: 'Name' },
+            { value: 'recent', label: 'Recent' },
+            { value: 'base_ilvl', label: 'Base iLvl' }
+        ];
     }
     
     /**
-     * Build query parameters for traits API call
-     * @param {Object} filters - Filter configuration object
-     * @returns {URLSearchParams} URL search parameters
+     * Returns all filter configurations
      */
-    static buildQueryParams(filters) {
+    static getAllFilters() {
+        return {
+            sort: {
+                options: this.getSortOptions()
+            },
+            search: {
+                value: ''
+            }
+        };
+    }
+    
+    /**
+     * Builds API URL with filter parameters
+     */
+    static buildApiUrl(filterState, offset = 0, limit = 99) {
         const params = new URLSearchParams();
         
-        // Pagination
-        if (filters.limit) params.append('limit', filters.limit);
-        if (filters.skip) params.append('skip', filters.skip);
+        params.append('limit', limit);
+        params.append('skip', offset);
         
-        // Category filtering
-        if (filters.category) params.append('category', filters.category);
+        if (filterState.search) {
+            params.append('search', filterState.search);
+        }
         
-        // Sorting
-        if (filters.sort) params.append('sort', filters.sort);
-        
-        return params;
+        if (filterState.sort) {
+            params.append('sort', filterState.sort);
+        }
+
+        return `/api/data/traits/?${params.toString()}`;
     }
 }
 
-// Make available globally
+// Export globally
 window.TraitsFilters = TraitsFilters; 

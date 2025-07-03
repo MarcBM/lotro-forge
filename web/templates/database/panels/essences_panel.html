@@ -15,12 +15,12 @@
         <label class="block text-sm font-medium text-lotro-primary mb-2">
             Type
         </label>
-        <select x-model="selectedEssenceType" 
-                @change="applyFilters()"
+        <select x-model="filterState.essence_type" 
+                @change="loadData()"
                 class="w-full bg-lotro-darker border border-lotro-border rounded-lg px-3 py-2 text-lotro-primary focus:border-lotro-gold focus:outline-none">
             <option value="">All Types</option>
-            <template x-for="type in availableEssenceTypes" :key="type.id">
-                <option :value="type.id" x-text="type.name"></option>
+            <template x-for="type in filterOptions.essence_type.options" :key="type.value">
+                <option :value="type.value" x-text="type.label"></option>
             </template>
         </select>
     </div>
@@ -29,7 +29,7 @@
 
 {% block results_grid %}
 <div class="grid grid-cols-3 gap-4">
-    <template x-for="(essence, index) in essences" :key="essence.key">
+    <template x-for="(essence, index) in dataList" :key="essence.key">
         <div class="bg-lotro-darker rounded-lg border border-lotro-border p-4 hover:border-lotro-gold transition-colors duration-200 cursor-pointer relative h-24"
              @click="selectEssence(essence)">
             <!-- Essence Key -->
@@ -75,7 +75,7 @@
 {% endblock %}
 
 {% block details_column %}
-<template x-if="selectedEssence">
+<template x-if="selectedData">
     <div class="space-y-4">
         <!-- Icon and Title -->
         <div class="space-y-2">
@@ -83,9 +83,9 @@
             <div class="flex items-start gap-4">
                 <!-- Essence Icon -->
                 <div class="w-16 h-16 flex-shrink-0 relative">
-                    <template x-if="selectedEssence && selectedEssence.icon_urls && Array.isArray(selectedEssence.icon_urls)">
+                    <template x-if="selectedData && selectedData.icon_urls && Array.isArray(selectedData.icon_urls)">
                         <div>
-                            <template x-for="(url, i) in selectedEssence.icon_urls.slice().reverse()" :key="i">
+                            <template x-for="(url, i) in selectedData.icon_urls.slice().reverse()" :key="i">
                                 <img :src="url" 
                                      :alt="'Essence icon layer ' + (i + 1)"
                                      class="absolute inset-0 w-full h-full object-contain"
@@ -93,7 +93,7 @@
                             </template>
                         </div>
                     </template>
-                    <template x-if="!selectedEssence || !selectedEssence.icon_urls || !Array.isArray(selectedEssence.icon_urls)">
+                    <template x-if="!selectedData || !selectedData.icon_urls || !Array.isArray(selectedData.icon_urls)">
                         <div class="w-full h-full bg-lotro-button rounded"></div>
                     </template>
                 </div>
@@ -104,13 +104,13 @@
                     <div class="h-16 flex items-center">
                         <h3 class="text-xl font-bold line-clamp-2"
                             :class="{
-                                'text-lotro-common': selectedEssence && selectedEssence.quality === 'COMMON',
-                                'text-lotro-uncommon': selectedEssence && selectedEssence.quality === 'UNCOMMON',
-                                'text-lotro-rare': selectedEssence && selectedEssence.quality === 'RARE',
-                                'text-lotro-incomparable': selectedEssence && selectedEssence.quality === 'INCOMPARABLE',
-                                'text-lotro-legendary': selectedEssence && selectedEssence.quality === 'LEGENDARY'
+                                'text-lotro-common': selectedData && selectedData.quality === 'COMMON',
+                                'text-lotro-uncommon': selectedData && selectedData.quality === 'UNCOMMON',
+                                'text-lotro-rare': selectedData && selectedData.quality === 'RARE',
+                                'text-lotro-incomparable': selectedData && selectedData.quality === 'INCOMPARABLE',
+                                'text-lotro-legendary': selectedData && selectedData.quality === 'LEGENDARY'
                             }"
-                            x-text="selectedEssence.name"></h3>
+                            x-text="selectedData.name"></h3>
                     </div>
                 </div>
             </div>
@@ -119,10 +119,10 @@
             <div class="flex justify-between items-center text-sm text-lotro-secondary -mt-1">
                 <div>
                     <span>iLvl: </span>
-                    <span x-text="selectedEssence.base_ilvl"></span>
+                    <span x-text="selectedData.base_ilvl"></span>
                 </div>
                 <div class="text-lotro-muted">
-                    <span x-text="selectedEssence.essence_type_name || 'Unknown Type'"></span>
+                    <span x-text="selectedData.essence_type_name || 'Unknown Type'"></span>
                 </div>
             </div>
             
@@ -130,9 +130,9 @@
             <div class="border-t border-lotro-border pt-3">
                 <div class="text-sm text-lotro-secondary space-y-1">
                     <!-- Stats -->
-                    <template x-if="selectedEssence && selectedEssence.stats && selectedEssence.stats.stat_values && Array.isArray(selectedEssence.stats.stat_values)">
+                    <template x-if="selectedData && selectedData.stats && selectedData.stats.stat_values && Array.isArray(selectedData.stats.stat_values)">
                         <div class="space-y-1">
-                            <template x-for="stat in selectedEssence.stats.stat_values" :key="stat.stat_name">
+                            <template x-for="stat in selectedData.stats.stat_values" :key="stat.stat_name">
                                 <div class="flex justify-between">
                                     <span x-text="stat.stat_name"></span>
                                     <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
@@ -142,12 +142,9 @@
                     </template>
                     
                     <!-- Fallback when stats are loading -->
-                    <template x-if="selectedEssence && (loadingStats || !selectedEssence.stats || !selectedEssence.stats.stat_values)">
+                    <template x-if="selectedData && (!selectedData.stats || !selectedData.stats.stat_values)">
                         <div class="text-lotro-muted text-center py-2">
-                            <span class="text-xs" x-show="loadingStats">
-                                <span class="animate-pulse">Loading detailed stats...</span>
-                            </span>
-                            <span class="text-xs" x-show="!loadingStats && (!selectedEssence.stats || !selectedEssence.stats.stat_values)">
+                            <span class="text-xs">
                                 Failed to load stats
                             </span>
                         </div>
@@ -170,7 +167,7 @@
         </div>
     </div>
 </template>
-<template x-if="!selectedEssence">
+<template x-if="!selectedData">
     <div class="text-lotro-secondary text-center py-4">
         Select an essence to view details
     </div>

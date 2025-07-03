@@ -1,84 +1,71 @@
-// Sources Panel Alpine.js Component (Placeholder)
+// Alpine.js component for sources database panel
 document.addEventListener('alpine:init', () => {
     Alpine.data('sourcesPanel', (panelId) => ({
-        // Panel identification
         panelId: panelId,
-        // Component state
-        loading: false,
-        sources: [],
-        selectedSource: null,
+        databaseController: null,
         
         // Filter state
-        selectedType: '',
-        
-        // Filter options
-        filterOptions: [],
-        
-        // Sort state
-        currentSort: 'name',
-        availableSortOptions: [
-            { value: 'name', label: 'Name' },
-            { value: 'recent', label: 'Recent' },
-            { value: 'base_ilvl', label: 'Base iLvl' }
-        ],
-        
-        // Search state
-        searchQuery: '',
-        
-        async init() {
-            console.log('Database Sources Panel component initialized (placeholder)');
-            this.loading = false;
-            
-            // Load available filter options
-            this.loadFilterOptions();
-            
-            // Listen for sources-specific events from database controller
-            window.addEventListener('database-load-more-sources', this.handleLoadMore.bind(this));
-            
-            // Listen for panel activation to load initial data
-            window.addEventListener('panel-opened-sources', this.handlePanelOpened.bind(this));
+        filterOptions: {},
+        filterState: {
+            sort: 'name',
+            search: ''
         },
         
-        async handlePanelOpened() {
-            console.log('Sources panel opened - showing placeholder (fresh)');
-            // For now, just show the placeholder content
-            // When implemented, this would reload sources data with current filters
+        async init() {
+            const databaseControlElement = document.getElementById('database-controller');
+            if (!databaseControlElement) {
+                console.error('Database controller element not found');
+                return;
+            }
+            this.databaseController = Alpine.$data(databaseControlElement);
+            
+            this.loadFilterOptions();
+            
+            // Event listeners
+            window.addEventListener('database-load-more-sources', this.handleLoadMore.bind(this));
+            window.addEventListener('panel-opened-sources', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-sources', this.handlePanelClosed.bind(this));
+            
+            console.log('Database Sources Panel component initialized');
         },
         
         loadFilterOptions() {
-            // Use client-side filter configuration
+            // Load filter options from client-side config
             if (window.SourcesFilters) {
-                this.filterOptions = window.SourcesFilters.getSourceTypes();
+                this.filterOptions = window.SourcesFilters.getAllFilters();
             } else {
-                console.warn('SourcesFilters not loaded, filter options will be empty');
-                this.filterOptions = [];
+                console.warn('SourcesFilters not loaded, filter and sort options will be empty');
+                this.filterOptions = {};
             }
         },
-        
-        applyFilters() {
-            // Placeholder - would reset and reload with filters
-            console.log('Sources filters applied (placeholder)');
+
+        handlePanelOpened() {
+            // this.loadData(); // Commented out - placeholder panel
+        },
+
+        handlePanelClosed() {
+            this.databaseController.clearData();
+            this.filterState.search = '';
         },
         
         handleLoadMore(event) {
-            // Placeholder - would load more sources
-            console.log('Load more sources requested (placeholder)');
+            this.loadData(event.detail.offset, event.detail.limit, true);
         },
 
-        handleSortChange() {
-            // Handle sort change directly on the panel (placeholder)
-            console.log(`Sources sort changed to: ${this.currentSort} (placeholder)`);
+        async loadData(offset = 0, limit = 99, append = false) {
+            const apiUrl = window.SourcesFilters.buildApiUrl(this.filterState, offset, limit);
+            const listOptions = {
+                offset: offset,
+                limit: limit,
+                append: append
+            };
+            
+            await this.databaseController.queryApi(apiUrl, listOptions);
         },
-        
-        handleSearchChange() {
-            // Handle search change directly on the panel (placeholder)
-            console.log(`Sources search changed to: ${this.searchQuery} (placeholder)`);
-        },
-        
-        // Builder mode detection
-        isBuilderMode() {
-            const builderComponent = document.getElementById('builder-component');
-            return builderComponent && this.$el && builderComponent.contains(this.$el);
+
+        async selectSource(source) {
+            const apiUrl = `/api/data/items/${source.key}/concrete`;
+            await this.databaseController.selectSpecificData(apiUrl, source);
         }
     }));
 }); 

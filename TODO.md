@@ -59,7 +59,11 @@
 **Priority:** Low  
 **Description:** Essence icons in the database panel are displaying slightly off-center. Adjust CSS positioning/alignment to center the icons properly within their containers.
 
+### 18. Add Global Tracking for Equipment Values
+**Priority:** Low  
+**Description:** Implement global tracking system for data values such as maxIlvl, minIlvl, and other statistical ranges. This would provide centralized management of these values across the application, making it easier to maintain consistency and update limits when needed.
+
 ---
 
-**Next Work Item Number:** 18
+**Next Work Item Number:** 19
 

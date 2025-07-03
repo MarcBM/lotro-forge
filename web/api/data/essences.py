@@ -60,9 +60,9 @@ async def query_essences(
         if sort == "name":
             query = query.order_by(Essence.name.asc())
         elif sort == "base_ilvl":
-            query = query.order_by(Essence.base_ilvl.desc())
+            query = query.order_by(Essence.base_ilvl.desc(), Essence.name.asc())
         else:  # recent or default
-            query = query.order_by(Essence.key.desc())
+            query = query.order_by(Essence.key.desc(), Essence.name.asc())
         
         # Get total count for pagination info (before applying limit/offset)
         total_count = query.count()
@@ -74,7 +74,7 @@ async def query_essences(
         essence_data = [essence.to_list_json() for essence in essence_items]
         
         return {
-            "essences": essence_data,
+            "result": essence_data,
             "total": total_count,
             "limit": limit,
             "skip": skip,

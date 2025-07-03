@@ -35,7 +35,9 @@ async def get_item(
             raise HTTPException(status_code=404, detail="Item not found")
         
         # Use polymorphic to_json method - each subclass provides appropriate data
-        return item.to_json()
+        return {
+            "result": item.to_json()
+        }
         
     except HTTPException:
         raise
@@ -59,7 +61,9 @@ async def get_item_stats(
             raise HTTPException(status_code=404, detail="Item not found")
         
         # Use polymorphic get_stats_json method - handles type-specific stats like DPS
-        return item.get_stats_json(ilvl)
+        return {
+            "result": item.get_stats_json(ilvl)
+        }
         
     except HTTPException:
         raise
@@ -95,9 +99,11 @@ async def get_concrete_item(
         
         # Combine into a single response
         return {
-            **item_data,  # All base item properties
-            "concrete_ilvl": target_ilvl,  # The level these stats are calculated for
-            "stats": stats_data  # Calculated stats at the target level
+            "result": {
+                **item_data,  # All base item properties
+                "concrete_ilvl": target_ilvl,  # The level these stats are calculated for
+                "stats": stats_data  # Calculated stats at the target level
+            }
         }
         
     except HTTPException:

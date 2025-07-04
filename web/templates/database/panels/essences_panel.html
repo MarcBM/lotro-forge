@@ -130,9 +130,9 @@
             <div class="border-t border-lotro-border pt-3">
                 <div class="text-sm text-lotro-secondary space-y-1">
                     <!-- Stats -->
-                    <template x-if="selectedData && selectedData.stats && selectedData.stats.stat_values && Array.isArray(selectedData.stats.stat_values)">
+                    <template x-if="selectedData && selectedData.stats && Array.isArray(selectedData.stats)">
                         <div class="space-y-1">
-                            <template x-for="stat in selectedData.stats.stat_values" :key="stat.stat_name">
+                            <template x-for="stat in selectedData.stats" :key="stat.stat_name">
                                 <div class="flex justify-between">
                                     <span x-text="stat.stat_name"></span>
                                     <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
@@ -142,7 +142,7 @@
                     </template>
                     
                     <!-- Fallback when stats are loading -->
-                    <template x-if="selectedData && (!selectedData.stats || !selectedData.stats.stat_values)">
+                    <template x-if="selectedData && !selectedData.stats">
                         <div class="text-lotro-muted text-center py-2">
                             <span class="text-xs">
                                 Failed to load stats

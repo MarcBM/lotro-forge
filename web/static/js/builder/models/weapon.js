@@ -7,8 +7,10 @@ class Weapon extends Equipment {
     constructor(data = {}) {
         super(data); // Call parent constructor
         
-        // Weapon-specific properties will be added as requirements are clarified
+        // Weapon-specific properties
+        this.weapon_type = data.weapon_type || '';
+        this.damage_type = data.damage_type || '';
+        
+        // Weapon-specific methods will be added as needed
     }
-
-    // Weapon-specific methods will be added as needed
 } 

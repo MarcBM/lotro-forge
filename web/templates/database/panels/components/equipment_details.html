@@ -67,37 +67,30 @@
                         <span x-text="selectedData ? selectedData.slot : ''"></span>
                     </template>
                 </div>
-
             </div>
             
-            <!-- Weapon DPS display (replaces ARMOUR for weapons) -->
-            <template x-if="selectedData && selectedData.weapon_type && selectedData.stats && selectedData.stats.calculated_dps">
-                <div class="flex justify-between text-sm text-lotro-secondary mb-2">
-                    <span>DPS</span>
-                    <span class="text-lotro-primary" x-text="selectedData.stats.calculated_dps.toFixed(1)"></span>
-                </div>
-            </template>
-            
-            <!-- ARMOUR stat above the line (only for items with armour_type) -->
-            <template x-if="selectedData && selectedData.armour_type && selectedData.stats && selectedData.stats.stat_values">
-                <template x-for="stat in selectedData.stats.stat_values" :key="'armour-' + stat.stat_name">
-                    <template x-if="stat.stat_name === 'ARMOUR'">
-                        <div class="flex justify-between text-sm text-lotro-secondary mb-2">
-                            <span>ARMOUR</span>
-                            <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
-                        </div>
+            <!-- ARMOUR and DPS stats above the line -->
+            <template x-if="selectedData && selectedData.stats && Array.isArray(selectedData.stats)">
+                <div class="space-y-1">
+                    <template x-for="stat in selectedData.stats" :key="stat.stat_name">
+                        <template x-if="(stat.stat_name === 'ARMOUR' || stat.stat_name === 'DPS')">
+                            <div class="flex justify-between text-sm text-lotro-secondary mb-2">
+                                <span x-text="stat.stat_name"></span>
+                                <span class="text-lotro-primary" x-text="stat.stat_name === 'DPS' ? stat.value.toFixed(1) : Math.floor(stat.value)"></span>
+                            </div>
+                        </template>
                     </template>
-                </template>
+                </div>
             </template>
             
             <!-- Equipment Stats -->
             <div class="border-t border-lotro-border pt-3">
                 <div class="text-sm text-lotro-secondary space-y-1">
                     <!-- Other stats (skip ARMOUR if it has armour_type since it's shown above) -->
-                    <template x-if="selectedData && selectedData.stats && selectedData.stats.stat_values && Array.isArray(selectedData.stats.stat_values)">
+                    <template x-if="selectedData && selectedData.stats && Array.isArray(selectedData.stats)">
                         <div class="space-y-1">
-                            <template x-for="stat in selectedData.stats.stat_values" :key="stat.stat_name">
-                                <template x-if="!(selectedData.armour_type && stat.stat_name === 'ARMOUR')">
+                            <template x-for="stat in selectedData.stats" :key="stat.stat_name">
+                                <template x-if="!(stat.stat_name === 'ARMOUR' || stat.stat_name === 'DPS')">
                                     <div class="flex justify-between">
                                         <span x-text="stat.stat_name"></span>
                                         <span class="text-lotro-primary" x-text="Math.floor(stat.value)"></span>
@@ -108,12 +101,12 @@
                     </template>
                     
                     <!-- Fallback when stats are loading -->
-                    <template x-if="selectedData && (loading || !selectedData.stats || !selectedData.stats.stat_values)">
+                    <template x-if="selectedData && (loading || !selectedData.stats)">
                         <div class="text-lotro-muted text-center py-2">
                             <span class="text-xs" x-show="loading">
                                 <span class="animate-pulse">Loading detailed stats...</span>
                             </span>
-                            <span class="text-xs" x-show="!loading && (!selectedData.stats || !selectedData.stats.stat_values)">
+                            <span class="text-xs" x-show="!loading && !selectedData.stats">
                                 Failed to load stats
                             </span>
                         </div>
@@ -186,6 +179,19 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Equip Button - Only show in builder mode -->
+                <template x-if="equipmentManager">
+                    <div class="border-t border-lotro-border pt-3 mt-3">
+                        <button @click="equipmentManager.equipSelectedItem()"
+                                class="w-full bg-lotro-gold hover:bg-lotro-gold/80 text-lotro-dark font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Equip Item
+                        </button>
+                    </div>
+                </template>
         </div>
     </div>
 </template>

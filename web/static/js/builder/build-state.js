@@ -26,23 +26,30 @@ document.addEventListener('alpine:init', () => {
             
             // Armour slots
             HEAD: null,
-            SHOULDERS: null,
+            SHOULDER: null,
             BACK: null,
             CHEST: null,
-            HANDS: null,
+            HAND: null,
             LEGS: null,
             FEET: null,
             
             // Weapon slots
             MAIN_HAND: null,
             OFF_HAND: null,
-            RANGED: null,
-            CLASS: null
+            RANGED_ITEM: null,
+            CLASS_SLOT: null
         },
 
         // Essences
         essences: {
-            // Essence data will be defined as needed
+            sockets: {
+                basic: 0,
+                primary: 0,
+                vital: 0,
+                cloak: 0,
+                necklace: 0,
+                pvp: 0
+            }
         },
 
         // Character traits, buffs, etc.
@@ -57,6 +64,26 @@ document.addEventListener('alpine:init', () => {
         init() {
             logComponent('BuildState', 'initialized');
             // Initialization logic
-        }
+        },
+
+        /**
+         * Equip an item to a specific slot
+         * @param {string} slotName - The name of the equipment slot
+         * @param {Object} item - The equipment item to set
+         * @returns {boolean} True if successful, false otherwise
+         */
+        equipItem(slotName, item) {
+            if (!(slotName in this.equipment)) {
+                logError(`Invalid equipment slot: ${slotName}`);
+                return false;
+            }
+            
+            this.equipment[slotName] = item;
+            return true;
+        },
+
+        countEssenceSockets() {
+            // TODO
+        },
     }));
 }); 

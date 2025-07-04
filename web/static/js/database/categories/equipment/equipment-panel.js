@@ -122,8 +122,8 @@ document.addEventListener('alpine:init', () => {
                 apiUrl = `/api/data/items/${this.databaseController.selectedData.key}/stats?ilvl=${newIlvl}`;
                 const newStats = await this.databaseController.queryApi(apiUrl);
                 
-                this.databaseController.selectedData.stats = newStats;
-                this.databaseController.selectedData.concrete_ilvl = newIlvl;
+                this.databaseController.selectedData.stats = newStats.stat_values;
+                this.databaseController.selectedData.concrete_ilvl = newStats.ilvl;
                 
             } catch (error) {
                 logError('Error updating item level:', error);

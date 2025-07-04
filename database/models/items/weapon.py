@@ -117,6 +117,9 @@ class Weapon(EquipmentItem):
         # Add calculated DPS for weapons
         calculated_dps = self.get_dps_at_ilvl(ilvl)
         if calculated_dps is not None:
-            result['calculated_dps'] = calculated_dps
+            result['stat_values'].append({
+                'stat_name': 'DPS',
+                'value': calculated_dps
+            })
         
         return result 

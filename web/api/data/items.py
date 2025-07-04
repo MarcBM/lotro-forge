@@ -101,8 +101,8 @@ async def get_concrete_item(
         return {
             "result": {
                 **item_data,  # All base item properties
-                "concrete_ilvl": target_ilvl,  # The level these stats are calculated for
-                "stats": stats_data  # Calculated stats at the target level
+                "concrete_ilvl": stats_data['ilvl'],  # The level these stats are calculated for
+                "stats": stats_data['stat_values']  # Calculated stats at the target level
             }
         }
         

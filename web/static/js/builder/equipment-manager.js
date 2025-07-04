@@ -7,6 +7,9 @@ document.addEventListener('alpine:init', () => {
         // Reference to the build state component
         buildState: null,
         
+        // Reference to the database controller
+        databaseController: null,
+        
         // Locked filters for equipment selection
         lockedFilters: {
             slot: null, // Will be set to 'HEAD', 'CHEST', etc.
@@ -17,9 +20,18 @@ document.addEventListener('alpine:init', () => {
         init() {
             logComponent('EquipmentManager', 'initialized');
             // Get direct reference to build state component
-            const buildStateElement = document.getElementById('builder-component');
+            const buildStateElement = document.getElementById('build-state');
             this.buildState = Alpine.$data(buildStateElement);
             logDebug('Build state reference obtained');
+            
+            // Get direct reference to database controller
+            const databaseControllerElement = document.getElementById('database-controller');
+            if (databaseControllerElement) {
+                this.databaseController = Alpine.$data(databaseControllerElement);
+                logDebug('Database controller reference obtained');
+            } else {
+                logWarn('Database controller not found during initialization');
+            }
         },
 
         /**
@@ -49,13 +61,54 @@ document.addEventListener('alpine:init', () => {
         },
 
         /**
-         * Update equipment in build state for a specific slot
-         * @param {string} slotName - The name of the equipment slot
-         * @param {Object} item - The equipment item to set
+         * Equip the currently selected item from the database panel
+         * Creates appropriate Equipment/Weapon object and places it in the build state
          */
-        updateEquipment(slotName, item) {
-            this.buildState.equipment[slotName] = item;
-            logInfo(`Updated equipment for ${slotName}:`, item);
+        equipSelectedItem() {
+            if (!this.databaseController) {
+                logError('Database controller not available');
+                return;
+            }
+            
+            if (!this.databaseController.selectedData || !this.databaseController.selectedData.key) {
+                logWarn('No item selected to equip');
+                return;
+            }
+
+            const item = this.databaseController.selectedData;
+            const targetSlot = this.lockedFilters.slot;
+            
+            if (!targetSlot) {
+                logError('No target slot specified for equipping');
+                return;
+            }
+
+            try {
+                // Create the appropriate equipment object based on item type
+                let equipmentObject;
+                
+                if (item.weapon_type) {
+                    // Create Weapon object for weapon items
+                    equipmentObject = new Weapon(item);
+                } else {
+                    // Create Equipment object for regular equipment
+                    equipmentObject = new Equipment(item);
+                }
+
+                logInfo(`Build State:`, this.buildState);
+
+                // Update the build state with the new equipment
+                if (this.buildState.equipItem(targetSlot, equipmentObject)) {
+                    logInfo(`Updated equipment for ${targetSlot}:`, equipmentObject);
+                } else {
+                    logError(`Failed to equip ${item.name} to ${targetSlot}`);
+                }
+                
+                // Close the equipment selection panel
+                this.closePanel(['equipment-selection', 'equipment']);
+            } catch (error) {
+                logError('Error equipping item:', error);
+            }
         },
 
         /**

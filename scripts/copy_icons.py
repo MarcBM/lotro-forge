@@ -17,10 +17,13 @@ from database.config import DatabaseConfig
 from database.connection import DatabaseConnection
 from database.models.items import Item
 
-# Paths
-LOTRO_COMPANION_ROOT = Path('/home/marcb/workspace/lotro/lotro_companion')
-ICONS_SOURCE_DIR = LOTRO_COMPANION_ROOT / 'lotro-icons' / 'items'
-STATIC_ICONS_DIR = project_root / 'web' / 'static' / 'icons' / 'items'
+# Import data path configuration
+from config.data_paths import get_data_paths
+
+# Get configured paths
+data_paths = get_data_paths()
+ICONS_SOURCE_DIR = data_paths.icons_source_dir
+STATIC_ICONS_DIR = data_paths.icons_dest_dir
 
 def get_required_icons(session: Session) -> Set[str]:
     """Get the set of unique icon IDs from the database.

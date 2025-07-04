@@ -20,14 +20,17 @@ from scripts.importers.items import ItemImporter  # Import the base importer
 from scripts.copy_icons import copy_required_icons  # Import icon copying function
 from database.session import SessionLocal, engine
 
+# Import data path configuration
+from config.data_paths import get_data_paths
+
 # Example data paths
 EXAMPLE_DATA_DIR = Path(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) / 'example_data'
 ITEMS_FILE = EXAMPLE_DATA_DIR / 'example_items.xml'
 
-# Main data paths
-MAIN_DATA_DIR = Path('/home/marcb/workspace/lotro/lotro_companion')
-PROGRESSIONS_FILE = MAIN_DATA_DIR / 'lotro-data/lore/progressions.xml'
-DPS_TABLES_FILE = MAIN_DATA_DIR / 'lotro-data/lore/dpsTables.xml'
+# Get configured main data paths
+data_paths = get_data_paths()
+PROGRESSIONS_FILE = data_paths.progressions_xml
+DPS_TABLES_FILE = data_paths.dps_tables_xml
 
 def setup_logging():
     logging.basicConfig(

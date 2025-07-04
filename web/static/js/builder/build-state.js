@@ -55,7 +55,7 @@ document.addEventListener('alpine:init', () => {
 
         // Methods will be added as needed
         init() {
-            console.log('Build State initialized');
+            logComponent('BuildState', 'initialized');
             // Initialization logic
         }
     }));

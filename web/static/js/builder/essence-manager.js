@@ -8,7 +8,7 @@ document.addEventListener('alpine:init', () => {
         
         // Methods will be added as needed
         init() {
-            console.log('Essence Manager initialized');
+            logComponent('EssenceManager', 'initialized');
             // Initialization logic
         }
     }));

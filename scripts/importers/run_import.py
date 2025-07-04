@@ -27,6 +27,7 @@ from scripts.importers.progressions import ProgressionsImporter
 from scripts.importers.items import ItemImporter
 from scripts.copy_icons import copy_required_icons  # Import icon copying function
 from database.session import SessionLocal, engine
+from config.data_paths import get_data_paths
 
 def setup_logging(log_dir: Path = None):
     """Configure logging for the import script.
@@ -86,9 +87,10 @@ def copy_icons(required_icons: set) -> None:
     """Copy required icon files to the web static directory."""
     logger = logging.getLogger(__name__)
     
-    # Define source and destination paths
-    source_dir = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-icons/items')
-    dest_dir = Path('web/static/icons/items')
+    # Get configured paths
+    data_paths = get_data_paths()
+    source_dir = data_paths.icons_source_dir
+    dest_dir = data_paths.icons_dest_dir
     
     # Create destination directory if it doesn't exist
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -140,10 +142,11 @@ def main():
     logger = logging.getLogger(__name__)
     logger.info(f"Starting {args.import_type} import...")
     
-    # Define absolute paths for real data
-    items_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-items-db/items.xml')
-    progressions_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/progressions.xml')
-    dps_tables_path = Path('/home/marcb/workspace/lotro/lotro_companion/lotro-data/lore/dpsTables.xml')
+    # Get configured data paths
+    data_paths = get_data_paths()
+    items_path = data_paths.items_xml
+    progressions_path = data_paths.progressions_xml
+    dps_tables_path = data_paths.dps_tables_xml
     
     try:
         # Handle table creation/wiping

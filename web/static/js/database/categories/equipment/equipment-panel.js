@@ -17,7 +17,7 @@ document.addEventListener('alpine:init', () => {
             // Initialize database controller reference
             const databaseControlElement = document.getElementById('database-controller');
             if (!databaseControlElement) {
-                console.error('Database controller element not found');
+                logError('Database controller element not found');
                 return;
             }
             this.databaseController = Alpine.$data(databaseControlElement);
@@ -31,7 +31,7 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('panel-closed-equipment', this.handlePanelClosed.bind(this));
             
             this.checkDatabasePageInitialLoad();
-            console.log('Database Equipment Panel component initialized');
+            logComponent('EquipmentPanel', 'initialized');
         },
         
         checkDatabasePageInitialLoad() {
@@ -58,7 +58,7 @@ document.addEventListener('alpine:init', () => {
             if (window.EquipmentFilters) {
                 this.filterOptions = window.EquipmentFilters.getAllFilters(this.equipmentManager != null);
             } else {
-                console.warn('EquipmentFilters not loaded, filter and sort options will be empty');
+                logWarn('EquipmentFilters not loaded, filter and sort options will be empty');
                 this.filterOptions = {};
             }
         },
@@ -118,8 +118,6 @@ document.addEventListener('alpine:init', () => {
             
             if (newIlvl === currentIlvl) return;
             
-            console.log(`Updating equipment ${this.databaseController.selectedData.name} to ilvl ${newIlvl}`);
-            
             try {
                 apiUrl = `/api/data/items/${this.databaseController.selectedData.key}/stats?ilvl=${newIlvl}`;
                 const newStats = await this.databaseController.queryApi(apiUrl);
@@ -128,7 +126,7 @@ document.addEventListener('alpine:init', () => {
                 this.databaseController.selectedData.concrete_ilvl = newIlvl;
                 
             } catch (error) {
-                console.error('Error updating item level:', error);
+                logError('Error updating item level:', error);
                 event.target.textContent = currentIlvl;
             }
         },

@@ -1,6 +1,6 @@
-// Alpine.js component for traceries database panel
+// Alpine.js component for sets database panel
 document.addEventListener('alpine:init', () => {
-    Alpine.data('traceriesPanel', (panelId) => ({
+    Alpine.data('setsPanel', (panelId) => ({
         panelId: panelId,
         databaseController: null,
         
@@ -14,27 +14,34 @@ document.addEventListener('alpine:init', () => {
         async init() {
             const databaseControlElement = document.getElementById('database-controller');
             if (!databaseControlElement) {
-                console.error('Database controller element not found');
+                logError('Database controller element not found');
                 return;
             }
             this.databaseController = Alpine.$data(databaseControlElement);
             
             this.loadFilterOptions();
             
-            // Event listeners
-            window.addEventListener('database-load-more-traceries', this.handleLoadMore.bind(this));
-            window.addEventListener('panel-opened-traceries', this.handlePanelOpened.bind(this));
-            window.addEventListener('panel-closed-traceries', this.handlePanelClosed.bind(this));
+            // Setup event listeners
             
-            console.log('Database Traceries Panel component initialized');
+            window.addEventListener('database-load-more-sets', this.handleLoadMore.bind(this));
+            window.addEventListener('panel-opened-sets', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-sets', this.handlePanelClosed.bind(this));
+            
+            logComponent('SetsPanel', 'initialized');
+        },
+        
+        async handlePanelOpened() {
+            logInfo('Sets panel opened - showing placeholder (fresh)');
+            // For now, just show the placeholder content
+            // When implemented, this would reload sets data with current filters
         },
         
         loadFilterOptions() {
             // Load filter options from client-side config
-            if (window.TraceriesFilters) {
-                this.filterOptions = window.TraceriesFilters.getAllFilters();
+            if (window.SetsFilters) {
+                this.filterOptions = window.SetsFilters.getAllFilters();
             } else {
-                console.warn('TraceriesFilters not loaded, filter and sort options will be empty');
+                logWarn('SetsFilters not loaded, filter and sort options will be empty');
                 this.filterOptions = {};
             }
         },
@@ -53,7 +60,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async loadData(offset = 0, limit = 99, append = false) {
-            const apiUrl = window.TraceriesFilters.buildApiUrl(this.filterState, offset, limit);
+            const apiUrl = window.SetsFilters.buildApiUrl(this.filterState, offset, limit);
             const listOptions = {
                 offset: offset,
                 limit: limit,
@@ -63,9 +70,9 @@ document.addEventListener('alpine:init', () => {
             await this.databaseController.queryApi(apiUrl, listOptions);
         },
 
-        async selectTracery(tracery) {
-            const apiUrl = `/api/data/items/${tracery.key}/concrete`;
-            await this.databaseController.selectSpecificData(apiUrl, tracery);
+        async selectSet(set) {
+            const apiUrl = `/api/data/items/${set.key}/concrete`;
+            await this.databaseController.selectSpecificData(apiUrl, set);
         }
     }));
 }); 

@@ -1,6 +1,6 @@
-// Alpine.js component for sources database panel
+// Alpine.js component for traceries database panel
 document.addEventListener('alpine:init', () => {
-    Alpine.data('sourcesPanel', (panelId) => ({
+    Alpine.data('traceriesPanel', (panelId) => ({
         panelId: panelId,
         databaseController: null,
         
@@ -14,7 +14,7 @@ document.addEventListener('alpine:init', () => {
         async init() {
             const databaseControlElement = document.getElementById('database-controller');
             if (!databaseControlElement) {
-                console.error('Database controller element not found');
+                logError('Database controller element not found');
                 return;
             }
             this.databaseController = Alpine.$data(databaseControlElement);
@@ -22,19 +22,19 @@ document.addEventListener('alpine:init', () => {
             this.loadFilterOptions();
             
             // Event listeners
-            window.addEventListener('database-load-more-sources', this.handleLoadMore.bind(this));
-            window.addEventListener('panel-opened-sources', this.handlePanelOpened.bind(this));
-            window.addEventListener('panel-closed-sources', this.handlePanelClosed.bind(this));
+            window.addEventListener('database-load-more-traceries', this.handleLoadMore.bind(this));
+            window.addEventListener('panel-opened-traceries', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-traceries', this.handlePanelClosed.bind(this));
             
-            console.log('Database Sources Panel component initialized');
+            logComponent('TraceriesPanel', 'initialized');
         },
         
         loadFilterOptions() {
             // Load filter options from client-side config
-            if (window.SourcesFilters) {
-                this.filterOptions = window.SourcesFilters.getAllFilters();
+            if (window.TraceriesFilters) {
+                this.filterOptions = window.TraceriesFilters.getAllFilters();
             } else {
-                console.warn('SourcesFilters not loaded, filter and sort options will be empty');
+                logWarn('TraceriesFilters not loaded, filter and sort options will be empty');
                 this.filterOptions = {};
             }
         },
@@ -53,7 +53,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async loadData(offset = 0, limit = 99, append = false) {
-            const apiUrl = window.SourcesFilters.buildApiUrl(this.filterState, offset, limit);
+            const apiUrl = window.TraceriesFilters.buildApiUrl(this.filterState, offset, limit);
             const listOptions = {
                 offset: offset,
                 limit: limit,
@@ -63,9 +63,9 @@ document.addEventListener('alpine:init', () => {
             await this.databaseController.queryApi(apiUrl, listOptions);
         },
 
-        async selectSource(source) {
-            const apiUrl = `/api/data/items/${source.key}/concrete`;
-            await this.databaseController.selectSpecificData(apiUrl, source);
+        async selectTracery(tracery) {
+            const apiUrl = `/api/data/items/${tracery.key}/concrete`;
+            await this.databaseController.selectSpecificData(apiUrl, tracery);
         }
     }));
 }); 

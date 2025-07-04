@@ -1,6 +1,6 @@
-// Alpine.js component for misc database panel
+// Alpine.js component for traits database panel
 document.addEventListener('alpine:init', () => {
-    Alpine.data('miscPanel', (panelId) => ({
+    Alpine.data('traitsPanel', (panelId) => ({
         panelId: panelId,
         databaseController: null,
         
@@ -14,7 +14,7 @@ document.addEventListener('alpine:init', () => {
         async init() {
             const databaseControlElement = document.getElementById('database-controller');
             if (!databaseControlElement) {
-                console.error('Database controller element not found');
+                logError('Database controller element not found');
                 return;
             }
             this.databaseController = Alpine.$data(databaseControlElement);
@@ -22,19 +22,19 @@ document.addEventListener('alpine:init', () => {
             this.loadFilterOptions();
             
             // Event listeners
-            window.addEventListener('database-load-more-misc', this.handleLoadMore.bind(this));
-            window.addEventListener('panel-opened-misc', this.handlePanelOpened.bind(this));
-            window.addEventListener('panel-closed-misc', this.handlePanelClosed.bind(this));
+            window.addEventListener('database-load-more-traits', this.handleLoadMore.bind(this));
+            window.addEventListener('panel-opened-traits', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-traits', this.handlePanelClosed.bind(this));
             
-            console.log('Database Misc Panel component initialized');
+            logComponent('TraitsPanel', 'initialized');
         },
         
         loadFilterOptions() {
             // Load filter options from client-side config
-            if (window.MiscFilters) {
-                this.filterOptions = window.MiscFilters.getAllFilters();
+            if (window.TraitsFilters) {
+                this.filterOptions = window.TraitsFilters.getAllFilters();
             } else {
-                console.warn('MiscFilters not loaded, filter and sort options will be empty');
+                logWarn('TraitsFilters not loaded, filter and sort options will be empty');
                 this.filterOptions = {};
             }
         },
@@ -53,7 +53,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async loadData(offset = 0, limit = 99, append = false) {
-            const apiUrl = window.MiscFilters.buildApiUrl(this.filterState, offset, limit);
+            const apiUrl = window.TraitsFilters.buildApiUrl(this.filterState, offset, limit);
             const listOptions = {
                 offset: offset,
                 limit: limit,
@@ -63,9 +63,9 @@ document.addEventListener('alpine:init', () => {
             await this.databaseController.queryApi(apiUrl, listOptions);
         },
 
-        async selectMisc(misc) {
-            const apiUrl = `/api/data/items/${misc.key}/concrete`;
-            await this.databaseController.selectSpecificData(apiUrl, misc);
+        async selectTrait(trait) {
+            const apiUrl = `/api/data/items/${trait.key}/concrete`;
+            await this.databaseController.selectSpecificData(apiUrl, trait);
         }
     }));
 }); 

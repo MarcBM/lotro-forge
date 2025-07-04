@@ -8,7 +8,7 @@ document.addEventListener('alpine:init', () => {
         activePanels: config.defaultPanels || [],
         
         init() {
-            console.log('Panel Manager initialized');
+            logComponent('PanelManager', 'initialized');
         },
         
         // Core panel management
@@ -17,11 +17,11 @@ document.addEventListener('alpine:init', () => {
             const panelsToOpen = Array.isArray(panelIds) ? panelIds : [panelIds];
             
             if (panelsToOpen.length === 0) {
-                console.warn('No panel IDs provided');
+                logWarn('No panel IDs provided');
                 return false;
             }
             
-            console.log('Opening panels:', panelsToOpen);
+            logDebug('Opening panels:', panelsToOpen);
             
             // Add panels to active list if they're not already there
             const newlyOpened = [];
@@ -62,7 +62,7 @@ document.addEventListener('alpine:init', () => {
             
             if (panelsToClose.length === 0) return false;
             
-            console.log('Closing panels:', panelsToClose);
+            logDebug('Closing panels:', panelsToClose);
             
             // Remove panels from active list
             const newlyClosed = [];

@@ -3,7 +3,7 @@
 {% block title %}Database - LotRO Forge{% endblock %}
 
 {% block extra_head %}
-<script src="{{ url_for('static', path='js/database/base-filters.js') }}"></script>
+<script src="{{ url_for('static', path='js/database/core/base-filters.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -120,5 +120,5 @@
 <!-- Panel Manager JavaScript -->
 <script src="{{ url_for('static', path='js/components/panel-manager.js') }}"></script>
 <!-- Database Controller JavaScript -->
-<script src="{{ url_for('static', path='js/database/database-controller.js') }}"></script>
+<script src="{{ url_for('static', path='js/database/core/database-controller.js') }}"></script>
 {% endblock %}

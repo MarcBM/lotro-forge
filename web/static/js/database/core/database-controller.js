@@ -18,7 +18,7 @@ document.addEventListener('alpine:init', () => {
         loading: false,
         
         init() {
-            console.log('Database Controller (pagination utility) initialized');
+            logComponent('DatabaseController', 'initialized');
         },
         
         // Get current results status text
@@ -38,7 +38,7 @@ document.addEventListener('alpine:init', () => {
         loadMore(panelId) {
             if (this.pagination.loading || !panelId) return;
             
-            console.log(`Load more requested for ${panelId} panel`);
+            logDebug(`Load more requested for ${panelId} panel`);
             this.pagination.loading = true;
             
             window.dispatchEvent(new CustomEvent(`database-load-more-${panelId}`, {
@@ -77,7 +77,7 @@ document.addEventListener('alpine:init', () => {
                     this.pagination.offset = listOptions.offset + listOptions.limit;
                 }
             } catch (error) {
-                console.error("Error loading data: ", error);
+                logError("Error loading data: ", error);
 
                 if (listOptions) {
                     if (!listOptions.append) {
@@ -104,7 +104,7 @@ document.addEventListener('alpine:init', () => {
             try {
                 this.selectedData = await this.queryApi(apiUrl);
             } catch (error) {
-                console.error("Error loading specific item: ", error);
+                logError("Error loading specific item: ", error);
             }
         },
 

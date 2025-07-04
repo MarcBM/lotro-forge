@@ -29,7 +29,7 @@ document.addEventListener('alpine:init', () => {
         originalEmail: '',
         
         init() {
-            console.log('Account Management component initialized');
+            logComponent('AccountManagement', 'initialized');
             this.loadUserData();
         },
         
@@ -51,7 +51,7 @@ document.addEventListener('alpine:init', () => {
                     }
                 }
             } catch (e) {
-                console.error('Failed to load user data:', e);
+                logError('Failed to load user data:', e);
             } finally {
                 this.isLoading = false;
             }
@@ -79,6 +79,7 @@ document.addEventListener('alpine:init', () => {
         },
         
         async saveProfile() {
+            logInfo('Saving profile changes for user');
             this.isSaving = true;
             this.message = '';
             
@@ -96,6 +97,7 @@ document.addEventListener('alpine:init', () => {
                 
                 if (response.ok) {
                     const updatedUser = await response.json();
+                    logInfo('Profile updated successfully for user:', updatedUser.username);
                     // Update original values
                     this.originalDisplayName = updatedUser.display_name || '';
                     this.originalEmail = updatedUser.email;
@@ -129,6 +131,7 @@ document.addEventListener('alpine:init', () => {
         },
         
         async savePassword() {
+            logInfo('Attempting password change for user');
             this.isSavingPassword = true;
             this.passwordMessage = '';
             
@@ -146,6 +149,7 @@ document.addEventListener('alpine:init', () => {
                 });
                 
                 if (response.ok) {
+                    logInfo('Password changed successfully for user');
                     this.isChangingPassword = false;
                     this.isPasswordSuccess = true;
                     this.passwordMessage = 'Password changed successfully!';

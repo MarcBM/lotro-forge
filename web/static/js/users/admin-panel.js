@@ -19,6 +19,7 @@ document.addEventListener('alpine:init', () => {
         isDeletingUser: false,
         
         async createUser() {
+            logInfo('Creating new user:', this.newUsername, 'with role:', this.selectedRole);
             this.isCreating = true;
             this.createMessage = '';
             this.generatedPassword = '';
@@ -38,6 +39,7 @@ document.addEventListener('alpine:init', () => {
                 
                 if (response.ok) {
                     const newUser = await response.json();
+                    logInfo('User created successfully:', newUser.username);
                     this.isCreateSuccess = true;
                     this.createMessage = 'User created successfully!';
                     this.generatedPassword = newUser.generated_password;
@@ -64,6 +66,7 @@ document.addEventListener('alpine:init', () => {
         },
         
         copyPassword() {
+            logDebug('Copying generated password to clipboard');
             navigator.clipboard.writeText(this.generatedPassword).then(() => {
                 // Could add a brief 'copied!' message here if needed
             });
@@ -82,10 +85,10 @@ document.addEventListener('alpine:init', () => {
                 if (response.ok) {
                     this.allUsers = await response.json();
                 } else {
-                    console.error('Failed to load users');
+                    logError('Failed to load users');
                 }
             } catch (e) {
-                console.error('Error loading users:', e);
+                logError('Error loading users:', e);
             } finally {
                 this.isLoadingUsers = false;
             }
@@ -102,6 +105,7 @@ document.addEventListener('alpine:init', () => {
         },
         
         async saveRole(userId) {
+            logInfo('Updating role for user ID:', userId, 'to:', this.editingRole);
             this.isUpdatingRole = true;
             try {
                 const response = await fetch(`/api/auth/admin/users/${userId}/role`, {
@@ -116,6 +120,7 @@ document.addEventListener('alpine:init', () => {
                 
                 if (response.ok) {
                     const updatedUser = await response.json();
+                    logInfo('User role updated successfully:', updatedUser.username, 'new role:', updatedUser.role);
                     // Update the user in the list
                     const userIndex = this.allUsers.findIndex(u => u.id === userId);
                     if (userIndex !== -1) {
@@ -124,11 +129,10 @@ document.addEventListener('alpine:init', () => {
                     this.editingUserId = null;
                     this.editingRole = '';
                 } else {
-                    const error = await response.json();
-                    alert(error.detail || 'Failed to update user role');
+                    await window.handleApiError(response, 'Failed to update user role');
                 }
             } catch (e) {
-                alert('Network error. Please try again.');
+                window.handleNetworkError(e, 'Network error. Please try again.');
             } finally {
                 this.isUpdatingRole = false;
             }
@@ -139,6 +143,8 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
             
+            logInfo('Deleting user:', username, 'ID:', userId);
+            
             this.isDeletingUser = true;
             try {
                 const response = await fetch(`/api/auth/admin/users/${userId}`, {
@@ -146,14 +152,14 @@ document.addEventListener('alpine:init', () => {
                 });
                 
                 if (response.ok) {
+                    logInfo('User deleted successfully:', username);
                     // Remove user from the list
                     this.allUsers = this.allUsers.filter(u => u.id !== userId);
                 } else {
-                    const error = await response.json();
-                    alert(error.detail || 'Failed to delete user');
+                    await window.handleApiError(response, 'Failed to delete user');
                 }
             } catch (e) {
-                alert('Network error. Please try again.');
+                window.handleNetworkError(e, 'Network error. Please try again.');
             } finally {
                 this.isDeletingUser = false;
             }

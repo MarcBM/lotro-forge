@@ -15,11 +15,11 @@ document.addEventListener('alpine:init', () => {
         
         // Methods will be added as needed
         init() {
-            console.log('Equipment Manager initialized');
+            logComponent('EquipmentManager', 'initialized');
             // Get direct reference to build state component
             const buildStateElement = document.getElementById('builder-component');
             this.buildState = Alpine.$data(buildStateElement);
-            console.log('Build state reference obtained');
+            logDebug('Build state reference obtained');
         },
 
         /**
@@ -30,12 +30,12 @@ document.addEventListener('alpine:init', () => {
             try {
                 const currentItem = this.getEquipment(slotName);
                 if (currentItem) {
-                    console.log(`${slotName}: ${currentItem.name || 'Unknown Item'}`);
+                    logDebug(`${slotName}: ${currentItem.name || 'Unknown Item'}`);
                 } else {
-                    console.log(`${slotName}: Empty`);
+                    logDebug(`${slotName}: Empty`);
                 }
             } catch (error) {
-                console.log(`Equipment slot clicked: ${slotName} (Build state not accessible)`);
+                logError(`Equipment slot clicked: ${slotName} (Build state not accessible)`, error);
             }
         },
 
@@ -55,7 +55,7 @@ document.addEventListener('alpine:init', () => {
          */
         updateEquipment(slotName, item) {
             this.buildState.equipment[slotName] = item;
-            console.log(`Updated equipment for ${slotName}:`, item);
+            logInfo(`Updated equipment for ${slotName}:`, item);
         },
 
         /**
@@ -63,6 +63,7 @@ document.addEventListener('alpine:init', () => {
          * @param {string} slotName - The name of the equipment slot
          */
         openEquipmentSelection(slotName) {
+            logInfo('Opening equipment selection for slot:', slotName);
             this.lockedFilters.slot = slotName;
             this.openPanel(['equipment-selection', 'equipment']);
         }

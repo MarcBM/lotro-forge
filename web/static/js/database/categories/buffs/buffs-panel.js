@@ -1,6 +1,6 @@
-// Alpine.js component for essences database panel
+// Alpine.js component for buffs database panel
 document.addEventListener('alpine:init', () => {
-    Alpine.data('essencesPanel', (panelId) => ({
+    Alpine.data('buffsPanel', (panelId) => ({
         panelId: panelId,
         databaseController: null,
         
@@ -8,14 +8,13 @@ document.addEventListener('alpine:init', () => {
         filterOptions: {},
         filterState: {
             sort: 'name',
-            search: '',
-            essence_type: ''
+            search: ''
         },
         
         async init() {
             const databaseControlElement = document.getElementById('database-controller');
             if (!databaseControlElement) {
-                console.error('Database controller element not found');
+                logError('Database controller element not found');
                 return;
             }
             this.databaseController = Alpine.$data(databaseControlElement);
@@ -23,25 +22,25 @@ document.addEventListener('alpine:init', () => {
             this.loadFilterOptions();
             
             // Event listeners
-            window.addEventListener('database-load-more-essences', this.handleLoadMore.bind(this));
-            window.addEventListener('panel-opened-essences', this.handlePanelOpened.bind(this));
-            window.addEventListener('panel-closed-essences', this.handlePanelClosed.bind(this));
+            window.addEventListener('database-load-more-buffs', this.handleLoadMore.bind(this));
+            window.addEventListener('panel-opened-buffs', this.handlePanelOpened.bind(this));
+            window.addEventListener('panel-closed-buffs', this.handlePanelClosed.bind(this));
             
-            console.log('Database Essences Panel component initialized');
+            logComponent('BuffsPanel', 'initialized');
         },
         
         loadFilterOptions() {
             // Load filter options from client-side config
-            if (window.EssenceFilters) {
-                this.filterOptions = window.EssenceFilters.getAllFilters();
+            if (window.BuffsFilters) {
+                this.filterOptions = window.BuffsFilters.getAllFilters();
             } else {
-                console.warn('EssenceFilters not loaded, filter and sort options will be empty');
+                logWarn('BuffsFilters not loaded, filter and sort options will be empty');
                 this.filterOptions = {};
             }
         },
 
         handlePanelOpened() {
-            this.loadData();
+            // this.loadData(); // Commented out - placeholder panel
         },
 
         handlePanelClosed() {
@@ -54,7 +53,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async loadData(offset = 0, limit = 99, append = false) {
-            const apiUrl = window.EssenceFilters.buildApiUrl(this.filterState, offset, limit);
+            const apiUrl = window.BuffsFilters.buildApiUrl(this.filterState, offset, limit);
             const listOptions = {
                 offset: offset,
                 limit: limit,
@@ -64,9 +63,9 @@ document.addEventListener('alpine:init', () => {
             await this.databaseController.queryApi(apiUrl, listOptions);
         },
 
-        async selectEssence(essence) {
-            const apiUrl = `/api/data/items/${essence.key}/concrete`;
-            await this.databaseController.selectSpecificData(apiUrl, essence);
+        async selectBuff(buff) {
+            const apiUrl = `/api/data/items/${buff.key}/concrete`;
+            await this.databaseController.selectSpecificData(apiUrl, buff);
         }
     }));
 }); 

@@ -8,7 +8,7 @@ document.addEventListener('alpine:init', () => {
         
         // Methods will be added as needed
         init() {
-            console.log('Stats Engine initialized');
+            logComponent('StatsEngine', 'initialized');
             // Initialization logic
         }
     }));

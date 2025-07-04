@@ -10,7 +10,7 @@ document.addEventListener('alpine:init', () => {
         isAuthenticated: false,
         
         init() {
-            console.log('Authentication component initialized');
+            logComponent('Authentication', 'initialized');
             // Initialize global auth state
             window.lotroAuth = {
                 isAuthenticated: false,
@@ -63,7 +63,7 @@ document.addEventListener('alpine:init', () => {
                 window.dispatchEvent(new CustomEvent('auth-state-changed'));
                 
             } catch (e) {
-                console.warn('Auth check failed:', e);
+                logWarn('Auth check failed:', e);
                 this.currentUser = null;
                 this.isAuthenticated = false;
                 
@@ -79,20 +79,19 @@ document.addEventListener('alpine:init', () => {
         },
         
         async login() {
-            console.log('Attempting login for username:', this.loginUsername);
+            logInfo('Attempting login for username:', this.loginUsername);
             const formData = new FormData();
             formData.append('username', this.loginUsername);
             formData.append('password', this.loginPassword);
             
             try {
-                console.log('Sending login request to /api/auth/login');
+                logger.api('/api/auth/login', 'POST', 'sending');
                 const res = await fetch('/api/auth/login', { method: 'POST', body: formData });
-                console.log('Response status:', res.status);
-                console.log('Response ok:', res.ok);
+                logger.api('/api/auth/login', 'POST', res.status);
                 
                 if (res.ok) {
                     // Success - close modal and refresh auth status
-                    console.log('Login successful');
+                    logInfo('Login successful');
                     this.isLoginModalOpen = false;
                     this.loginError = '';
                     
@@ -106,18 +105,18 @@ document.addEventListener('alpine:init', () => {
                     // Show success notification using global system
                     window.showNotification('Logged in successfully!', 'success');
                 } else {
-                    console.log('Login failed with status:', res.status);
+                    logWarn('Login failed with status:', res.status);
                     try {
                         const err = await res.json();
-                        console.log('Error response:', err);
+                        logDebug('Error response:', err);
                         this.loginError = err.detail || `Login failed (Status: ${res.status})`;
                     } catch (jsonError) {
-                        console.log('Failed to parse error response as JSON:', jsonError);
+                        logWarn('Failed to parse error response as JSON:', jsonError);
                         this.loginError = `Login failed (Status: ${res.status})`;
                     }
                 }
             } catch (e) {
-                console.log('Login request failed:', e);
+                logError('Login request failed:', e);
                 this.loginError = `Network error: ${e.message}`;
             }
         },
@@ -141,7 +140,7 @@ document.addEventListener('alpine:init', () => {
                 // Redirect to home page after logout
                 window.location.href = '/';
             } catch (e) {
-                console.log('Logout failed:', e);
+                logError('Logout failed:', e);
                 // Show error notification using global system
                 window.showNotification('Logout failed. Please try again.', 'error');
             }
@@ -149,6 +148,7 @@ document.addEventListener('alpine:init', () => {
         
         // UI interaction methods
         openLoginModal() {
+            logDebug('Login modal opened');
             this.isLoginModalOpen = true;
             // Focus the username field after the modal is shown
             this.$nextTick(() => {
@@ -157,6 +157,7 @@ document.addEventListener('alpine:init', () => {
         },
         
         closeLoginModal() {
+            logDebug('Login modal closed');
             this.isLoginModalOpen = false;
             this.loginError = '';
         }

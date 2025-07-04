@@ -3,6 +3,10 @@
 
 {% block title %}Builder - LotRO Forge{% endblock %}
 
+{% block extra_head %}
+<script src="{{ url_for('static', path='js/database/base-filters.js') }}"></script>
+{% endblock %}
+
 {% block content %}
 <div id="builder-component" class="w-full h-[calc(100vh-12rem)] -mx-6 -my-6 relative" x-data="panelManager()">
     <!-- Database Controller Wrapper -->

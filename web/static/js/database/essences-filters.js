@@ -13,7 +13,7 @@ const ESSENCE_TYPES = {
     23: 'Vital'
 };
 
-class EssenceFilters {
+class EssenceFilters extends BaseFilters {
     
     /**
      * Returns essence types as {value, label} objects
@@ -26,27 +26,12 @@ class EssenceFilters {
     }
     
     /**
-     * Returns available sort options
-     */
-    static getSortOptions() {
-        return [
-            { value: 'name', label: 'Name' },
-            { value: 'recent', label: 'Recent' },
-            { value: 'base_ilvl', label: 'Base iLvl' }
-        ];
-    }
-    
-    /**
      * Returns all filter configurations
      */
-    static getAllFilters() {
+    static getAllFilters(builderMode = false) {
+        const baseFilters = super.getAllFilters(builderMode);
         return {
-            sort: {
-                options: this.getSortOptions()
-            },
-            search: {
-                value: ''
-            },
+            ...baseFilters,
             essence_type: {
                 options: this.getEssenceTypes(),
                 locked: false
@@ -58,21 +43,10 @@ class EssenceFilters {
      * Builds API URL with filter parameters
      */
     static buildApiUrl(filterState, offset = 0, limit = 99) {
-        const params = new URLSearchParams();
-        
-        params.append('limit', limit);
-        params.append('skip', offset);
+        const params = super.buildBaseParams(filterState, offset, limit);
         
         if (filterState.essence_type) {
             params.append('essence_type', filterState.essence_type);
-        }
-        
-        if (filterState.search) {
-            params.append('search', filterState.search);
-        }
-        
-        if (filterState.sort) {
-            params.append('sort', filterState.sort);
         }
 
         return `/api/data/essences/?${params.toString()}`;

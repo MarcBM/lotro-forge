@@ -59,7 +59,7 @@ const EQUIPMENT_SLOTS = [
     "CLASS_SLOT"
 ];
 
-class EquipmentFilters {
+class EquipmentFilters extends BaseFilters {
     
     // Get slot groups for dropdown, excluding builder-only slots if not in builder mode
     static getSlotGroups(builderMode = false) {
@@ -82,25 +82,18 @@ class EquipmentFilters {
     
     // Get sort options, including EV if in builder mode
     static getSortOptions(builderMode = false) {
-        const options = [];
+        const options = super.getSortOptions(builderMode);
         if (builderMode) {
-            options.push({ value: 'ev', label: 'EV' });
+            options.unshift({ value: 'ev', label: 'EV' });
         }
-        options.push({ value: 'name', label: 'Name' });
-        options.push({ value: 'recent', label: 'Recent' });
-        options.push({ value: 'base_ilvl', label: 'Base iLvl' });
         return options;
     }
     
     // Get all filter options and their states
     static getAllFilters(builderMode = false) {
+        const baseFilters = super.getAllFilters(builderMode);
         return {
-            sort: {
-                options: this.getSortOptions(builderMode)
-            },
-            search: {
-                value: ''
-            },
+            ...baseFilters,
             slot: {
                 options: this.getSlotGroups(builderMode),
                 locked: false
@@ -110,24 +103,13 @@ class EquipmentFilters {
     
     // Build API URL with current filters and pagination
     static buildApiUrl(filterState, offset = 0, limit = 99) {
-        const params = new URLSearchParams();
-        
-        params.append('limit', limit);
-        params.append('skip', offset);
+        const params = super.buildBaseParams(filterState, offset, limit);
         
         if (filterState.slot) {
             const selectedGroup = EQUIPMENT_SLOT_GROUPS[filterState.slot];
             if (selectedGroup) {
                 selectedGroup.forEach(slot => params.append('slots', slot));
             }
-        }
-        
-        if (filterState.search) {
-            params.append('search', filterState.search);
-        }
-        
-        if (filterState.sort) {
-            params.append('sort', filterState.sort);
         }
 
         return `/api/data/equipment/?${params.toString()}`;

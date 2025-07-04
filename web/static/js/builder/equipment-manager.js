@@ -16,6 +16,9 @@ document.addEventListener('alpine:init', () => {
             // Future: quality: null, level: null, etc.
         },
         
+        // Currently selected item key for pre-selection
+        selectedItemKey: null,
+        
         // Methods will be added as needed
         init() {
             logComponent('EquipmentManager', 'initialized');
@@ -118,6 +121,11 @@ document.addEventListener('alpine:init', () => {
         openEquipmentSelection(slotName) {
             logInfo('Opening equipment selection for slot:', slotName);
             this.lockedFilters.slot = slotName;
+            
+            // Set the currently equipped item key for pre-selection
+            const currentItem = this.getEquipment(slotName);
+            this.selectedItemKey = currentItem ? currentItem.key : null;
+            
             this.openPanel(['equipment-selection', 'equipment']);
         }
     }));

@@ -72,6 +72,12 @@ document.addEventListener('alpine:init', () => {
                         this.filterOptions[filterKey].locked = true;
                     }
                 });
+                
+                // Pre-select item if specified by equipment manager
+                if (this.equipmentManager.selectedItemKey) {
+                    this.selectEquipment({key: this.equipmentManager.selectedItemKey});
+                    logInfo(`Pre-selected item with key: ${this.equipmentManager.selectedItem}`);
+                }
             }
             this.loadData();
         },

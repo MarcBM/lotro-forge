@@ -51,7 +51,7 @@ document.addEventListener('alpine:init', () => {
         
         // Query API endpoint and handle pagination/list updates
         async queryApi(apiUrl, listOptions = null) {
-            if (this.loading) return;
+            await this.waitForLoad();
 
             let result = null;
 
@@ -98,7 +98,9 @@ document.addEventListener('alpine:init', () => {
 
         // Load detailed data for a selected item
         async selectSpecificData(apiUrl, data) {
-            if (this.loading || (this.selectedData && this.selectedData.key === data.key)) {
+            await this.waitForLoad();
+
+            if (this.selectedData && this.selectedData.key === data.key) {
                 return;
             }
             try {
@@ -121,5 +123,17 @@ document.addEventListener('alpine:init', () => {
             this.pagination.currentlyShowing = 0;
             this.pagination.hasMore = false;
         },
+
+        async waitForLoad() {
+            let loadWaits = 0;
+            while (this.loading) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                loadWaits++;
+                if (loadWaits > 10) {
+                    logWarn('Loading data took too long, skipping');
+                    return;
+                }
+            }
+        }
     }));
 }); 

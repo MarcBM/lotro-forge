@@ -1,5 +1,31 @@
 <!-- Equipment -->
 <!-- Equipment Manager Scope Container -->
+
+{% macro equipment_slot(slot_name) %}
+<div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
+     :class="getEquipment('{{ slot_name }}') && getEquipment('{{ slot_name }}').icon_urls && Array.isArray(getEquipment('{{ slot_name }}').icon_urls) ? 'border-0' : ''"
+     data-slot="{{ slot_name }}"
+     @click="openEquipmentSelection('{{ slot_name }}')">
+    <!-- Show equipped item icons if available -->
+    <template x-if="getEquipment('{{ slot_name }}') && getEquipment('{{ slot_name }}').icon_urls && Array.isArray(getEquipment('{{ slot_name }}').icon_urls)">
+        <div class="w-full h-full flex items-center justify-center">
+            <div class="w-12 h-12 relative">
+                <template x-for="(url, i) in getEquipment('{{ slot_name }}').icon_urls.slice().reverse()" :key="i">
+                    <img :src="url" 
+                         :alt="'Equipment icon layer ' + (i + 1)"
+                         class="absolute inset-0 w-full h-full object-contain"
+                         @error="$el.style.display='none'">
+                </template>
+            </div>
+        </div>
+    </template>
+    <!-- Show placeholder if no item equipped -->
+    <template x-if="!getEquipment('{{ slot_name }}') || !getEquipment('{{ slot_name }}').icon_urls || !Array.isArray(getEquipment('{{ slot_name }}').icon_urls)">
+        <div class="w-2 h-2 bg-gray-600 rounded"></div>
+    </template>
+</div>
+{% endmacro %}
+
 <div id="equipment-section" x-data="equipmentManager">
     <!-- Equipment Layout Container -->
     <div class="space-y-4 mb-6">
@@ -11,56 +37,24 @@
                     <!-- Left jewellery column -->
                     <div class="space-y-2">
                         <!-- Left Ear -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="LEFT_EAR"
-                            @click="openEquipmentSelection('LEFT_EAR')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('LEFT_EAR') }}
                         <!-- Neck -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="NECK"
-                            @click="openEquipmentSelection('NECK')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('NECK') }}
                         <!-- Left Wrist -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="LEFT_WRIST"
-                            @click="openEquipmentSelection('LEFT_WRIST')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('LEFT_WRIST') }}
                         <!-- Left Finger -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="LEFT_FINGER"
-                            @click="openEquipmentSelection('LEFT_FINGER')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('LEFT_FINGER') }}
                     </div>
                     <!-- Right jewellery column -->
                     <div class="space-y-2">
                         <!-- Right Ear -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="RIGHT_EAR"
-                            @click="openEquipmentSelection('RIGHT_EAR')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('RIGHT_EAR') }}
                         <!-- Pocket -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="POCKET"
-                            @click="openEquipmentSelection('POCKET')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('POCKET') }}
                         <!-- Right Wrist -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="RIGHT_WRIST"
-                            @click="openEquipmentSelection('RIGHT_WRIST')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('RIGHT_WRIST') }}
                         <!-- Right Finger -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="RIGHT_FINGER"
-                            @click="openEquipmentSelection('RIGHT_FINGER')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('RIGHT_FINGER') }}
                     </div>
                 </div>
             </div>
@@ -74,52 +68,24 @@
                     <!-- Left armour column (skip second row) -->
                     <div class="space-y-2">
                         <!-- Head slot -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="HEAD"
-                            @click="openEquipmentSelection('HEAD')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('HEAD') }}
                         <!-- Skip second row -->
                         <div class="w-12 h-12"></div>
                         <!-- Chest slot -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="CHEST"
-                            @click="openEquipmentSelection('CHEST')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('CHEST') }}
                         <!-- Legs slot -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="LEGS"
-                            @click="openEquipmentSelection('LEGS')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('LEGS') }}
                     </div>
                     <!-- Right armour column -->
                     <div class="space-y-2">
                         <!-- Shoulders slot -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="SHOULDERS"
-                            @click="openEquipmentSelection('SHOULDER')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('SHOULDER') }}
                         <!-- Back slot -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="BACK"
-                            @click="openEquipmentSelection('BACK')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('BACK') }}
                         <!-- Hands slot -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="HANDS"
-                            @click="openEquipmentSelection('HAND')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('HAND') }}
                         <!-- Feet slot -->
-                        <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                            data-slot="FEET"
-                            @click="openEquipmentSelection('FEET')">
-                            <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                        </div>
+                        {{ equipment_slot('FEET') }}
                     </div>
                 </div>
             </div>
@@ -129,29 +95,13 @@
         <div class="flex justify-center">
             <div class="flex gap-4">
                 <!-- Main Hand -->
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                    data-slot="MAIN_HAND"
-                    @click="openEquipmentSelection('MAIN_HAND')">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                </div>
+                {{ equipment_slot('MAIN_HAND') }}
                 <!-- Off Hand -->
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                    data-slot="OFF_HAND"
-                    @click="openEquipmentSelection('OFF_HAND')">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                </div>
+                {{ equipment_slot('OFF_HAND') }}
                 <!-- Ranged -->
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                    data-slot="RANGED"
-                    @click="openEquipmentSelection('RANGED_ITEM')">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                </div>
+                {{ equipment_slot('RANGED_ITEM') }}
                 <!-- Class -->
-                <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
-                    data-slot="CLASS"
-                    @click="openEquipmentSelection('CLASS_SLOT')">
-                    <div class="w-2 h-2 bg-gray-600 rounded"></div>
-                </div>
+                {{ equipment_slot('CLASS_SLOT') }}
             </div>
         </div>
     

@@ -5,7 +5,8 @@
 <div class="w-12 h-12 bg-lotro-darker border border-lotro-border rounded-lg flex items-center justify-center hover:border-lotro-gold transition-colors duration-200 cursor-pointer"
      :class="getEquipment('{{ slot_name }}') && getEquipment('{{ slot_name }}').icon_urls && Array.isArray(getEquipment('{{ slot_name }}').icon_urls) ? 'border-0' : ''"
      data-slot="{{ slot_name }}"
-     @click="openEquipmentSelection('{{ slot_name }}')">
+     @click="openEquipmentSelection('{{ slot_name }}')"
+     @contextmenu.prevent="removeEquipment('{{ slot_name }}')">
     <!-- Show equipped item icons if available -->
     <template x-if="getEquipment('{{ slot_name }}') && getEquipment('{{ slot_name }}').icon_urls && Array.isArray(getEquipment('{{ slot_name }}').icon_urls)">
         <div class="w-full h-full flex items-center justify-center">

@@ -101,10 +101,13 @@ document.addEventListener('alpine:init', () => {
                 logInfo(`Build State:`, this.buildState);
 
                 // Update the build state with the new equipment
-                if (this.buildState.equipItem(targetSlot, equipmentObject)) {
+                if (targetSlot in this.buildState.equipment) {
+                    this.buildState.equipment[targetSlot] = equipmentObject;
                     logInfo(`Updated equipment for ${targetSlot}:`, equipmentObject);
+                    // Dispatch equipment change event
+                    this.dispatchEquipmentChange();
                 } else {
-                    logError(`Failed to equip ${item.name} to ${targetSlot}`);
+                    logError(`Invalid equipment slot: ${targetSlot}`);
                 }
                 
                 // Close the equipment selection panel
@@ -127,6 +130,43 @@ document.addEventListener('alpine:init', () => {
             this.selectedItem = currentItem ? currentItem : null;
             
             this.openPanel(['equipment-selection', 'equipment']);
+        },
+
+        /**
+         * Remove equipment from a specific slot
+         * @param {string} slotName - The name of the equipment slot
+         */
+        removeEquipment(slotName) {
+            const currentItem = this.getEquipment(slotName);
+            if (!currentItem) {
+                logDebug(`No item to remove from ${slotName}`);
+                return;
+            }
+
+            logInfo(`Removing ${currentItem.name || 'Unknown Item'} from ${slotName}`);
+            
+            if (slotName in this.buildState.equipment) {
+                this.buildState.equipment[slotName] = null;
+                logInfo(`Successfully removed equipment from ${slotName}`);
+                // Dispatch equipment change event
+                this.dispatchEquipmentChange();
+            } else {
+                logError(`Invalid equipment slot: ${slotName}`);
+            }
+        },
+
+        /**
+         * Dispatch equipment change event
+         */
+        dispatchEquipmentChange() {
+            window.dispatchEvent(new CustomEvent('build-state:equipment-changed', {
+                detail: {
+                    equipment: { ...this.buildState.equipment },
+                    timestamp: Date.now()
+                },
+                bubbles: true
+            }));
+            logDebug('Equipment change event dispatched');
         }
     }));
 }); 

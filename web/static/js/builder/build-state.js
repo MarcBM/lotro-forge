@@ -63,27 +63,6 @@ document.addEventListener('alpine:init', () => {
         // Methods will be added as needed
         init() {
             logComponent('BuildState', 'initialized');
-            // Initialization logic
-        },
-
-        /**
-         * Equip an item to a specific slot
-         * @param {string} slotName - The name of the equipment slot
-         * @param {Object} item - The equipment item to set
-         * @returns {boolean} True if successful, false otherwise
-         */
-        equipItem(slotName, item) {
-            if (!(slotName in this.equipment)) {
-                logError(`Invalid equipment slot: ${slotName}`);
-                return false;
-            }
-            
-            this.equipment[slotName] = item;
-            return true;
-        },
-
-        countEssenceSockets() {
-            // TODO
-        },
+        }
     }));
 }); 

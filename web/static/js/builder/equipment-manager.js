@@ -17,7 +17,7 @@ document.addEventListener('alpine:init', () => {
         },
         
         // Currently selected item key for pre-selection
-        selectedItemKey: null,
+        selectedItem: null,
         
         // Methods will be added as needed
         init() {
@@ -124,7 +124,7 @@ document.addEventListener('alpine:init', () => {
             
             // Set the currently equipped item key for pre-selection
             const currentItem = this.getEquipment(slotName);
-            this.selectedItemKey = currentItem ? currentItem.key : null;
+            this.selectedItem = currentItem ? currentItem : null;
             
             this.openPanel(['equipment-selection', 'equipment']);
         }

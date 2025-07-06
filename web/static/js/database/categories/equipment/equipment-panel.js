@@ -74,9 +74,9 @@ document.addEventListener('alpine:init', () => {
                 });
                 
                 // Pre-select item if specified by equipment manager
-                if (this.equipmentManager.selectedItemKey) {
-                    this.selectEquipment({key: this.equipmentManager.selectedItemKey});
-                    logInfo(`Pre-selected item with key: ${this.equipmentManager.selectedItem}`);
+                if (this.equipmentManager.selectedItem) {
+                    this.selectEquipment(this.equipmentManager.selectedItem);
+                    logInfo(`Pre-selected item: ${this.equipmentManager.selectedItem.concrete_ilvl}`);
                 }
             }
             this.loadData();
@@ -105,8 +105,10 @@ document.addEventListener('alpine:init', () => {
         },
 
         async selectEquipment(item) {
-            // Load detailed item data
             apiUrl = `/api/data/items/${item.key}/concrete`;
+            if (item.ilvl) {
+                apiUrl += `?ilvl=${item.ilvl}`;
+            }
             await this.databaseController.selectSpecificData(apiUrl, item);
         },
         

@@ -1,0 +1,158 @@
+<!-- Debug Panel - Simple character level and equipment display -->
+<div 
+    x-data="{
+            sections: {
+        character: false,
+        equipment: false,
+        essences: false,
+        traceries: false,
+        traits: false,
+        effects: false,
+        misc: false
+    }
+    }" 
+    class="fixed left-4 top-4 z-50 bg-lotro-dark border border-lotro-gold rounded-lg shadow-lg p-3 max-h-[calc(100vh-2rem)] overflow-y-auto"
+>
+    <div class="text-white text-sm space-y-4">
+        
+        <!-- Character Info Section -->
+        <div class="border-b border-lotro-gold/30 pb-2">
+            <div 
+                class="flex items-center justify-between cursor-pointer" 
+                @click="sections.character = !sections.character"
+            >
+                <div class="text-lotro-gold font-medium">Character Info:</div>
+                <div class="text-lotro-gold">
+                    <span x-show="sections.character">▼</span>
+                    <span x-show="!sections.character">▶</span>
+                </div>
+            </div>
+            <div class="space-y-1 mt-2" x-show="sections.character">
+                <div>
+                    <span class="text-lotro-gold">Name:</span> 
+                    <span x-text="character.name || 'Unnamed'"></span>
+                </div>
+                <div>
+                    <span class="text-lotro-gold">Level:</span> 
+                    <span x-text="character.level || 0"></span>
+                </div>
+                <div>
+                    <span class="text-lotro-gold">Race:</span> 
+                    <span x-text="character.race || 'Unknown'"></span>
+                </div>
+                <div>
+                    <span class="text-lotro-gold">Class:</span> 
+                    <span x-text="character.class || 'Unknown'"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Equipment Section -->
+        <div class="border-b border-lotro-gold/30 pb-2">
+            <div 
+                class="flex items-center justify-between cursor-pointer" 
+                @click="sections.equipment = !sections.equipment"
+            >
+                <div class="text-lotro-gold font-medium">Equipment:</div>
+                <div class="text-lotro-gold">
+                    <span x-show="sections.equipment">▼</span>
+                    <span x-show="!sections.equipment">▶</span>
+                </div>
+            </div>
+            <div class="space-y-1 mt-2" x-show="sections.equipment">
+                <template x-for="[slot, item] in Object.entries(equipment)" :key="slot">
+                    <div>
+                        <span class="text-lotro-gold" x-text="slot"></span>: 
+                        <span x-text="item ? (item.name + ' @ ' + item.ilvl) : 'null'"></span>
+                    </div>
+                </template>
+            </div>
+        </div>
+        
+        <!-- Essences Section -->
+        <div class="border-b border-lotro-gold/30 pb-2">
+            <div 
+                class="flex items-center justify-between cursor-pointer" 
+                @click="sections.essences = !sections.essences"
+            >
+                <div class="text-lotro-gold font-medium">Essences:</div>
+                <div class="text-lotro-gold">
+                    <span x-show="sections.essences">▼</span>
+                    <span x-show="!sections.essences">▶</span>
+                </div>
+            </div>
+            <div class="space-y-1 mt-2" x-show="sections.essences">
+                <div class="text-gray-400 italic">No essences data yet</div>
+            </div>
+        </div>
+        
+        <!-- Traceries Section -->
+        <div class="border-b border-lotro-gold/30 pb-2">
+            <div 
+                class="flex items-center justify-between cursor-pointer" 
+                @click="sections.traceries = !sections.traceries"
+            >
+                <div class="text-lotro-gold font-medium">Traceries:</div>
+                <div class="text-lotro-gold">
+                    <span x-show="sections.traceries">▼</span>
+                    <span x-show="!sections.traceries">▶</span>
+                </div>
+            </div>
+            <div class="space-y-1 mt-2" x-show="sections.traceries">
+                <div class="text-gray-400 italic">No tracery data yet</div>
+            </div>
+        </div>
+        
+        <!-- Traits Section -->
+        <div class="border-b border-lotro-gold/30 pb-2">
+            <div 
+                class="flex items-center justify-between cursor-pointer" 
+                @click="sections.traits = !sections.traits"
+            >
+                <div class="text-lotro-gold font-medium">Traits:</div>
+                <div class="text-lotro-gold">
+                    <span x-show="sections.traits">▼</span>
+                    <span x-show="!sections.traits">▶</span>
+                </div>
+            </div>
+            <div class="space-y-1 mt-2" x-show="sections.traits">
+                <div class="text-gray-400 italic">No traits data yet</div>
+            </div>
+        </div>
+        
+        <!-- Effects Section -->
+        <div class="border-b border-lotro-gold/30 pb-2">
+            <div 
+                class="flex items-center justify-between cursor-pointer" 
+                @click="sections.effects = !sections.effects"
+            >
+                <div class="text-lotro-gold font-medium">Effects:</div>
+                <div class="text-lotro-gold">
+                    <span x-show="sections.effects">▼</span>
+                    <span x-show="!sections.effects">▶</span>
+                </div>
+            </div>
+            <div class="space-y-1 mt-2" x-show="sections.effects">
+                <div class="text-gray-400 italic">No effects data yet</div>
+            </div>
+        </div>
+        
+        <!-- Misc Section -->
+        <div class="border-b border-lotro-gold/30 pb-2">
+            <div 
+                class="flex items-center justify-between cursor-pointer" 
+                @click="sections.misc = !sections.misc"
+            >
+                <div class="text-lotro-gold font-medium">Misc:</div>
+                <div class="text-lotro-gold">
+                    <span x-show="sections.misc">▼</span>
+                    <span x-show="!sections.misc">▶</span>
+                </div>
+            </div>
+            <div class="space-y-1 mt-2" x-show="sections.misc">
+                <div class="text-gray-400 italic">No misc data yet</div>
+            </div>
+        </div>
+        
+    </div>
+</div>

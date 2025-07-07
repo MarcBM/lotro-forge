@@ -19,6 +19,9 @@
             <!-- Utility Panel Component -->
             {% include "builder/utility-panel.html" %}
 
+            <!-- Debug Panel Component -->
+            {% include "builder/debug-panel.html" %}
+
             <!-- Main content area -->
             <div class="w-full px-[5%] pt-6 pb-4 h-full flex items-start justify-center gap-0 relative">
                 <!-- Main Character Sheet Section -->
@@ -47,6 +50,7 @@
 <script src="{{ url_for('static', path='js/builder/models/equipment.js') }}"></script>
 <script src="{{ url_for('static', path='js/builder/models/essence.js') }}"></script>
 <script src="{{ url_for('static', path='js/builder/models/weapon.js') }}"></script>
+<script src="{{ url_for('static', path='js/utils/build-event-dispatcher.js') }}"></script>
 <script src="{{ url_for('static', path='js/builder/equipment-manager.js') }}"></script>
 <script src="{{ url_for('static', path='js/builder/essence-manager.js') }}"></script>
 <script src="{{ url_for('static', path='js/builder/stats-engine.js') }}"></script>

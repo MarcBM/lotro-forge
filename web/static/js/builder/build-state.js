@@ -6,10 +6,10 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('buildState', () => ({
         // Character basic info
         character: {
-            name: '',
+            name: 'Vuldyn',
             level: 150,
-            class: '',
-            race: ''
+            class: 'Champion',
+            race: 'Human'
         },
 
         // Equipment slots - all slots initialized as null

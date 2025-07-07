@@ -156,17 +156,10 @@ document.addEventListener('alpine:init', () => {
         },
 
         /**
-         * Dispatch equipment change event
+         * Dispatch equipment change event using the centralized dispatcher
          */
         dispatchEquipmentChange() {
-            window.dispatchEvent(new CustomEvent('build-state:equipment-changed', {
-                detail: {
-                    equipment: { ...this.buildState.equipment },
-                    timestamp: Date.now()
-                },
-                bubbles: true
-            }));
-            logDebug('Equipment change event dispatched');
+            BuildEventDispatcher.dispatch('build-state:equipment-changed');
         }
     }));
 }); 

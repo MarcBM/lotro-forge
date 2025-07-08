@@ -10,7 +10,8 @@ window.createStatStructure = () => {
     return {
         raw_value: 0,
         modifiers: [],
-        final_value: 0
+        final_value: 0,
+        goal: 0
     };
 };
 

@@ -1,5 +1,5 @@
 <!-- Right Column: Stats -->
-<div class="w-full bg-lotro-darker p-4 h-full overflow-y-auto border-8 border-lotro-border shadow-lg justify-self-start flex flex-col">
+<div class="w-full bg-lotro-darker p-4 h-full overflow-y-auto border-8 border-lotro-border shadow-lg justify-self-start flex flex-col" x-data="statsEngine">
     <!-- Header Section -->
     <div class="grid grid-cols-[120px_1fr_1fr] gap-2 mb-2 pb-2 border-b border-lotro-border">
         <!-- Left: Empty space where Stats title was -->
@@ -18,298 +18,66 @@
         </div>
     </div>
 
+    <!-- Stat Row Macro -->
+    {% macro stat_row(stat_name, display_name) %}
+    <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
+        <div class="text-gray-300 text-sm text-right">{{ display_name }}</div>
+        <div class="text-left text-white font-medium text-sm" data-stat="{{ stat_name.lower() }}">
+            <div class="flex justify-between items-center">
+                <span x-text="stats['{{ stat_name }}'] ? stats['{{ stat_name }}'].final_value.toLocaleString() : '0'"></span>
+                <span class="text-xs text-gray-400" x-text="stats['{{ stat_name }}'] ? '(' + (stats['{{ stat_name }}'].final_value / 1000).toFixed(1) + '%)' : '(0.0%)'"></span>
+            </div>
+        </div>
+        <div class="text-left text-blue-400 text-sm">
+            <div class="flex justify-between items-center">
+                <span x-text="stats['{{ stat_name }}'] ? stats['{{ stat_name }}'].goal.toLocaleString() : '0'"></span>
+                <span class="text-xs text-gray-400" x-text="stats['{{ stat_name }}'] ? '(' + (stats['{{ stat_name }}'].goal / 1000).toFixed(1) + '%)' : '(0.0%)'"></span>
+            </div>
+        </div>
+    </div>
+    {% endmacro %}
+
     <!-- Stats Sections -->
     <div class="space-y-2 flex-1">
         <!-- Section 1: Core Stats -->
         <div class="space-y-1">
-            <!-- Morale -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Morale</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="morale">0</div>
-                <div class="text-left text-blue-400 text-sm">50,000</div>
-            </div>
-            
-            <!-- Power -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Power</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="power">0</div>
-                <div class="text-left text-blue-400 text-sm">20,000</div>
-            </div>
-            
-            <!-- Armour -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Armour</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="armour">0</div>
-                <div class="text-left text-gray-500 text-sm">—</div>
-            </div>
+            {{ stat_row('MORALE', 'Morale') }}
+            {{ stat_row('POWER', 'Power') }}
+            {{ stat_row('ARMOUR', 'Armour') }}
         </div>
 
         <!-- Section 2: Primary Attributes -->
         <div class="space-y-1 pt-1 border-t border-gray-600">
-            <!-- Might -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Might</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="might">0</div>
-                <div class="text-left text-gray-500 text-sm">—</div>
-            </div>
-            
-            <!-- Agility -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Agility</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="agility">0</div>
-                <div class="text-left text-gray-500 text-sm">—</div>
-            </div>
-            
-            <!-- Vitality -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Vitality</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="vitality">0</div>
-                <div class="text-left text-gray-500 text-sm">—</div>
-            </div>
-            
-            <!-- Will -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Will</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="will">0</div>
-                <div class="text-left text-gray-500 text-sm">—</div>
-            </div>
-            
-            <!-- Fate -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Fate</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="fate">0</div>
-                <div class="text-left text-gray-500 text-sm">—</div>
-            </div>
+            {{ stat_row('MIGHT', 'Might') }}
+            {{ stat_row('AGILITY', 'Agility') }}
+            {{ stat_row('VITALITY', 'Vitality') }}
+            {{ stat_row('WILL', 'Will') }}
+            {{ stat_row('FATE', 'Fate') }}
         </div>
 
         <!-- Section 3: Offensive Stats -->
         <div class="space-y-1 pt-1 border-t border-gray-600">
-            <!-- Critical Rating -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Critical Rating</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="critical_rating">
-                    <div class="flex justify-between items-center">
-                        <span>0</span>
-                        <span class="text-xs text-gray-400">(0.0%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>550,000</span>
-                        <span class="text-xs text-gray-400">(47.8%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Finesse -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Finesse</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="finesse">
-                    <div class="flex justify-between items-center">
-                        <span>0</span>
-                        <span class="text-xs text-gray-400">(0.0%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>700,000</span>
-                        <span class="text-xs text-gray-400">(60.1%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Physical Mastery -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Physical Mastery</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="physical_mastery">
-                    <div class="flex justify-between items-center">
-                        <span>0</span>
-                        <span class="text-xs text-gray-400">(0.0%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>800,000</span>
-                        <span class="text-xs text-gray-400">(68.5%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tactical Mastery -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Tactical Mastery</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="tactical_mastery">
-                    <div class="flex justify-between items-center">
-                        <span>0</span>
-                        <span class="text-xs text-gray-400">(0.0%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>250,000</span>
-                        <span class="text-xs text-gray-400">(21.4%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Outgoing Healing -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Outgoing Healing</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="outgoing_healing">
-                    <div class="flex justify-between items-center">
-                        <span>0</span>
-                        <span class="text-xs text-gray-400">(0.0%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>400,000</span>
-                        <span class="text-xs text-gray-400">(34.3%)</span>
-                    </div>
-                </div>
-            </div>
+            {{ stat_row('CRITICAL_RATING', 'Critical Rating') }}
+            {{ stat_row('FINESSE', 'Finesse') }}
+            {{ stat_row('PHYSICAL_MASTERY', 'Physical Mastery') }}
+            {{ stat_row('TACTICAL_MASTERY', 'Tactical Mastery') }}
+            {{ stat_row('OUTGOING_HEALING', 'Outgoing Healing') }}
         </div>
 
         <!-- Section 4: Defensive Stats -->
         <div class="space-y-1 pt-1 border-t border-gray-600">
-            <!-- Resistance -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Resistance</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="resistance">
-                    <div class="flex justify-between items-center">
-                        <span>456,789</span>
-                        <span class="text-xs text-gray-400">(39.2%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>500,000</span>
-                        <span class="text-xs text-gray-400">(42.9%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Critical Defence -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Critical Defence</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="critical_defence">
-                    <div class="flex justify-between items-center">
-                        <span>398,456</span>
-                        <span class="text-xs text-gray-400">(34.2%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>450,000</span>
-                        <span class="text-xs text-gray-400">(38.6%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Incoming Healing -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Incoming Healing</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="incoming_healing">
-                    <div class="flex justify-between items-center">
-                        <span>234,891</span>
-                        <span class="text-xs text-gray-400">(20.1%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>300,000</span>
-                        <span class="text-xs text-gray-400">(25.7%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Block -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Block</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="block">
-                    <div class="flex justify-between items-center">
-                        <span>187,234</span>
-                        <span class="text-xs text-gray-400">(16.1%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>200,000</span>
-                        <span class="text-xs text-gray-400">(17.2%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Parry -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Parry</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="parry">
-                    <div class="flex justify-between items-center">
-                        <span>156,789</span>
-                        <span class="text-xs text-gray-400">(13.5%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>180,000</span>
-                        <span class="text-xs text-gray-400">(15.4%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Evade -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Evade</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="evade">
-                    <div class="flex justify-between items-center">
-                        <span>198,567</span>
-                        <span class="text-xs text-gray-400">(17.0%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>220,000</span>
-                        <span class="text-xs text-gray-400">(18.9%)</span>
-                    </div>
-                </div>
-            </div>
+            {{ stat_row('RESISTANCE', 'Resistance') }}
+            {{ stat_row('CRITICAL_DEFENCE', 'Critical Defence') }}
+            {{ stat_row('INCOMING_HEALING', 'Incoming Healing') }}
+            {{ stat_row('BLOCK', 'Block') }}
+            {{ stat_row('PARRY', 'Parry') }}
+            {{ stat_row('EVADE', 'Evade') }}
         </div>
 
         <!-- Section 5: Mitigation -->
         <div class="space-y-1 pt-1 border-t border-gray-600">
-            <!-- Physical Mitigation -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Physical Mitigation</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="physical_mitigation">
-                    <div class="flex justify-between items-center">
-                        <span>234,567</span>
-                        <span class="text-xs text-gray-400">(67.8%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>250,000</span>
-                        <span class="text-xs text-gray-400">(70.0%)</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tactical Mitigation -->
-            <div class="grid grid-cols-[120px_1fr_1fr] gap-2 items-center">
-                <div class="text-gray-300 text-sm text-right">Tactical Mitigation</div>
-                <div class="text-left text-white font-medium text-sm" data-stat="tactical_mitigation">
-                    <div class="flex justify-between items-center">
-                        <span>198,456</span>
-                        <span class="text-xs text-gray-400">(65.2%)</span>
-                    </div>
-                </div>
-                <div class="text-left text-blue-400 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span>220,000</span>
-                        <span class="text-xs text-gray-400">(68.0%)</span>
-                    </div>
-                </div>
-            </div>
+            {{ stat_row('PHYSICAL_MITIGATION', 'Physical Mitigation') }}
+            {{ stat_row('TACTICAL_MITIGATION', 'Tactical Mitigation') }}
         </div>
     </div>
 </div> 

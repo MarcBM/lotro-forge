@@ -31,6 +31,7 @@ document.addEventListener('alpine:init', () => {
             window.ALL_STATS.forEach(statName => {
                 this.stats[statName] = window.createStatStructure();
             });
+            console.log(this.stats);
         },
         
         listenForBuildChanges() {
@@ -65,13 +66,14 @@ document.addEventListener('alpine:init', () => {
             this.calculateFinalValues();
             
             logDebug('Stats recalculated from equipment');
+            console.log(this.stats);
         },
         
         addEquipmentStats(equipmentStats) {
             // Add each stat from the equipment to the corresponding stat in our stats object
-            Object.keys(equipmentStats).forEach(statName => {
-                if (this.stats[statName]) {
-                    this.stats[statName].raw_value += equipmentStats[statName];
+            equipmentStats.forEach(stat => {
+                if (this.stats[stat.stat_name]) {
+                    this.stats[stat.stat_name].raw_value += stat.value;
                 }
             });
         },

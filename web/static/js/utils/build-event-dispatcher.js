@@ -19,20 +19,26 @@ class BuildEventDispatcher {
      */
     static dispatch(eventName) {
         if (!eventName || typeof eventName !== 'string') {
-            console.error('BuildEventDispatcher: eventName parameter is required and must be a string');
+            logError('BuildEventDispatcher: eventName parameter is required and must be a string');
             return;
         }
         
-        // Dispatch the event with no details, but with bubbling enabled
+        // Dispatch the specific event with bubbling enabled
         window.dispatchEvent(new CustomEvent(eventName, {
             bubbles: true
         }));
         
-        // Log the event dispatch
-        if (window.logDebug) {
-            window.logDebug(`BuildEventDispatcher: Dispatched ${eventName}`);
-        } else {
-            console.debug(`BuildEventDispatcher: Dispatched ${eventName}`);
+        // Also dispatch a general "build-changed" event for any non-general event
+        if (eventName !== 'build-changed') {
+            window.dispatchEvent(new CustomEvent('build-changed', {
+                bubbles: true
+            }));
+        }
+        
+        // Log the event dispatch using structured logging
+        logComponent('BuildEventDispatcher', `Dispatched ${eventName}`, 'debug');
+        if (eventName !== 'build-changed') {
+            logComponent('BuildEventDispatcher', 'Also dispatched build-changed', 'debug');
         }
     }
 }

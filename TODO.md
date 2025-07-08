@@ -35,6 +35,10 @@
 **Priority:** Medium  
 **Description:** Implement image importing system to stitch all individual icons together into one large PNG sprite sheet. Use CSS sprite techniques or other methods to extract and display specific icons from the larger image. This will reduce HTTP requests and improve page load performance by loading all icons in a single request.
 
+### 19. Track Down Crit Defence Calculation on Shields
+**Priority:** Medium  
+**Description:** Investigate and document how critical defence is calculated on shields. This may involve special formulas or modifiers that differ from standard equipment stat calculations. Research the game mechanics and data structures to understand shield-specific crit defence behavior.
+
 ### 9. Fix Builder Display on Large Screens
 **Priority:** Low  
 **Description:** Ensure the character builder interface displays consistently and properly on larger screen sizes.
@@ -65,5 +69,5 @@
 
 ---
 
-**Next Work Item Number:** 19
+**Next Work Item Number:** 20
 

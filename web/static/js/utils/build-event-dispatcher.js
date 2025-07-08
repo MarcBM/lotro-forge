@@ -34,12 +34,6 @@ class BuildEventDispatcher {
                 bubbles: true
             }));
         }
-        
-        // Log the event dispatch using structured logging
-        logComponent('BuildEventDispatcher', `Dispatched ${eventName}`, 'debug');
-        if (eventName !== 'build-changed') {
-            logComponent('BuildEventDispatcher', 'Also dispatched build-changed', 'debug');
-        }
     }
 }
 

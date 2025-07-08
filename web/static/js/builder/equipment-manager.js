@@ -21,36 +21,16 @@ document.addEventListener('alpine:init', () => {
         
         // Methods will be added as needed
         init() {
-            logComponent('EquipmentManager', 'initialized');
             // Get direct reference to build state component
             const buildStateElement = document.getElementById('build-state');
             this.buildState = Alpine.$data(buildStateElement);
-            logDebug('Build state reference obtained');
             
             // Get direct reference to database controller
             const databaseControllerElement = document.getElementById('database-controller');
             if (databaseControllerElement) {
                 this.databaseController = Alpine.$data(databaseControllerElement);
-                logDebug('Database controller reference obtained');
             } else {
                 logWarn('Database controller not found during initialization');
-            }
-        },
-
-        /**
-         * Print the slot name to console when clicked
-         * @param {string} slotName - The name of the equipment slot
-         */
-        printSlot(slotName) {
-            try {
-                const currentItem = this.getEquipment(slotName);
-                if (currentItem) {
-                    logDebug(`${slotName}: ${currentItem.name || 'Unknown Item'}`);
-                } else {
-                    logDebug(`${slotName}: Empty`);
-                }
-            } catch (error) {
-                logError(`Equipment slot clicked: ${slotName} (Build state not accessible)`, error);
             }
         },
 
@@ -98,12 +78,9 @@ document.addEventListener('alpine:init', () => {
                     equipmentObject = new Equipment(item);
                 }
 
-                logInfo(`Build State:`, this.buildState);
-
                 // Update the build state with the new equipment
                 if (targetSlot in this.buildState.equipment) {
                     this.buildState.equipment[targetSlot] = equipmentObject;
-                    logInfo(`Updated equipment for ${targetSlot}:`, equipmentObject);
                     // Dispatch equipment change event
                     this.dispatchEquipmentChange();
                 } else {
@@ -122,7 +99,6 @@ document.addEventListener('alpine:init', () => {
          * @param {string} slotName - The name of the equipment slot
          */
         openEquipmentSelection(slotName) {
-            logInfo('Opening equipment selection for slot:', slotName);
             this.lockedFilters.slot = slotName;
             
             // Set the currently equipped item key for pre-selection
@@ -142,12 +118,9 @@ document.addEventListener('alpine:init', () => {
                 logDebug(`No item to remove from ${slotName}`);
                 return;
             }
-
-            logInfo(`Removing ${currentItem.name || 'Unknown Item'} from ${slotName}`);
             
             if (slotName in this.buildState.equipment) {
                 this.buildState.equipment[slotName] = null;
-                logInfo(`Successfully removed equipment from ${slotName}`);
                 // Dispatch equipment change event
                 this.dispatchEquipmentChange();
             } else {

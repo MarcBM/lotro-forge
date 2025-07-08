@@ -17,10 +17,6 @@ document.addEventListener('alpine:init', () => {
         selectedData: null,
         loading: false,
         
-        init() {
-            logComponent('DatabaseController', 'initialized');
-        },
-        
         // Get current results status text
         getResultsText() {
             if (this.pagination.totalResults && this.pagination.currentlyShowing > 0) {
@@ -38,7 +34,6 @@ document.addEventListener('alpine:init', () => {
         loadMore(panelId) {
             if (this.pagination.loading || !panelId) return;
             
-            logDebug(`Load more requested for ${panelId} panel`);
             this.pagination.loading = true;
             
             window.dispatchEvent(new CustomEvent(`database-load-more-${panelId}`, {

@@ -25,8 +25,6 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-traits', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-traits', this.handlePanelOpened.bind(this));
             window.addEventListener('panel-closed-traits', this.handlePanelClosed.bind(this));
-            
-            logComponent('TraitsPanel', 'initialized');
         },
         
         loadFilterOptions() {

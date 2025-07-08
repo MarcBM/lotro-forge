@@ -25,8 +25,6 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-buffs', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-buffs', this.handlePanelOpened.bind(this));
             window.addEventListener('panel-closed-buffs', this.handlePanelClosed.bind(this));
-            
-            logComponent('BuffsPanel', 'initialized');
         },
         
         loadFilterOptions() {

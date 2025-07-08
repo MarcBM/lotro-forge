@@ -25,8 +25,6 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-misc', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-misc', this.handlePanelOpened.bind(this));
             window.addEventListener('panel-closed-misc', this.handlePanelClosed.bind(this));
-            
-            logComponent('MiscPanel', 'initialized');
         },
         
         loadFilterOptions() {

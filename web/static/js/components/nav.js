@@ -14,7 +14,6 @@ document.addEventListener('alpine:init', () => {
         currentUser: null,
         
         init() {
-            logComponent('Navigation', 'initialized');
             // Navigation initialization (minimal)
             this.updateAuthState();
             
@@ -40,13 +39,11 @@ document.addEventListener('alpine:init', () => {
         
         // Methods to trigger global authentication actions
         openLoginModal() {
-            logDebug('Opening login modal');
             // Dispatch event to trigger login modal
             window.dispatchEvent(new CustomEvent('open-login-modal'));
         },
         
         logout() {
-            logInfo('User logout initiated');
             // Dispatch event to trigger logout
             window.dispatchEvent(new CustomEvent('auth-logout'));
             this.closeAccountDropdown();

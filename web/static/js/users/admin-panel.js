@@ -19,7 +19,6 @@ document.addEventListener('alpine:init', () => {
         isDeletingUser: false,
         
         async createUser() {
-            logInfo('Creating new user:', this.newUsername, 'with role:', this.selectedRole);
             this.isCreating = true;
             this.createMessage = '';
             this.generatedPassword = '';
@@ -39,7 +38,6 @@ document.addEventListener('alpine:init', () => {
                 
                 if (response.ok) {
                     const newUser = await response.json();
-                    logInfo('User created successfully:', newUser.username);
                     this.isCreateSuccess = true;
                     this.createMessage = 'User created successfully!';
                     this.generatedPassword = newUser.generated_password;
@@ -66,7 +64,6 @@ document.addEventListener('alpine:init', () => {
         },
         
         copyPassword() {
-            logDebug('Copying generated password to clipboard');
             navigator.clipboard.writeText(this.generatedPassword).then(() => {
                 // Could add a brief 'copied!' message here if needed
             });
@@ -105,7 +102,6 @@ document.addEventListener('alpine:init', () => {
         },
         
         async saveRole(userId) {
-            logInfo('Updating role for user ID:', userId, 'to:', this.editingRole);
             this.isUpdatingRole = true;
             try {
                 const response = await fetch(`/api/auth/admin/users/${userId}/role`, {
@@ -120,7 +116,6 @@ document.addEventListener('alpine:init', () => {
                 
                 if (response.ok) {
                     const updatedUser = await response.json();
-                    logInfo('User role updated successfully:', updatedUser.username, 'new role:', updatedUser.role);
                     // Update the user in the list
                     const userIndex = this.allUsers.findIndex(u => u.id === userId);
                     if (userIndex !== -1) {
@@ -143,8 +138,6 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
             
-            logInfo('Deleting user:', username, 'ID:', userId);
-            
             this.isDeletingUser = true;
             try {
                 const response = await fetch(`/api/auth/admin/users/${userId}`, {
@@ -152,7 +145,6 @@ document.addEventListener('alpine:init', () => {
                 });
                 
                 if (response.ok) {
-                    logInfo('User deleted successfully:', username);
                     // Remove user from the list
                     this.allUsers = this.allUsers.filter(u => u.id !== userId);
                 } else {

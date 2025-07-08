@@ -7,9 +7,5 @@ document.addEventListener('alpine:init', () => {
         // Properties will be defined as needed
         
         // Methods will be added as needed
-        init() {
-            logComponent('EssenceManager', 'initialized');
-            // Initialization logic
-        }
     }));
 }); 

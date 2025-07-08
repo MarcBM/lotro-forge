@@ -26,12 +26,9 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-sets', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-sets', this.handlePanelOpened.bind(this));
             window.addEventListener('panel-closed-sets', this.handlePanelClosed.bind(this));
-            
-            logComponent('SetsPanel', 'initialized');
         },
         
         async handlePanelOpened() {
-            logInfo('Sets panel opened - showing placeholder (fresh)');
             // For now, just show the placeholder content
             // When implemented, this would reload sets data with current filters
         },

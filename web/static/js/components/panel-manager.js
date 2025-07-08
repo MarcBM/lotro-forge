@@ -7,10 +7,6 @@ document.addEventListener('alpine:init', () => {
         // Panel state - now a list of active panels
         activePanels: config.defaultPanels || [],
         
-        init() {
-            logComponent('PanelManager', 'initialized');
-        },
-        
         // Core panel management
         openPanel(panelIds) {
             // Handle both single panel ID (string) and multiple panel IDs (array)
@@ -20,8 +16,6 @@ document.addEventListener('alpine:init', () => {
                 logWarn('No panel IDs provided');
                 return false;
             }
-            
-            logDebug('Opening panels:', panelsToOpen);
             
             // Add panels to active list if they're not already there
             const newlyOpened = [];
@@ -61,8 +55,6 @@ document.addEventListener('alpine:init', () => {
             }
             
             if (panelsToClose.length === 0) return false;
-            
-            logDebug('Closing panels:', panelsToClose);
             
             // Remove panels from active list
             const newlyClosed = [];

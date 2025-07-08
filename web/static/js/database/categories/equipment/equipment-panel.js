@@ -31,7 +31,6 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('panel-closed-equipment', this.handlePanelClosed.bind(this));
             
             this.checkDatabasePageInitialLoad();
-            logComponent('EquipmentPanel', 'initialized');
         },
         
         checkDatabasePageInitialLoad() {
@@ -76,7 +75,6 @@ document.addEventListener('alpine:init', () => {
                 // Pre-select item if specified by equipment manager
                 if (this.equipmentManager.selectedItem) {
                     this.selectEquipment(this.equipmentManager.selectedItem);
-                    logInfo(`Pre-selected item: ${this.equipmentManager.selectedItem.concrete_ilvl}`);
                 }
             }
             this.loadData();

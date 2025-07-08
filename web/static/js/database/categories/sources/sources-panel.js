@@ -25,8 +25,6 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-sources', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-sources', this.handlePanelOpened.bind(this));
             window.addEventListener('panel-closed-sources', this.handlePanelClosed.bind(this));
-            
-            logComponent('SourcesPanel', 'initialized');
         },
         
         loadFilterOptions() {

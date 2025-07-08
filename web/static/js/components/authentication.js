@@ -10,7 +10,6 @@ document.addEventListener('alpine:init', () => {
         isAuthenticated: false,
         
         init() {
-            logComponent('Authentication', 'initialized');
             // Initialize global auth state
             window.lotroAuth = {
                 isAuthenticated: false,
@@ -79,7 +78,6 @@ document.addEventListener('alpine:init', () => {
         },
         
         async login() {
-            logInfo('Attempting login for username:', this.loginUsername);
             const formData = new FormData();
             formData.append('username', this.loginUsername);
             formData.append('password', this.loginPassword);
@@ -91,7 +89,6 @@ document.addEventListener('alpine:init', () => {
                 
                 if (res.ok) {
                     // Success - close modal and refresh auth status
-                    logInfo('Login successful');
                     this.isLoginModalOpen = false;
                     this.loginError = '';
                     
@@ -108,7 +105,7 @@ document.addEventListener('alpine:init', () => {
                     logWarn('Login failed with status:', res.status);
                     try {
                         const err = await res.json();
-                        logDebug('Error response:', err);
+                        logError('Error response:', err);
                         this.loginError = err.detail || `Login failed (Status: ${res.status})`;
                     } catch (jsonError) {
                         logWarn('Failed to parse error response as JSON:', jsonError);
@@ -148,7 +145,6 @@ document.addEventListener('alpine:init', () => {
         
         // UI interaction methods
         openLoginModal() {
-            logDebug('Login modal opened');
             this.isLoginModalOpen = true;
             // Focus the username field after the modal is shown
             this.$nextTick(() => {
@@ -157,7 +153,6 @@ document.addEventListener('alpine:init', () => {
         },
         
         closeLoginModal() {
-            logDebug('Login modal closed');
             this.isLoginModalOpen = false;
             this.loginError = '';
         }

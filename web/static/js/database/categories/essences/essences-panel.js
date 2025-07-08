@@ -26,8 +26,6 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-essences', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-essences', this.handlePanelOpened.bind(this));
             window.addEventListener('panel-closed-essences', this.handlePanelClosed.bind(this));
-            
-            logComponent('EssencesPanel', 'initialized');
         },
         
         loadFilterOptions() {

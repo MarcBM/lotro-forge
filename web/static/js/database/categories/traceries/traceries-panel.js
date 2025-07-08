@@ -25,8 +25,6 @@ document.addEventListener('alpine:init', () => {
             window.addEventListener('database-load-more-traceries', this.handleLoadMore.bind(this));
             window.addEventListener('panel-opened-traceries', this.handlePanelOpened.bind(this));
             window.addEventListener('panel-closed-traceries', this.handlePanelClosed.bind(this));
-            
-            logComponent('TraceriesPanel', 'initialized');
         },
         
         loadFilterOptions() {

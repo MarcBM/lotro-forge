@@ -17,24 +17,12 @@ document.addEventListener('alpine:init', () => {
             // Get direct reference to build state component
             const buildStateElement = document.getElementById('build-state');
             this.buildState = Alpine.$data(buildStateElement);
-            logComponent('StatsEngine', 'initialized');
             
-            // Build the stats object dynamically
-            this.buildStatsObject();
-            
-            // Listen for build changes
-            this.listenForBuildChanges();
-        },
-        
-        buildStatsObject() {
             // Create stat structure for each stat name
             window.ALL_STATS.forEach(statName => {
                 this.stats[statName] = window.createStatStructure();
             });
-            console.log(this.stats);
-        },
-        
-        listenForBuildChanges() {
+            
             // Listen for the generic build-changed event
             window.addEventListener('build-changed', () => {
                 this.calculateStatsFromEquipment();
@@ -49,7 +37,7 @@ document.addEventListener('alpine:init', () => {
             
             // Check if build state is available
             if (!this.buildState || !this.buildState.equipment) {
-                logDebug('Build state not available for stat calculation');
+                logWarn('Build state not available for stat calculation');
                 return;
             }
             
@@ -64,9 +52,6 @@ document.addEventListener('alpine:init', () => {
             
             // Calculate final values (for now, just copy raw values)
             this.calculateFinalValues();
-            
-            logDebug('Stats recalculated from equipment');
-            console.log(this.stats);
         },
         
         addEquipmentStats(equipmentStats) {

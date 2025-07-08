@@ -1,6 +1,5 @@
 // Alpine.js initialization and global store setup
 window.addEventListener('alpine:init', () => {
-    logComponent('Alpine', 'initialized');
     
     // Initialize Alpine stores globally
     Alpine.store('nav', {

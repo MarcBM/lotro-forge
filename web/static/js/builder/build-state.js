@@ -59,10 +59,5 @@ document.addEventListener('alpine:init', () => {
         // Build metadata
         buildName: '',
         buildNotes: '',
-
-        // Methods will be added as needed
-        init() {
-            logComponent('BuildState', 'initialized');
-        }
     }));
 }); 

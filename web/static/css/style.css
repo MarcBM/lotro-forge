@@ -141,4 +141,40 @@ html::-webkit-scrollbar-corner {
     .item-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Greyed-out effect for elements not ready for testing */
+.not-ready {
+    position: relative;
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(100%);
+}
+
+.not-ready::before {
+    content: "Coming Soon";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #E6D5AC;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10;
+    white-space: nowrap;
+    border: 1px solid #E6D5AC;
+}
+
+.not-ready::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(17, 24, 39, 0.7);
+    z-index: 5;
 } 

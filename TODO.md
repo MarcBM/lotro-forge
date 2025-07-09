@@ -3,14 +3,6 @@
 ## Items Ready for Work
 
 
-### 2. Refactor Navigation Template
-**Priority:** High  
-**Description:** Clean up and improve the navigation template structure for better consistency across pages.
-
-### 3. Refactor Templates Directory Structure
-**Priority:** High  
-**Description:** Reorganize templates directory, particularly moving baseline components into the builder section for better organization.
-
 ### 4. Deploy Website to lotroforge.com
 **Priority:** High  
 **Description:** Set up production hosting for the website including domain configuration, SSL certificates, and security measures. Research and implement appropriate hosting solution.
@@ -39,17 +31,9 @@
 **Priority:** Medium  
 **Description:** Investigate and document how critical defence is calculated on shields. This may involve special formulas or modifiers that differ from standard equipment stat calculations. Research the game mechanics and data structures to understand shield-specific crit defence behavior.
 
-### 9. Fix Builder Display on Large Screens
-**Priority:** Low  
-**Description:** Ensure the character builder interface displays consistently and properly on larger screen sizes.
-
 ### 10. Fix EV Display in Item Database
 **Priority:** Low  
 **Description:** Change Essence Value (EV) display in item databases to show global values rather than relative to currently loaded results only.
-
-### 11. Simplify Equipment Database Filters
-**Priority:** Low  
-**Description:** Remove left/right slot filters from equipment database explorer to streamline slot selection process.
 
 ### 14. Add Timeline Connections to Release Notes
 **Priority:** Low  

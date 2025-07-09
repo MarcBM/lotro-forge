@@ -3,9 +3,7 @@
 ## Items Ready for Work
 
 
-### 4. Deploy Website to lotroforge.com
-**Priority:** High  
-**Description:** Set up production hosting for the website including domain configuration, SSL certificates, and security measures. Research and implement appropriate hosting solution.
+
 
 ### 5. Set Up CI/CD Pipeline
 **Priority:** High  

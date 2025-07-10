@@ -53,7 +53,15 @@
 **Priority:** Medium  
 **Description:** Conduct a comprehensive audit of data models as they are passed through the application to ensure consistency across all endpoints and services. Review the structure of JSON responses, database model serialization methods (to_json, to_list_json, get_stats_json), and API response formats. Focus on standardizing field names, data types, nested object structures, and response patterns across items, equipment, essences, and other data models. This audit should identify inconsistencies in how data is structured and formatted as it flows through different layers of the application.
 
+### 21. Create Comprehensive Test Suite
+**Priority:** Medium  
+**Description:** Develop a comprehensive test suite including unit tests, integration tests, and API tests. The test suite should cover all major functionality including database operations, API endpoints, authentication, and web pages. Include proper test fixtures, mocking, and database setup for reliable testing. This will ensure code quality and prevent regressions during development.
+
+### 22. Optimize CSS for Production
+**Priority:** Medium  
+**Description:** Replace Tailwind CSS CDN with a proper build system. Set up PostCSS and Tailwind CLI to generate optimized CSS that only includes used classes. This will improve performance, reduce bundle size, and eliminate dependency on external CDN. Consider using tools like Vite or Webpack for asset bundling and optimization.
+
 ---
 
-**Next Work Item Number:** 21
+**Next Work Item Number:** 23
 

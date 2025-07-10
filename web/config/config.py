@@ -20,12 +20,28 @@ WEB_PORT = int(os.getenv("LOTRO_FORGE_PORT", "8000"))
 WEB_WORKERS = int(os.getenv("LOTRO_FORGE_WORKERS", "1"))
 
 # CORS settings
-CORS_ORIGINS: List[str] = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-] if DEBUG else [
-    # Add production origins here
-]
+def get_cors_origins() -> List[str]:
+    """Get CORS origins from environment or use defaults."""
+    # Check if CORS_ORIGINS environment variable is set
+    cors_env = os.getenv("CORS_ORIGINS")
+    if cors_env:
+        # Parse comma-separated string into list
+        return [origin.strip() for origin in cors_env.split(",")]
+    
+    # Default origins based on environment
+    if DEBUG:
+        return [
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ]
+    else:
+        return [
+            "https://lotroforge.com",
+            "https://www.lotroforge.com",
+            "https://lotro-forge.fly.dev",
+        ]
+
+CORS_ORIGINS: List[str] = get_cors_origins()
 
 # Database settings
 DATABASE_URL = os.getenv(

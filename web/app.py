@@ -77,5 +77,11 @@ register_api_routes(app)
 
 
 
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for load balancers and monitoring."""
+    return {"status": "healthy", "version": APP_VERSION}
+
 # Error handlers
 app.add_exception_handler(404, not_found_handler)

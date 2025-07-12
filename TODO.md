@@ -2,8 +2,17 @@
 
 ## Items Ready for Work
 
-
-
+### 23. Optimize Data Import Workflow for Production
+**Priority:** HIGH  
+**Description:** Completely rework the data import process to eliminate the need for storing raw lotro-companion repos in the deployed environment. The solution should:
+- Import data during build time (Docker build process)
+- Clone repos temporarily during build
+- Run import scripts to process XML data into database
+- Copy only needed icons to static folder
+- Remove raw repos after processing
+- Retain ability to automatically deploy new data when lotro-companion repos update
+- Consider implementing as part of CI/CD pipeline or build-time process
+- Target for 0.2a release
 
 ### 5. Set Up CI/CD Pipeline
 **Priority:** High  

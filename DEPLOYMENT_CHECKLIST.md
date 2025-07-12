@@ -17,15 +17,20 @@
 - [x] fly.toml configuration created
 
 ### ✅ CI/CD Pipeline
-- [ ] GitHub Actions workflow created
-- [ ] FLY_API_TOKEN secret added to GitHub
-- [ ] Automated testing configured
-- [ ] Deployment automation set up
+- [x] GitHub Actions workflow created
+- [x] FLY_API_TOKEN secret added to GitHub
+- [x] Automated testing configured
+- [x] Deployment automation set up
 
 ## Deployment Steps
 
 ### Phase 1: Initial Deployment
-- [ ] Run `./scripts/deploy_setup.sh`
+- [ ] **Option A: Automated Setup**
+  - [ ] Run deployment script: `./scripts/deploy_setup.sh`
+- [ ] **Option B: Manual Setup**
+  - [ ] Create fly.io app: `flyctl apps create lotro-forge --org personal`
+  - [ ] Create data volume: `flyctl volumes create lotro_companion --size 1 --region iad`
+- [ ] Deploy via GitHub Actions (push to main)
 - [ ] Verify app creation: `flyctl status`
 - [ ] Check logs: `flyctl logs`
 - [ ] Test health endpoint: `curl https://lotro-forge.fly.dev/health`
@@ -149,5 +154,5 @@
 
 ---
 
-**Last Updated:** $(date)
-**Next Review:** $(date -d "+1 month") 
+**Last Updated:** 2024-12-19
+**Next Review:** 2025-01-19 

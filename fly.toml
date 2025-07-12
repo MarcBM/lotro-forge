@@ -32,7 +32,7 @@ primary_region = "iad"
   memory_mb = 512
 
 [mounts]
-  source = "lotro-companion"
+  source = "lotro_companion"
   destination = "/app/data"
 
 [[services]]

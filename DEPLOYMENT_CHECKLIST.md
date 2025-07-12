@@ -32,28 +32,32 @@
   - [x] Create data volume: `flyctl volumes create lotro_companion --size 2 --region iad`
 
 ### Phase 3: Initial Code Deployment
-- [ ] Deploy code to fly.io: `flyctl deploy --remote-only`
-- [ ] Verify app is created: `flyctl status`
-- [ ] Note: App will not start properly yet (no database/secrets)
+- [x] Deploy code to fly.io: `flyctl deploy --remote-only`
+- [x] Verify app is created: `flyctl status`
+- [x] Note: App will not start properly yet (no database/secrets)
 
-### Phase 4: Database Setup (ON FLY.IO INSTANCE)
-- [ ] Connect to fly.io instance: `flyctl ssh console`
-- [ ] Navigate to app directory: `cd /app`
-- [ ] Run database migrations: `alembic upgrade head`
-- [ ] Import LOTRO companion data:
-  - [ ] Navigate to data directory: `cd /app/data`
-  - [ ] Clone repositories:
-    - [ ] `git clone https://github.com/lotro-companion/lotro-items-db.git lotro_companion/lotro-items-db`
-    - [ ] `git clone https://github.com/lotro-companion/lotro-data.git lotro_companion/lotro-data`
-    - [ ] `git clone https://github.com/lotro-companion/lotro-icons.git lotro_companion/lotro-icons`
-  - [ ] Run data import: `python -m scripts.importers.run_import --wipe`
-- [ ] Database connectivity verified
-
-### Phase 5: Environment Configuration
+### Phase 4: Environment Configuration
 - [ ] Set fly.io secrets for environment variables:
   - [ ] `flyctl secrets set LOTRO_FORGE_ENV=production`
   - [ ] `flyctl secrets set LOTRO_FORGE_SECRET_KEY=<your-super-secret-key>`
+  - [ ] `flyctl secrets set LOTRO_COMPANION_ROOT=/app/data`
   - [ ] `flyctl secrets set CORS_ORIGINS=https://lotroforge.com,https://www.lotroforge.com`
+
+### Phase 5: Database Setup (ON FLY.IO INSTANCE)
+- [ ] Start the app temporarily: `fly machine start <MACHINE_ID>` (get ID from `fly status`)
+- [ ] Connect to fly.io instance: `fly ssh console`
+- [ ] Navigate to app directory: `cd /app`
+- [ ] Set up LOTRO companion data (volume already mounted at /app/data):
+  - [ ] Navigate to data directory: `cd /app/data`
+  - [ ] Clone LOTRO companion repository: `git clone https://github.com/lotro-companion/lotro-items-db.git lotro-items-db`
+  - [ ] Clone LOTRO data repository: `git clone https://github.com/lotro-companion/lotro-data.git lotro-data`
+  - [ ] Clone LOTRO icons repository: `git clone https://github.com/lotro-companion/lotro-icons.git lotro-icons`
+  - [ ] Navigate back to app: `cd /app`
+- [ ] Run database migrations: `python -m alembic upgrade head`
+- [ ] Import LOTRO companion data: `python -m scripts.importers.run_import --wipe`
+- [ ] Create master user: `python -m scripts.create_master_user`
+- [ ] Exit SSH session: `exit`
+- [ ] Database connectivity verified
 
 ### Phase 6: Start Application
 - [ ] Restart app with new configuration: `flyctl deploy --remote-only`

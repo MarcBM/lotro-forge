@@ -27,9 +27,9 @@
 ### Phase 1: Initial Deployment
 - [ ] **Option A: Automated Setup**
   - [ ] Run deployment script: `./scripts/deploy_setup.sh`
-- [ ] **Option B: Manual Setup**
-  - [ ] Create fly.io app: `flyctl apps create lotro-forge --org personal`
-  - [ ] Create data volume: `flyctl volumes create lotro_companion --size 1 --region iad`
+- [x] **Option B: Manual Setup**
+  - [x] Create fly.io app: `flyctl apps create lotro-forge --org personal`
+  - [ ] Create data volume: `flyctl volumes create lotro_companion --size 2 --region iad`
 - [ ] Deploy via GitHub Actions (push to main)
 - [ ] Verify app creation: `flyctl status`
 - [ ] Check logs: `flyctl logs`

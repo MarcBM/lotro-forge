@@ -24,29 +24,23 @@
 
 ## Deployment Steps
 
-### Phase 1: Initial Deployment
-- [ ] **Option A: Automated Setup**
-  - [ ] Run deployment script: `./scripts/deploy_setup.sh`
+### Phase 1: Infrastructure Setup
+- [x] **Option A: Automated Setup**
+  - [x] Run deployment script: `./scripts/deploy_setup.sh`
 - [x] **Option B: Manual Setup**
   - [x] Create fly.io app: `flyctl apps create lotro-forge --org personal`
-  - [ ] Create data volume: `flyctl volumes create lotro_companion --size 2 --region iad`
-- [ ] Deploy via GitHub Actions (push to main)
-- [ ] Verify app creation: `flyctl status`
-- [ ] Check logs: `flyctl logs`
-- [ ] Test health endpoint: `curl https://lotro-forge.fly.dev/health`
+  - [x] Create data volume: `flyctl volumes create lotro_companion --size 2 --region iad`
 
-### Phase 2: Domain Configuration
-- [ ] Add custom domain: `flyctl certs add lotroforge.com`
-- [ ] Add www subdomain: `flyctl certs add www.lotroforge.com`
-- [ ] Update DNS records at domain registrar
-- [ ] Verify SSL certificates: `flyctl certs show lotroforge.com`
+### Phase 3: Initial Code Deployment
+- [ ] Deploy code to fly.io: `flyctl deploy --remote-only`
+- [ ] Verify app is created: `flyctl status`
+- [ ] Note: App will not start properly yet (no database/secrets)
 
-### Phase 3: Database Setup
-- [ ] PostgreSQL database created and attached
-- [ ] Database migrations run successfully
-- [ ] Create and configure data volume:
-  - [ ] `flyctl volumes create lotro-companion --size 1 --region iad`
-  - [ ] Connect to container: `flyctl ssh console`
+### Phase 4: Database Setup (ON FLY.IO INSTANCE)
+- [ ] Connect to fly.io instance: `flyctl ssh console`
+- [ ] Navigate to app directory: `cd /app`
+- [ ] Run database migrations: `alembic upgrade head`
+- [ ] Import LOTRO companion data:
   - [ ] Navigate to data directory: `cd /app/data`
   - [ ] Clone repositories:
     - [ ] `git clone https://github.com/lotro-companion/lotro-items-db.git lotro_companion/lotro-items-db`
@@ -55,20 +49,41 @@
   - [ ] Run data import: `python -m scripts.importers.run_import --wipe`
 - [ ] Database connectivity verified
 
-### Phase 4: Security Configuration
-- [ ] Strong secret keys generated and set
+### Phase 5: Environment Configuration
 - [ ] Set fly.io secrets for environment variables:
-  - [ ] `flyctl secrets set DB_HOST=host.internal`
-  - [ ] `flyctl secrets set DB_PORT=5432`
-  - [ ] `flyctl secrets set DB_NAME=lotro_forge`
-  - [ ] `flyctl secrets set DB_USER=postgres`
-  - [ ] `flyctl secrets set DB_PASSWORD=<your-production-password>`
   - [ ] `flyctl secrets set LOTRO_FORGE_ENV=production`
   - [ ] `flyctl secrets set LOTRO_FORGE_SECRET_KEY=<your-super-secret-key>`
   - [ ] `flyctl secrets set CORS_ORIGINS=https://lotroforge.com,https://www.lotroforge.com`
+
+### Phase 6: Start Application
+- [ ] Restart app with new configuration: `flyctl deploy --remote-only`
+- [ ] Verify app is running: `flyctl status`
+- [ ] Check logs: `flyctl logs`
+- [ ] Test health endpoint: `curl https://lotro-forge.fly.dev/health`
+
+### Phase 7: Domain Configuration
+- [ ] Add custom domain: `flyctl certs add lotroforge.com`
+- [ ] Add www subdomain: `flyctl certs add www.lotroforge.com`
+- [ ] Update DNS records at domain registrar
+- [ ] Verify SSL certificates: `flyctl certs show lotroforge.com`
+
+### Phase 6: Security Verification
 - [ ] CORS settings updated for production
 - [ ] Security headers verified
 - [ ] Rate limiting considered
+
+## Ongoing Deployment Process
+
+After initial setup is complete, all future deployments will be handled automatically by GitHub Actions:
+
+### Regular Code Deployments
+- [ ] Push changes to main branch
+- [ ] GitHub Actions automatically:
+  - [ ] Runs tests
+  - [ ] Builds Docker image
+  - [ ] Deploys to fly.io
+- [ ] Verify deployment: `flyctl status`
+- [ ] Check logs if needed: `flyctl logs`
 
 ### Phase 5: Monitoring Setup
 - [ ] Health checks configured

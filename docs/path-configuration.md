@@ -69,11 +69,7 @@ lotro_companion/
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `LOTRO_FORGE_PROJECT_ROOT` | Path to this project | Auto-detected |
-| `DB_HOST` | Database host | `localhost` |
-| `DB_PORT` | Database port | `5432` |
-| `DB_NAME` | Database name | `lotro_forge` |
-| `DB_USER` | Database user | (required) |
-| `DB_PASSWORD` | Database password | (required) |
+| `DATABASE_URL` | SQLite database URL | `sqlite:///lotro_forge.db` |
 
 ## Validation
 
@@ -171,11 +167,7 @@ If you're migrating from the old hardcoded system:
 ```bash
 # .env file for development
 LOTRO_COMPANION_ROOT=/home/developer/workspace/lotro/lotro_companion
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=lotro_forge_dev
-DB_USER=postgres
-DB_PASSWORD=dev_password
+DATABASE_URL=sqlite:///lotro_forge.db
 ```
 
 ### Production Setup
@@ -183,9 +175,5 @@ DB_PASSWORD=dev_password
 ```bash
 # .env file for production
 LOTRO_COMPANION_ROOT=/opt/lotro_data/lotro_companion
-DB_HOST=prod-db.example.com
-DB_PORT=5432
-DB_NAME=lotro_forge_prod
-DB_USER=lotro_forge_user
-DB_PASSWORD=secure_production_password
+DATABASE_URL=sqlite:///lotro_forge.db
 ``` 

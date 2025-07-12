@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from datetime import datetime, UTC
 
 from database.session import get_session
-from database.models.user import User
+from database.models.user import User, UserSession
 from .models import UserResponse, ProfileUpdate, PasswordChange
 
 # --- Password hashing ---
@@ -69,8 +69,13 @@ async def change_password(
     # Middleware ensures current_user is set for protected routes
     current_user = request.state.current_user
     
+    # Get the user from the current session to avoid session issues
+    user = db_session.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    
     # Verify current password
-    if not verify_password(password_data.current_password, current_user.hashed_password):
+    if not verify_password(password_data.current_password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect.")
     
     # Verify new password confirmation
@@ -78,8 +83,18 @@ async def change_password(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New passwords do not match.")
     
     # Update password
-    current_user.hashed_password = hash_password(password_data.new_password)
-    current_user.updated_at = datetime.now(UTC)
+    new_hashed_password = hash_password(password_data.new_password)
+    print(f"🔐 Password change for user: {user.username}")
+    print(f"📝 Old hash: {user.hashed_password[:20]}...")
+    print(f"📝 New hash: {new_hashed_password[:20]}...")
+    
+    user.hashed_password = new_hashed_password
+    user.updated_at = datetime.now(UTC)
+    
     db_session.commit()
+    
+    # Verify the password was actually saved
+    db_session.refresh(user)
+    print(f"✅ After commit - hash: {user.hashed_password[:20]}...")
     
     return 

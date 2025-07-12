@@ -50,9 +50,15 @@ def validate_user_session(auth_token: str, db_session: Session) -> Tuple[Optiona
         
         # Update user's last activity time (only if more than 6 hours have passed)
         current_time = datetime.now(UTC)
-        if not user.last_login or (current_time - user.last_login).total_seconds() > 21600:  # 6 hours
+        if not user.last_login:
             user.last_login = current_time
             db_session.commit()
+        else:
+            # Ensure last_login is timezone-aware for comparison
+            last_login = user.last_login.replace(tzinfo=UTC) if user.last_login.tzinfo is None else user.last_login
+            if (current_time - last_login).total_seconds() > 21600:  # 6 hours
+                user.last_login = current_time
+                db_session.commit()
         
         return user, None
         

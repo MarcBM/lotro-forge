@@ -5,7 +5,6 @@ Complete installation and configuration guide for LOTRO Forge.
 ## Prerequisites
 
 - **Python 3.12+**
-- **PostgreSQL 12+**
 - **Git**
 
 ## 1. Clone and Install
@@ -20,40 +19,16 @@ pip install -r requirements.txt
 
 ## 2. Database Setup
 
-### Install PostgreSQL
+### SQLite Database
 
-**Ubuntu/Debian:**
-```bash
-sudo apt update && sudo apt install postgresql postgresql-contrib
-sudo service postgresql start
-```
+LOTRO Forge uses SQLite for both development and production. SQLite is included with Python and requires no additional installation.
 
-**macOS:** `brew install postgresql && brew services start postgresql`  
-**Windows:** Download from [postgresql.org](https://www.postgresql.org/download/)
-
-### Create Database
-
-```bash
-sudo -u postgres psql
-```
-
-```sql
-CREATE DATABASE lotro_forge;
-CREATE USER your_username WITH ENCRYPTED PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE lotro_forge TO your_username;
-ALTER SCHEMA public OWNER TO your_username;
-\q
-```
-
-### Configure Connection
+### Configure Database
 
 Create `.env` file in the project root:
 ```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=lotro_forge
-DB_USER=your_username
-DB_PASSWORD=your_password
+# SQLite database file (relative to project root)
+DATABASE_URL=sqlite:///lotro_forge.db
 ```
 
 ### Initialize Schema
@@ -86,23 +61,14 @@ Visit: http://localhost:8000
 
 ### Database Issues
 ```bash
-# Check PostgreSQL status
-sudo service postgresql status
+# Check SQLite database file
+ls -la lotro_forge.db
 
-# Test connection
-psql -h localhost -U your_username -d lotro_forge
+# Test database connection
+python -c "from database.session import get_session; print('Database connection available')"
 
 # Reset database
 python -m scripts.importers.run_import --wipe
-```
-
-### Permission Issues
-```bash
-sudo -u postgres psql
-```
-```sql
-GRANT ALL PRIVILEGES ON DATABASE lotro_forge TO your_username;
-ALTER SCHEMA public OWNER TO your_username;
 ```
 
 ### Port Conflicts
@@ -129,11 +95,7 @@ After setup, test these URLs:
 
 ```env
 # Database Configuration (Required)
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=lotro_forge
-DB_USER=your_username
-DB_PASSWORD=your_password
+DATABASE_URL=sqlite:///lotro_forge.db
 
 # Application Settings (Optional)
 LOTRO_FORGE_ENV=development

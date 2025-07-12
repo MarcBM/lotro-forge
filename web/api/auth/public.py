@@ -80,7 +80,7 @@ async def login(
         auth_token,
         expires=expires_at,
         httponly=True,
-        secure=True,
+        secure=False,  # Set to False for development (HTTP)
         samesite="lax"
     )
     return user
@@ -106,7 +106,7 @@ async def logout(
     
     response.delete_cookie(
         AUTH_SESSION_COOKIE_NAME,
-        secure=True,
+        secure=False,  # Set to False for development (HTTP)
         httponly=True,
         samesite="lax"
     )

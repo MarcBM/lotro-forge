@@ -11,7 +11,9 @@ sys.path.append(str(project_root))
 
 from database.session import SessionLocal
 from database.models.user import User, UserRole
-from web.api.auth import hash_password
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_master_user():
     """Creates the master user (Vuldyn) with admin privileges."""
@@ -26,7 +28,7 @@ def create_master_user():
         master_user = User(
             username="Vuldyn",
             email="vuldyn@lotroforge.com",  # Placeholder email
-            hashed_password=hash_password("password"),
+            hashed_password=pwd_context.hash("password"),
             role=UserRole.ADMIN,
             display_name="Vuldyn",
             is_active=True,

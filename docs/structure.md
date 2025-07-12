@@ -111,18 +111,13 @@ from database.connection import get_session
 ## Configuration
 
 ### Database
-- PostgreSQL for production
-- SQLite for testing
+- SQLite for development and production
 - Alembic for migrations
 
 ### Environment Variables
 ```env
 # Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=lotro_forge
-DB_USER=your_username
-DB_PASSWORD=your_password
+DATABASE_URL=sqlite:///lotro_forge.db
 
 # Application Settings
 LOTRO_FORGE_ENV=development

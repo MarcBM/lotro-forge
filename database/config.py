@@ -57,11 +57,6 @@ def get_database_url() -> str:
     env_path = Path(__file__).parent.parent / '.env'
     if env_path.exists():
         load_dotenv(env_path)
-    else:
-        raise ValueError(f".env file not found at {env_path}")
-
-    config = DatabaseConfig.from_env()
-    error = config.validate()
-    if error:
-        raise ValueError(f"Invalid database configuration: {error}")
-    return config.get_connection_url() 
+    
+    # Use SQLite for both development and production
+    return "sqlite:///lotro_forge.db" 

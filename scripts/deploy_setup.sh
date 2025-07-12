@@ -35,28 +35,45 @@ fi
 echo "💾 Setting up data volume..."
 if ! flyctl volumes list | grep -q "lotro_companion"; then
     echo "Creating volume 'lotro_companion'..."
-    flyctl volumes create lotro_companion --size 1 --region iad
+    flyctl volumes create lotro_companion --size 2 --region iad
     echo "✅ Volume created successfully"
 else
     echo "✅ Volume 'lotro_companion' already exists"
 fi
 
+# Create PostgreSQL database if it doesn't exist
+echo "🗄️  Setting up PostgreSQL database..."
+if ! flyctl postgres list | grep -q "lotro-forge-db"; then
+    echo "Creating PostgreSQL database 'lotro-forge-db'..."
+    flyctl postgres create --name lotro-forge-db --region iad
+    echo "✅ Database created successfully"
+else
+    echo "✅ Database 'lotro-forge-db' already exists"
+fi
+
+# Attach database to app
+echo "🔗 Attaching database to app..."
+flyctl postgres attach lotro-forge-db --app lotro-forge
+
+# Get database connection details
+echo "📋 Getting database connection details..."
+DB_INFO=$(flyctl postgres connect -a lotro-forge-db --command "echo \$DATABASE_URL")
+DB_PASSWORD=$(echo $DB_INFO | grep -o 'password=[^;]*' | cut -d'=' -f2)
+
 echo ""
-echo "🎉 Initial setup complete!"
+echo "🎉 Database setup complete!"
+echo ""
+echo "Database connection details:"
+echo "Host: host.internal"
+echo "Port: 5432"
+echo "Database: lotro_forge"
+echo "User: postgres"
+echo "Password: $DB_PASSWORD"
 echo ""
 echo "Next steps:"
-echo "1. Push your code to main branch to trigger deployment"
-echo "2. Set up environment secrets:"
-echo "   flyctl secrets set DB_HOST=host.internal"
-echo "   flyctl secrets set DB_PORT=5432"
-echo "   flyctl secrets set DB_NAME=lotro_forge"
-echo "   flyctl secrets set DB_USER=postgres"
-echo "   flyctl secrets set DB_PASSWORD=<your-production-password>"
-echo "   flyctl secrets set LOTRO_FORGE_ENV=production"
-echo "   flyctl secrets set LOTRO_FORGE_SECRET_KEY=<your-super-secret-key>"
-echo "   flyctl secrets set CORS_ORIGINS=https://lotroforge.com,https://www.lotroforge.com"
-echo "3. Add custom domain: flyctl certs add lotroforge.com"
-echo "4. Import LOTRO companion data (see deployment checklist)"
+echo "1. Set up environment secrets with the database password above"
+echo "2. Import LOTRO companion data"
+echo "3. Deploy via GitHub Actions (push to main)"
 echo ""
 echo "To check app status: flyctl status"
 echo "To view logs: flyctl logs" 

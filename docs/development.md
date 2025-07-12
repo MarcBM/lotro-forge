@@ -225,7 +225,7 @@ with get_session() as session:
 ls -la example_data/
 
 # Test database connection
-python -c "from database.connection import get_engine; print(get_engine())"
+python -c "from database.session import get_session; print('Database connection available')"
 
 # Single test with debugging
 python -m pytest tests/unit/test_item.py::TestItem::test_creation -v -s

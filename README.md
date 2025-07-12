@@ -5,7 +5,7 @@
 ![Tests](https://img.shields.io/badge/tests-passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-supported-blue)
+![SQLite](https://img.shields.io/badge/SQLite-supported-blue)
 
 ## 🚀 Quick Start
 
@@ -57,7 +57,7 @@ ruff check .                           # Lint code
 ## 🏗️ Tech Stack
 
 - **Backend**: Python 3.12+, FastAPI, SQLAlchemy
-- **Database**: PostgreSQL with Alembic migrations
+- **Database**: SQLite with Alembic migrations
 - **Frontend**: Jinja2 templates, vanilla JavaScript
 - **Testing**: pytest with comprehensive test suite
 - **Data**: LOTRO XML game data import system

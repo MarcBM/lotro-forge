@@ -22,11 +22,9 @@ from database.models.user import User, UserSession
 # this is the Alembic Config object
 config = context.config
 
-# Override sqlalchemy.url with environment variables if they exist
-if all(key in os.environ for key in ['DB_USER', 'DB_PASSWORD', 'DB_HOST', 'DB_PORT', 'DB_NAME']):
-    config.set_main_option('sqlalchemy.url', 
-        f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@"
-        f"{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_NAME']}")
+# Use our database configuration
+from database.config import get_database_url
+config.set_main_option('sqlalchemy.url', get_database_url())
 
 # Interpret the config file for Python logging
 if config.config_file_name is not None:

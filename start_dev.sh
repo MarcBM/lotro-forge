@@ -40,11 +40,20 @@ echo "✅ Virtual environment activated: $VIRTUAL_ENV"
 # Change to project root directory
 cd "$PROJECT_ROOT"
 
-# Run the web server
-echo "🌐 Starting web server..."
+# Add flyctl to PATH for this session
+export FLYCTL_INSTALL="$HOME/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
+
+echo "✅ Development environment ready!"
+echo ""
+echo "🌐 To start the web server:"
+echo "   1. Open a new terminal tab in Cursor"
+echo "   2. Run: source venv/bin/activate"
+echo "   3. Run: python scripts/run_web.py"
+echo ""
 echo "📱 Web interface: http://localhost:8000"
 echo "📚 API docs: http://localhost:8000/docs"
-echo "⏹️  Press Ctrl+C to stop the server"
 echo ""
-
-python "$PROJECT_ROOT/scripts/run_web.py" 
+echo "🔧 flyctl is now available in this terminal for deployment commands"
+echo "⏹️  Press Ctrl+C to stop the server (when running)"
+echo "" 

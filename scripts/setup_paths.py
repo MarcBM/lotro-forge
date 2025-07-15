@@ -93,7 +93,7 @@ LOTRO_FORGE_HOST=127.0.0.1
 LOTRO_FORGE_PORT=8000
 LOTRO_FORGE_WORKERS=1
 LOTRO_FORGE_ENV=development
-LOTRO_FORGE_SECRET_KEY=your-secret-key-here-change-in-production
+# LOTRO_FORGE_SECRET_KEY=not-needed-using-database-session-tokens
 """
     
     # Replace the placeholder with the actual path

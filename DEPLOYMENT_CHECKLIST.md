@@ -37,11 +37,13 @@
 - [x] Note: App will not start properly yet (no database/secrets)
 
 ### Phase 4: Environment Configuration
-- [ ] Set fly.io secrets for environment variables:
-  - [ ] `flyctl secrets set LOTRO_FORGE_ENV=production`
-  - [ ] `flyctl secrets set LOTRO_FORGE_SECRET_KEY=<your-super-secret-key>`
-  - [ ] `flyctl secrets set LOTRO_COMPANION_ROOT=/app/data`
-  - [ ] `flyctl secrets set CORS_ORIGINS=https://lotroforge.com,https://www.lotroforge.com`
+- [x] Set fly.io secrets for environment variables:
+  - [x] `flyctl secrets set LOTRO_FORGE_ENV=production`
+  - [x] `flyctl secrets set LOTRO_COMPANION_ROOT=/app/data`
+  - [x] `flyctl secrets set CORS_ORIGINS=https://lotroforge.com,https://www.lotroforge.com`
+  - [x] `flyctl secrets set LOTRO_FORGE_HOST=0.0.0.0` (production - accepts external connections)
+  - [x] `flyctl secrets set LOTRO_FORGE_PORT=8000` (production - standard port)
+  - [x] `flyctl secrets set LOTRO_FORGE_WORKERS=2` (production - multiple workers for performance)
 
 ### Phase 5: Database Setup (ON FLY.IO INSTANCE)
 - [ ] Start the app temporarily: `fly machine start <MACHINE_ID>` (get ID from `fly status`)

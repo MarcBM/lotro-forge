@@ -27,6 +27,21 @@ COPY . .
 # Create data directory for volume mount
 RUN mkdir -p /app/data/lotro_companion
 
+# Create startup script
+RUN echo '#!/usr/bin/env python3\n\
+import os\n\
+import uvicorn\n\
+from web.config.config import WEB_HOST, WEB_PORT, WEB_WORKERS\n\
+\n\
+if __name__ == "__main__":\n\
+    uvicorn.run(\n\
+        "web.app:app",\n\
+        host=WEB_HOST,\n\
+        port=WEB_PORT,\n\
+        workers=WEB_WORKERS if WEB_WORKERS > 1 else None\n\
+    )\n\
+' > /app/start_server.py && chmod +x /app/start_server.py
+
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash app \
     && chown -R app:app /app
@@ -39,5 +54,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "web.app:app", "--host", "0.0.0.0", "--port", "8000"] 
+# Run the application with configurable settings
+CMD ["python", "/app/start_server.py"] 

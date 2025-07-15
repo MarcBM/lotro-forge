@@ -53,5 +53,4 @@ DATABASE_URL = os.getenv(
 STATIC_DIR = BASE_DIR / "web" / "static"
 TEMPLATES_DIR = BASE_DIR / "web" / "templates"
 
-# Security
-SECRET_KEY = os.getenv("LOTRO_FORGE_SECRET_KEY", "your-secret-key-here")  # Change in production 
+# Security settings (no secret key needed - using database session tokens) 

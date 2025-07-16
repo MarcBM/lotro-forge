@@ -2,17 +2,7 @@
 
 ## Items Ready for Work
 
-### 23. Optimize Data Import Workflow for Production
-**Priority:** HIGH  
-**Description:** Completely rework the data import process to eliminate the need for storing raw lotro-companion repos in the deployed environment. The solution should:
-- Import data during build time (Docker build process)
-- Clone repos temporarily during build
-- Run import scripts to process XML data into database
-- Copy only needed icons to static folder
-- Remove raw repos after processing
-- Retain ability to automatically deploy new data when lotro-companion repos update
-- Consider implementing as part of CI/CD pipeline or build-time process
-- Target for 0.2a release
+
 
 ### 5. Set Up CI/CD Pipeline
 **Priority:** High  
@@ -30,9 +20,7 @@
 **Priority:** Medium  
 **Description:** Replace current static API documentation with interactive Swagger UI to improve API exploration and testing experience.
 
-### 17. Set Up Icon Sprite System
-**Priority:** Medium  
-**Description:** Implement image importing system to stitch all individual icons together into one large PNG sprite sheet. Use CSS sprite techniques or other methods to extract and display specific icons from the larger image. This will reduce HTTP requests and improve page load performance by loading all icons in a single request.
+
 
 ### 19. Track Down Crit Defence Calculation on Shields
 **Priority:** Medium  

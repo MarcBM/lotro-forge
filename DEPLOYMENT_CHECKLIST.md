@@ -46,12 +46,12 @@
   - [x] `flyctl secrets set LOTRO_FORGE_WORKERS=2` (production - multiple workers for performance)
 
 ### Phase 5: Database Setup (ON FLY.IO INSTANCE)
-- [ ] Start the app temporarily: `fly machine start <MACHINE_ID>` (get ID from `fly status`)
-- [ ] Connect to fly.io instance: `fly ssh console`
-- [ ] Navigate to app directory: `cd /app`
-- [ ] Set up LOTRO companion data (volume already mounted at /app/data):
-  - [ ] Navigate to data directory: `cd /app/data`
-  - [ ] Clone LOTRO companion repository: `git clone https://github.com/lotro-companion/lotro-items-db.git lotro-items-db`
+- [x] Start the app temporarily: `fly machine start <MACHINE_ID>` (get ID from `fly status`)
+- [x] Connect to fly.io instance: `fly ssh console`
+- [x] Navigate to app directory: `cd /app`
+- [x] Set up LOTRO companion data (volume already mounted at /app/data):
+  - [x] Navigate to data directory: `cd /app/data`
+  - [x] Clone LOTRO companion repository: `git clone https://github.com/LotroCompanion/lotro-items-db.git lotro-items-db`
   - [ ] Clone LOTRO data repository: `git clone https://github.com/lotro-companion/lotro-data.git lotro-data`
   - [ ] Clone LOTRO icons repository: `git clone https://github.com/lotro-companion/lotro-icons.git lotro-icons`
   - [ ] Navigate back to app: `cd /app`

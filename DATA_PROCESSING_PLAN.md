@@ -190,6 +190,210 @@ def update_curated_data():
 - Only update game data tables during imports
 - Implement backup/restore for user data
 
+## Phase 7: Incremental Update System
+
+### 7.1 Version Tracking System
+**File:** `scripts/version_tracker.py`
+```python
+class DataVersionTracker:
+    def __init__(self):
+        self.version_file = "curated_data/version_metadata.json"
+    
+    def track_item_versions(self, items_data):
+        """Track version info for each item."""
+        versions = {}
+        for item in items_data:
+            versions[item['id']] = {
+                'last_updated': item.get('last_modified', datetime.now().isoformat()),
+                'hash': self._calculate_item_hash(item),
+                'version': item.get('version', '1.0')
+            }
+        return versions
+    
+    def get_changed_items(self, new_data, existing_versions):
+        """Identify items that have changed since last import."""
+        changed_items = []
+        for item in new_data:
+            item_id = item['id']
+            new_hash = self._calculate_item_hash(item)
+            
+            if item_id not in existing_versions:
+                changed_items.append(('new', item))
+            elif existing_versions[item_id]['hash'] != new_hash:
+                changed_items.append(('updated', item))
+        
+        return changed_items
+```
+
+### 7.2 Incremental Import Script
+**File:** `scripts/incremental_import.py`
+```python
+def incremental_import_items():
+    """Import only new/changed items efficiently."""
+    # 1. Load existing version metadata
+    tracker = DataVersionTracker()
+    existing_versions = tracker.load_versions()
+    
+    # 2. Parse new curated data
+    new_items = load_curated_items()
+    
+    # 3. Identify changes
+    changes = tracker.get_changed_items(new_items, existing_versions)
+    
+    # 4. Process changes by type
+    for change_type, item in changes:
+        if change_type == 'new':
+            insert_new_item(item)
+        elif change_type == 'updated':
+            update_existing_item(item)
+    
+    # 5. Update version metadata
+    new_versions = tracker.track_item_versions(new_items)
+    tracker.save_versions(new_versions)
+    
+    # 6. Generate incremental sprite updates
+    if changes:
+        update_sprites_incrementally(changes)
+```
+
+### 7.3 Database Update Strategies
+**File:** `scripts/database_updater.py`
+```python
+class DatabaseUpdater:
+    def insert_new_item(self, item_data):
+        """Insert a new item efficiently."""
+        # Use UPSERT pattern for idempotency
+        query = """
+        INSERT INTO items (id, name, description, icon_id, ...)
+        VALUES (:id, :name, :description, :icon_id, ...)
+        ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            description = EXCLUDED.description,
+            icon_id = EXCLUDED.icon_id,
+            updated_at = NOW()
+        """
+        return self.db.execute(query, item_data)
+    
+    def batch_update_items(self, items_data):
+        """Update multiple items in a single transaction."""
+        with self.db.transaction():
+            for item in items_data:
+                self.insert_new_item(item)
+    
+    def update_progressions_incrementally(self, new_progressions):
+        """Update only changed progression values."""
+        # Compare existing vs new progression data
+        # Update only changed level ranges
+        pass
+```
+
+### 7.4 Sprite Sheet Incremental Updates
+**File:** `scripts/sprite_updater.py`
+```python
+def update_sprites_incrementally(changes):
+    """Update sprite sheets with only new/changed icons."""
+    # 1. Extract new/changed icon IDs
+    new_icon_ids = set()
+    for change_type, item in changes:
+        if 'icon_id' in item:
+            new_icon_ids.add(item['icon_id'])
+    
+    # 2. Check if sprite sheet needs regeneration
+    if len(new_icon_ids) > 0:
+        # Regenerate sprite sheet with new icons
+        generate_updated_sprites(new_icon_ids)
+        
+        # Update CSS with new positioning
+        update_sprite_css(new_icon_ids)
+    
+    return len(new_icon_ids) > 0
+```
+
+### 7.5 Smart Update Detection
+**File:** `scripts/update_detector.py`
+```python
+class UpdateDetector:
+    def detect_lotro_updates(self):
+        """Detect if LOTRO companion data has new updates."""
+        # 1. Check LOTRO companion repository for new commits
+        # 2. Compare with last known good commit
+        # 3. Return list of changed files
+        
+        changed_files = self.git_diff()
+        return {
+            'items.xml': 'items.xml' in changed_files,
+            'progressions.xml': 'progressions.xml' in changed_files,
+            'dpsTables.xml': 'dpsTables.xml' in changed_files
+        }
+    
+    def should_update(self, changes):
+        """Determine if update is needed based on changes."""
+        # Only update if relevant files changed
+        relevant_files = ['items.xml', 'progressions.xml', 'dpsTables.xml']
+        return any(changes.get(file, False) for file in relevant_files)
+```
+
+### 7.6 Automated Update Workflow
+**File:** `scripts/automated_update.py`
+```python
+def automated_update_workflow():
+    """Complete automated update workflow."""
+    # 1. Check for updates
+    detector = UpdateDetector()
+    changes = detector.detect_lotro_updates()
+    
+    if not detector.should_update(changes):
+        print("No relevant updates detected")
+        return
+    
+    # 2. Pull latest data
+    pull_latest_lotro_data()
+    
+    # 3. Run incremental curation
+    curate_incremental_data(changes)
+    
+    # 4. Perform incremental import
+    incremental_import_items()
+    
+    # 5. Update sprites if needed
+    update_sprites_if_needed()
+    
+    # 6. Deploy changes
+    deploy_incremental_changes()
+    
+    print(f"Update completed: {len(changes)} files processed")
+```
+
+### 7.7 Performance Optimizations
+**Strategy:**
+- **Batch Processing**: Update multiple items in single transactions
+- **Indexed Updates**: Use database indexes for fast item lookups
+- **Caching**: Cache frequently accessed progression data
+- **Parallel Processing**: Update sprites and database concurrently
+- **Rollback Strategy**: Implement transaction rollback for failed updates
+
+### 7.8 Monitoring and Logging
+**File:** `scripts/update_monitor.py`
+```python
+class UpdateMonitor:
+    def log_update(self, changes, duration, success):
+        """Log update performance and results."""
+        log_entry = {
+            'timestamp': datetime.now().isoformat(),
+            'changes_count': len(changes),
+            'duration_seconds': duration,
+            'success': success,
+            'items_updated': len([c for c in changes if c[0] == 'updated']),
+            'items_new': len([c for c in changes if c[0] == 'new'])
+        }
+        self.append_to_log(log_entry)
+    
+    def get_update_stats(self):
+        """Get update performance statistics."""
+        # Return average update time, success rate, etc.
+        pass
+```
+
 ## Implementation Steps
 
 ### Step 1: Create Curation System
@@ -230,6 +434,14 @@ def update_curated_data():
 2. Implement user data preservation
 3. Test update workflow
 
+### Step 8: Implement Incremental Updates
+1. Create version tracking system
+2. Implement incremental import logic
+3. Add sprite sheet incremental updates
+4. Create automated update workflow
+5. Add monitoring and logging
+6. Test incremental update performance
+
 ## Expected Benefits
 
 ### Performance Improvements:
@@ -257,6 +469,15 @@ def update_curated_data():
 - **Scalable** (sprite sheets scale well)
 - **Simplified queries** (no complex joins for stats)
 - **Type safety** (Pydantic validation)
+
+### Incremental Update Benefits:
+- **10-50x faster updates** (only changed items)
+- **Reduced downtime** (partial updates vs full rebuilds)
+- **Better reliability** (smaller transaction scope)
+- **Efficient resource usage** (minimal processing)
+- **Automated detection** (smart update triggers)
+- **Rollback capability** (transaction safety)
+- **Performance monitoring** (update metrics tracking)
 
 ## File Size Estimates
 

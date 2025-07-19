@@ -1,64 +1,58 @@
 """
-Test script to verify database connection.
+Test script to verify SQLite database connection and file status.
 """
-import os
 import sys
+from pathlib import Path
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from sqlalchemy import text
 
 # Add the project root directory to the Python path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
-from dotenv import load_dotenv
-from database import DatabaseConfig, DatabaseConnection
+from database.session import SessionLocal
 
 def main():
-    # Load environment variables from .env file
-    load_dotenv()
+    """Test SQLite database connection and file status."""
+    print("\nSQLite Database Connection Test")
+    print("=" * 40)
     
-    # Create database configuration
-    config = DatabaseConfig.from_env()
-    
-    # Print configuration (without password)
-    print("\nDatabase Configuration:")
-    print(f"Host: {config.host}")
-    print(f"Port: {config.port}")
-    print(f"Database: {config.database}")
-    print(f"User: {config.user}")
-    print("Password: [HIDDEN]")
-    
-    # Validate configuration
-    if error := config.validate():
-        print(f"\n❌ Configuration error: {error}")
+    # Check if database file exists
+    db_file = Path("lotro_forge.db")
+    if db_file.exists():
+        print(f"✅ Database file found: {db_file.absolute()}")
+        print(f"📁 File size: {db_file.stat().st_size} bytes")
+    else:
+        print(f"❌ Database file not found: {db_file.absolute()}")
+        print("💡 Run database migrations to create the database")
         return
     
-    # Create database connection
-    print("\nTesting database connection...")
+    # Test database connection
+    print("\n🔗 Testing database connection...")
     try:
-        db = DatabaseConnection(config)
-        if db.test_connection():
-            print("✅ Successfully connected to the database!")
-            
+        with SessionLocal() as session:
             # Try a simple query to verify we can execute SQL
-            with db.get_session() as session:
-                result = session.execute(text("SELECT version();")).scalar()
-                print(f"PostgreSQL version: {result}")
+            result = session.execute(text("SELECT sqlite_version();")).scalar()
+            print(f"✅ Successfully connected to SQLite database!")
+            print(f"📊 SQLite version: {result}")
+            
+            # Check if tables exist
+            result = session.execute(text("SELECT name FROM sqlite_master WHERE type='table';")).fetchall()
+            tables = [row[0] for row in result]
+            print(f"📋 Found {len(tables)} tables: {', '.join(tables) if tables else 'None'}")
+            
     except OperationalError as e:
         print(f"\n❌ Database connection error: {str(e)}")
-        print("\nThis is likely a credentials or connection issue. Please verify:")
-        print("1. The password in your .env file matches your PostgreSQL password")
-        print("2. PostgreSQL is running: sudo service postgresql status")
-        print("3. You can connect manually with: psql -d lotro_forge -U marcb")
-        print("\nConnection URL (with password hidden):")
-        print(f"postgresql://{config.user}:****@{config.host}:{config.port}/{config.database}")
+        print("\nTroubleshooting steps:")
+        print("1. Check if the database file is corrupted")
+        print("2. Ensure you have write permissions to the database directory")
+        print("3. Try deleting the database file and running migrations again")
     except SQLAlchemyError as e:
         print(f"\n❌ Unexpected database error: {str(e)}")
         print("\nTroubleshooting steps:")
-        print("1. Verify PostgreSQL is running: sudo service postgresql status")
-        print("2. Check your .env file credentials match your PostgreSQL setup")
-        print("3. Ensure the database exists: psql -l")
-        print("4. Verify user permissions: psql -d lotro_forge -U marcb")
+        print("1. Check database file permissions")
+        print("2. Verify the database schema is correct")
+        print("3. Try running database migrations")
 
 if __name__ == "__main__":
     main() 

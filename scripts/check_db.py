@@ -1,22 +1,18 @@
 """
 Script to check database schema and tables.
 """
-import os
 import sys
-from dotenv import load_dotenv
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from pathlib import Path
+
+# Add the project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.append(str(project_root))
 
 from sqlalchemy import inspect
-from database.models.base import Base
-from database.connection import create_engine
-from database.config import get_database_url
 from database.session import engine
 
 def check_database():
-    # Load environment variables
-    load_dotenv()
-    
-    # Get database URL and create engine
+    """Check database schema and display table information."""
     inspector = inspect(engine)
     
     print("\nDatabase Tables:")

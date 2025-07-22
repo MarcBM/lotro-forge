@@ -40,6 +40,19 @@
 - Update templates to use sprites
 - Test performance improvements
 
+### 20. Audit Data Model Structure Consistency
+**Priority:** Medium  
+**Description:** Conduct a comprehensive audit of data models as they are passed through the application to ensure consistency across all endpoints and services. Review the structure of JSON responses, database model serialization methods (to_json, to_list_json, get_stats_json), and API response formats. Focus on standardizing field names, data types, nested object structures, and response patterns across items, equipment, essences, and other data models. This audit should identify inconsistencies in how data is structured and formatted as it flows through different layers of the application.
+
+**Current Status:** Planning phase - Comprehensive audit plan being developed.
+
+**Next Steps:**
+- Audit database models and their serialization methods to identify inconsistencies
+- Standardize field names and data types across all serialization methods
+- Ensure API endpoints preserve database field names (no renaming unless data transformation occurs)
+- Update any frontend code that expects different field names
+- Test all endpoints and frontend functionality to ensure consistency
+
 ---
 
 **Note:** When moving items here from TODO.md, update the description to include current status and next steps. 

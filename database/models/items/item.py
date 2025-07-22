@@ -2,11 +2,10 @@
 Base database model for all LOTRO items.
 """
 from typing import Optional, List, Dict
-from sqlalchemy import String, Integer, Enum
+from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base import Base
-from .item_quality import ItemQuality
 from .item_stat import ItemStat
 
 
@@ -20,7 +19,7 @@ class Item(Base):
     key: Mapped[int] = mapped_column(Integer, primary_key=True)  # XML item identifier
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     base_ilvl: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
-    quality: Mapped[str] = mapped_column(Enum(ItemQuality), nullable=False, index=True)
+    quality: Mapped[str] = mapped_column(String(16), nullable=False, index=True)  # Uppercase quality string
     icon: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Hyphen-separated icon IDs
     
     # Relationships
@@ -52,7 +51,7 @@ class Item(Base):
             ilvl = self.base_ilvl
             
         return {
-            stat.stat_name: stat.get_value(ilvl)
+            stat.stat_name: stat.get_value(ilvl, self.quality)
             for stat in self.stats
         }
     
@@ -65,7 +64,7 @@ class Item(Base):
             'key': self.key,
             'name': self.name,
             'base_ilvl': self.base_ilvl,
-            'quality': self.quality.value,
+            'quality': self.quality,
             'icon': self.icon,
             'item_type': self.item_type,
             'stats': [
@@ -88,8 +87,8 @@ class Item(Base):
         Convert the item to a JSON representation for API responses.
         Returns base item data suitable for frontend consumption.
         """
-        # Process icon URLs
-        icon_urls = []
+        # Process icon URLs - return null when no icon
+        icon_urls = None
         if self.icon:
             # Split hyphen-separated icon IDs and convert to URLs
             icon_ids = self.icon.split('-')
@@ -99,7 +98,7 @@ class Item(Base):
             'key': self.key,
             'name': self.name,
             'base_ilvl': self.base_ilvl,
-            'quality': self.quality.value.upper(),
+            'quality': self.quality,
             'item_type': self.item_type,
             'icon_urls': icon_urls,
             'stat_names': [stat.stat_name for stat in self.stats]
@@ -110,8 +109,8 @@ class Item(Base):
         Convert the item to a minimal JSON representation for list views.
         Returns only essential data: key, name, icon_urls, quality.
         """
-        # Process icon URLs
-        icon_urls = []
+        # Process icon URLs - return null when no icon
+        icon_urls = None
         if self.icon:
             # Split hyphen-separated icon IDs and convert to URLs
             icon_ids = self.icon.split('-')
@@ -120,7 +119,7 @@ class Item(Base):
         return {
             'key': self.key,
             'name': self.name,
-            'quality': self.quality.value.upper(),
+            'quality': self.quality,
             'icon_urls': icon_urls
         }
     
@@ -131,7 +130,7 @@ class Item(Base):
         """
         stat_values = []
         for stat in self.stats:
-            stat_value = stat.get_value(ilvl)
+            stat_value = stat.get_value(ilvl, self.quality)
             stat_values.append({
                 'stat_name': stat.stat_name,
                 'value': stat_value

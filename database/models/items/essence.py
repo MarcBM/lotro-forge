@@ -2,7 +2,7 @@
 Database model for essence items.
 """
 from typing import Optional, Dict
-from sqlalchemy import Integer, ForeignKey
+from sqlalchemy import Integer, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .item import Item
@@ -20,28 +20,21 @@ class Essence(Item):
     
     # Essence-specific fields
     tier: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
-    essence_type: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)  # Using essence_type to avoid conflict with 'type' keyword
+    essence_type: Mapped[Optional[str]] = mapped_column(String(8), nullable=True, index=True)  # Capitalized essence type string (max 8 chars)
     
-    # Essence type translation mapping
-    ESSENCE_TYPE_NAMES = {
-        1: 'Basic',
+    # Essence type translation mapping (for import only)
+    ESSENCE_TYPE_VALUES = {
+        1: 'BASIC',
         18: 'PVP',
-        19: 'Cloak',
-        20: 'Necklace',
-        22: 'Primary',
-        23: 'Vital'
+        19: 'CLOAK',
+        20: 'NECKLACE',
+        22: 'PRIMARY',
+        23: 'VITAL'
     }
     
     __mapper_args__ = {
         'polymorphic_identity': 'essence',
     }
-    
-    @property
-    def essence_type_name(self) -> Optional[str]:
-        """Get the readable name for this essence type."""
-        if self.essence_type is None:
-            return None
-        return self.ESSENCE_TYPE_NAMES.get(self.essence_type, f'Unknown ({self.essence_type})')
     
     def __repr__(self) -> str:
         return f"<Essence(key={self.key}, name='{self.name}')>"
@@ -55,7 +48,6 @@ class Essence(Item):
         result.update({
             'tier': self.tier,
             'essence_type': self.essence_type,
-            'essence_type_name': self.essence_type_name,
         })
         return result
     
@@ -67,8 +59,7 @@ class Essence(Item):
         result = super().to_json()
         result.update({
             'tier': self.tier,
-            'essence_type': self.essence_type,
-            'essence_type_name': self.essence_type_name
+            'essence_type': self.essence_type
         })
         return result
     
@@ -79,7 +70,6 @@ class Essence(Item):
         """
         result = super().to_list_json()
         result.update({
-            'essence_type': self.essence_type,
-            'essence_type_name': self.essence_type_name
+            'essence_type': self.essence_type
         })
         return result 

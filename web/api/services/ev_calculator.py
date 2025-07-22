@@ -70,7 +70,7 @@ class EVCalculator:
         
         # Standard stat calculation
         if stat_name not in essence_values:
-            return 0.0
+            return None
         
         return stat_value / essence_values[stat_name]
     
@@ -81,16 +81,16 @@ class EVCalculator:
         total_socket_ev = 0.0
         
         # Most sockets are worth 1 EV each
-        basic_sockets = socket_summary.get('basic', 0)
-        primary_sockets = socket_summary.get('primary', 0)
-        cloak_sockets = socket_summary.get('cloak', 0)
-        necklace_sockets = socket_summary.get('necklace', 0)
-        pvp_sockets = socket_summary.get('pvp', 0)
+        basic_sockets = socket_summary.get('BASIC', 0)
+        primary_sockets = socket_summary.get('PRIMARY', 0)
+        cloak_sockets = socket_summary.get('CLOAK', 0)
+        necklace_sockets = socket_summary.get('NECKLACE', 0)
+        pvp_sockets = socket_summary.get('PVP', 0)
         
         total_socket_ev += basic_sockets + primary_sockets + cloak_sockets + necklace_sockets + pvp_sockets
         
         # Vital sockets are special - they're worth the ratio of supplemental to vivid vitality
-        vital_sockets = socket_summary.get('vital', 0)
+        vital_sockets = socket_summary.get('VITAL', 0)
         if vital_sockets > 0:
             # Get vivid vitality value (ilvl 532)
             vivid_vitality = 0.0

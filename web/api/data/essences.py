@@ -25,7 +25,7 @@ async def query_essences(
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     
     # Filtering
-    essence_type: Optional[int] = Query(None, description="Filter by essence type"),
+    essence_type: Optional[str] = Query(None, description="Filter by essence type (BASIC, PVP, CLOAK, NECKLACE, PRIMARY, VITAL)"),
     tier: Optional[int] = Query(None, description="Filter by tier"),
     
     # Search

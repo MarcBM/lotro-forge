@@ -20,12 +20,11 @@ class EquipmentItem(Item):
     
     # Equipment-specific fields
     slot: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
-    armour_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, index=True)  # e.g. "HEAVY", "MEDIUM", "LIGHT"
-    scaling: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)  # e.g. "HEAVY", "MEDIUM", "LIGHT", "BOW", "ONE_HANDED_SWORD"
     
     # Socket counts - count of each socket type on this equipment
     sockets_basic: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    sockets_primary: Mapped[int] = mapped_column(Integer, nullable=False, default=0) 
+    sockets_primary: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     sockets_vital: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     sockets_cloak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     sockets_necklace: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -33,12 +32,12 @@ class EquipmentItem(Item):
     
     # Socket type mapping for parsing XML strings
     SOCKET_TYPE_MAPPING = {
-        'S': 'basic',
-        'P': 'primary', 
-        'V': 'vital',
-        'C': 'cloak',
-        'N': 'necklace',
-        'W': 'pvp'
+        'S': 'BASIC',
+        'P': 'PRIMARY', 
+        'V': 'VITAL',
+        'C': 'CLOAK',
+        'N': 'NECKLACE',
+        'W': 'PVP'
     }
     
     __mapper_args__ = {
@@ -81,12 +80,12 @@ class EquipmentItem(Item):
     def socket_summary(self) -> Dict[str, int]:
         """Get a summary of all socket counts."""
         return {
-            'basic': self.sockets_basic,
-            'primary': self.sockets_primary,
-            'vital': self.sockets_vital,
-            'cloak': self.sockets_cloak,
-            'necklace': self.sockets_necklace,
-            'pvp': self.sockets_pvp
+            'BASIC': self.sockets_basic,
+            'PRIMARY': self.sockets_primary,
+            'VITAL': self.sockets_vital,
+            'CLOAK': self.sockets_cloak,
+            'NECKLACE': self.sockets_necklace,
+            'PVP': self.sockets_pvp
         }
     
     def to_dict(self, ilvl: Optional[int] = None) -> Dict:
@@ -97,8 +96,7 @@ class EquipmentItem(Item):
         result = super().to_dict(ilvl)
         result.update({
             'slot': self.slot,
-            'armour_type': self.armour_type,
-            'scaling': self.scaling,
+            'type': self.type,
             'total_sockets': self.total_sockets,
             'sockets': self.socket_summary
         })
@@ -112,20 +110,11 @@ class EquipmentItem(Item):
         result = super().to_json()
         result.update({
             'slot': self.slot,
-            'armour_type': self.armour_type,
-            'scaling': self.scaling,
+            'type': self.type,
             'total_sockets': self.total_sockets
         })
         
-        # Add socket breakdown for equipment if there are sockets
-        if self.total_sockets > 0:
-            result['sockets'] = {
-                'basic': self.sockets_basic,
-                'primary': self.sockets_primary,
-                'vital': self.sockets_vital,
-                'cloak': self.sockets_cloak,
-                'necklace': self.sockets_necklace,
-                'pvp': self.sockets_pvp
-            }
+        # Always include sockets field - null when no sockets
+        result['sockets'] = self.socket_summary if self.total_sockets > 0 else None
         
         return result

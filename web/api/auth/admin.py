@@ -1,18 +1,18 @@
 """
 Admin endpoints for user management (admin-only operations).
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, UTC
-from typing import List
+from typing import List, Optional
 
 from database.session import get_session
 from database.models.user import User, UserSession, UserRole
 from .models import (
-    UserCreate, UserResponse, AdminUserCreate, AdminUserResponse,
-    UserListResponse, UserRoleUpdate
+    AdminUserCreate, UserRoleUpdate
 )
+from ..utils import create_api_response, create_paginated_response
 
 # --- Password hashing ---
 
@@ -32,44 +32,7 @@ def generate_random_password(length: int = 8) -> str:
 
 router = APIRouter(tags=["admin"])
 
-@router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(
-    user_in: UserCreate,
-    request: Request,
-    db_session: Session = Depends(get_session)
-):
-    """
-    Admin-only endpoint to create a new user (e.g. for beta testers).
-    """
-    # Middleware ensures current_user is set and has admin role for /api/auth/admin/* routes
-    
-    # Check if a user with the same username or email already exists
-    if db_session.query(User).filter(User.username == user_in.username).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered.")
-    if db_session.query(User).filter(User.email == user_in.email).first():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered.")
-    
-    # Create the new user
-    hashed_password = hash_password(user_in.password)
-    new_user = User(
-        username=user_in.username,
-        email=user_in.email,
-        hashed_password=hashed_password,
-        role=user_in.role,
-        display_name=user_in.display_name,
-        is_active=True,
-        is_verified=True,  # Admin-created users are auto-verified
-        created_at=datetime.now(UTC),
-        updated_at=datetime.now(UTC)
-    )
-    
-    db_session.add(new_user)
-    db_session.commit()
-    db_session.refresh(new_user)
-    
-    return new_user
-
-@router.post("/users/simple", response_model=AdminUserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/users/simple", status_code=status.HTTP_201_CREATED)
 async def create_simple_user(
     user_in: AdminUserCreate,
     request: Request,
@@ -105,43 +68,71 @@ async def create_simple_user(
     db_session.commit()
     db_session.refresh(new_user)
     
-    return AdminUserResponse(
-        id=new_user.id,
-        username=new_user.username,
-        role=new_user.role.value,
-        is_active=new_user.is_active,
-        created_at=new_user.created_at,
-        generated_password=generated_password,
-        email=new_user.email
+    # Return standardized response
+    admin_response = {
+        "id": new_user.id,
+        "username": new_user.username,
+        "role": new_user.role.value,
+        "is_active": new_user.is_active,
+        "created_at": new_user.created_at,
+        "generated_password": generated_password,
+        "email": new_user.email
+    }
+    
+    return create_api_response(
+        result=admin_response,
+        metadata={
+            "created_at": new_user.created_at.isoformat(),
+            "is_verified": new_user.is_verified,
+            "temp_email": True
+        }
     )
 
-@router.get("/users", response_model=List[UserListResponse])
+@router.get("/users")
 async def list_users(
     request: Request,
-    db_session: Session = Depends(get_session)
+    db_session: Session = Depends(get_session),
+    limit: int = Query(50, ge=1, le=100, description="Number of users to return"),
+    skip: int = Query(0, ge=0, description="Number of users to skip")
 ):
     """
-    Admin-only endpoint to list all users.
+    Admin-only endpoint to list users with pagination.
     """
     # Middleware ensures current_user is set and has admin role for /api/auth/admin/* routes
-    users = db_session.query(User).order_by(User.created_at.desc()).all()
+    query = db_session.query(User)
+    
+    # Get total count for pagination info (before applying limit/offset)
+    total_count = query.count()
+    
+    # Apply sorting and pagination
+    users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
     
     # Convert to response format with role as string
-    return [
-        UserListResponse(
-            id=user.id,
-            username=user.username,
-            email=user.email,
-            role=user.role.value,
-            is_active=user.is_active,
-            created_at=user.created_at,
-            last_login=user.last_login,
-            display_name=user.display_name
-        )
+    user_responses = [
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role.value,
+            "is_active": user.is_active,
+            "created_at": user.created_at,
+            "last_login": user.last_login,
+            "display_name": user.display_name
+        }
         for user in users
     ]
+    
+    return create_paginated_response(
+        result=user_responses,
+        total=total_count,
+        limit=limit,
+        skip=skip,
+        additional_metadata={
+            "retrieved_at": datetime.now(UTC).isoformat()
+        }
+    )
 
-@router.put("/users/{user_id}/role", response_model=UserListResponse)
+@router.put("/users/{user_id}/role")
 async def update_user_role(
     user_id: int,
     role_update: UserRoleUpdate,
@@ -161,15 +152,24 @@ async def update_user_role(
     db_session.commit()
     db_session.refresh(user)
     
-    return UserListResponse(
-        id=user.id,
-        username=user.username,
-        email=user.email,
-        role=user.role.value,
-        is_active=user.is_active,
-        created_at=user.created_at,
-        last_login=user.last_login,
-        display_name=user.display_name
+    # Return standardized response
+    user_response = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role.value,
+        "is_active": user.is_active,
+        "created_at": user.created_at,
+        "last_login": user.last_login,
+        "display_name": user.display_name
+    }
+    
+    return create_api_response(
+        result=user_response,
+        metadata={
+            "updated_at": user.updated_at.isoformat(),
+            "role_changed": True
+        }
     )
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

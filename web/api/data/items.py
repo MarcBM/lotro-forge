@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from database.session import SessionLocal
 from database.models.items import Item
+from ..utils import create_api_response
 
 # Create router
 router = APIRouter()
@@ -35,9 +36,7 @@ async def get_item(
             raise HTTPException(status_code=404, detail="Item not found")
         
         # Use polymorphic to_json method - each subclass provides appropriate data
-        return {
-            "result": item.to_json()
-        }
+        return create_api_response(result=item.to_json())
         
     except HTTPException:
         raise
@@ -61,9 +60,7 @@ async def get_item_stats(
             raise HTTPException(status_code=404, detail="Item not found")
         
         # Use polymorphic get_stats_json method - handles type-specific stats like DPS
-        return {
-            "result": item.get_stats_json(ilvl)
-        }
+        return create_api_response(result=item.get_stats_json(ilvl))
         
     except HTTPException:
         raise
@@ -98,13 +95,13 @@ async def get_concrete_item(
         stats_data = item.get_stats_json(target_ilvl)
         
         # Combine into a single response
-        return {
-            "result": {
+        return create_api_response(
+            result={
                 **item_data,  # All base item properties
                 "concrete_ilvl": stats_data['ilvl'],  # The level these stats are calculated for
                 "stats": stats_data['stat_values']  # Calculated stats at the target level
             }
-        }
+        )
         
     except HTTPException:
         raise

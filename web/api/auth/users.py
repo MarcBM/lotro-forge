@@ -8,7 +8,8 @@ from datetime import datetime, UTC
 
 from database.session import get_session
 from database.models.user import User, UserSession
-from .models import UserResponse, ProfileUpdate, PasswordChange
+from .models import ProfileUpdate, PasswordChange
+from ..utils import create_api_response
 
 # --- Password hashing ---
 
@@ -24,7 +25,7 @@ def hash_password(password: str) -> str:
 
 router = APIRouter(tags=["users"])
 
-@router.put("/profile", response_model=UserResponse)
+@router.put("/profile")
 async def update_profile(
     profile_data: ProfileUpdate,
     request: Request,
@@ -55,7 +56,22 @@ async def update_profile(
     db_session.commit()
     db_session.refresh(current_user)
     
-    return current_user
+    # Return standardized response
+    user_response = {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "display_name": current_user.display_name,
+        "role": current_user.role.value,
+        "created_at": current_user.created_at
+    }
+    
+    return create_api_response(
+        result=user_response,
+        metadata={
+            "updated_at": current_user.updated_at.isoformat()
+        }
+    )
 
 @router.put("/password", status_code=status.HTTP_204_NO_CONTENT)
 async def change_password(

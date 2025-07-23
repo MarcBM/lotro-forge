@@ -12,7 +12,7 @@ from typing import Optional
 from database.session import get_session
 from database.models.user import User, UserSession, UserRole
 from ...middleware.auth import AUTH_SESSION_COOKIE_NAME
-from .models import UserResponse
+from ..utils import create_api_response
 
 # --- Password hashing ---
 
@@ -37,7 +37,7 @@ def get_auth_session_expiry() -> datetime:
 
 router = APIRouter(tags=["auth"])
 
-@router.post("/login", response_model=UserResponse)
+@router.post("/login")
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -83,7 +83,24 @@ async def login(
         secure=False,  # Set to False for development (HTTP)
         samesite="lax"
     )
-    return user
+    
+    # Return standardized response with user data
+    user_response = {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "display_name": user.display_name,
+        "role": user.role.value,
+        "created_at": user.created_at
+    }
+    
+    return create_api_response(
+        result=user_response,
+        metadata={
+            "session_created": True,
+            "expires_at": expires_at.isoformat()
+        }
+    )
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
@@ -112,7 +129,7 @@ async def logout(
     )
     return
 
-@router.get("/me", response_model=Optional[UserResponse])
+@router.get("/me")
 async def get_current_user_info(request: Request):
     """
     Get the current user's basic information if authenticated, or return null if not.
@@ -125,13 +142,14 @@ async def get_current_user_info(request: Request):
     current_user = getattr(request.state, 'current_user', None)
     
     if current_user:
-        return UserResponse(
-            id=current_user.id,
-            username=current_user.username,
-            email=current_user.email,
-            display_name=current_user.display_name,
-            role=current_user.role.value,
-            created_at=current_user.created_at
-        )
+        user_response = {
+            "id": current_user.id,
+            "username": current_user.username,
+            "email": current_user.email,
+            "display_name": current_user.display_name,
+            "role": current_user.role.value,
+            "created_at": current_user.created_at
+        }
+        return create_api_response(result=user_response)
     else:
-        return None 
+        return create_api_response(result=None) 

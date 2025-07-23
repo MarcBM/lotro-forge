@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from database.session import SessionLocal
 from database.models.items import EquipmentItem
+from ..utils import create_paginated_response
 
 # Create router
 router = APIRouter()
@@ -68,13 +69,12 @@ async def query_equipment(
         # Use polymorphic to_list_json method - each item type provides appropriate minimal data
         equipment_data = [item.to_list_json() for item in equipment_items]
         
-        return {
-            "result": equipment_data,
-            "total": total_count,
-            "limit": limit,
-            "skip": skip,
-            "has_more": skip + len(equipment_data) < total_count
-        }
+        return create_paginated_response(
+            result=equipment_data,
+            total=total_count,
+            limit=limit,
+            skip=skip
+        )
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to query equipment: {str(e)}")

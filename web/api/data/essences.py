@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from database.session import SessionLocal
 from database.models.items import Essence
+from ..utils import create_paginated_response
 
 # Create router
 router = APIRouter()
@@ -73,13 +74,12 @@ async def query_essences(
         # Use polymorphic to_list_json method - each item type provides appropriate minimal data
         essence_data = [essence.to_list_json() for essence in essence_items]
         
-        return {
-            "result": essence_data,
-            "total": total_count,
-            "limit": limit,
-            "skip": skip,
-            "has_more": skip + len(essence_data) < total_count
-        }
+        return create_paginated_response(
+            result=essence_data,
+            total=total_count,
+            limit=limit,
+            skip=skip
+        )
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to query essences: {str(e)}") 

@@ -24,7 +24,7 @@ class EquipmentItem(Item):
     
     # Socket counts - count of each socket type on this equipment
     sockets_basic: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    sockets_primary: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    sockets_primary: Mapped[int] = mapped_column(Integer, nullable=False, default=0) 
     sockets_vital: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     sockets_cloak: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     sockets_necklace: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -88,20 +88,6 @@ class EquipmentItem(Item):
             'PVP': self.sockets_pvp
         }
     
-    def to_dict(self, ilvl: Optional[int] = None) -> Dict:
-        """
-        Convert the equipment item to a dictionary representation.
-        Extends the base to_dict with equipment-specific fields.
-        """
-        result = super().to_dict(ilvl)
-        result.update({
-            'slot': self.slot,
-            'type': self.type,
-            'total_sockets': self.total_sockets,
-            'sockets': self.socket_summary
-        })
-        return result
-    
     def to_json(self) -> Dict:
         """
         Convert the equipment item to a JSON representation for API responses.
@@ -118,3 +104,15 @@ class EquipmentItem(Item):
         result['sockets'] = self.socket_summary if self.total_sockets > 0 else None
         
         return result
+    
+    def to_list_json(self) -> Dict:
+        """
+        Convert the equipment item to a minimal JSON representation for list views.
+        Returns only essential data for performance in list displays.
+        """
+        result = super().to_list_json()
+        result.update({
+            'slot': self.slot
+        })
+        return result
+    

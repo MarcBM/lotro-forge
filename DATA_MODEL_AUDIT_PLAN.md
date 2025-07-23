@@ -10,14 +10,14 @@ Standardize data models across the application to ensure consistency from databa
 - **Frontend adapts** to standardized data, not the other way around
 
 ## Phase 1: Database Model Audit
-**Status:** In Progress  
+**Status:** Complete  
 **Estimated Time:** 1 day
 
 ### Tasks:
 - [x] Examine all database models and their serialization methods (`to_json`, `to_list_json`, `get_stats_json`)
 - [x] Identify inconsistencies in field naming and data types across serialization methods
 - [x] Create unified ValueLookupTable system to replace DpsTable and ProgressionTable
-- [ ] Standardize serialization methods to use consistent field names and data types
+- [x] Standardize serialization methods to use consistent field names and data types
 
 ### Notes:
 - Focus on items, equipment, essences, and other core data models
@@ -50,11 +50,32 @@ Standardize data models across the application to ensure consistency from databa
    - **RESOLVED**: Optional fields always included in API responses (even when null)
    - **RESOLVED**: Null handling now consistently returns null for missing data (instead of 0.0)
    - **RESOLVED**: Icon URLs now consistently use processed format across all serialization methods
+   - **IMPROVED**: Created generic Icon and EntityIcon models in single file for better performance and storage efficiency
+   - **ENHANCED**: Added required dimensions, sprite sheet versioning, and validation methods for production sprite sheet support
+   - **OPTIMIZED**: Separated sprite sheet versioning into dedicated table for improved space efficiency
+   - **ENHANCED**: Added proper foreign key relationships for sprite sheets with referential integrity
 
 3. **Serialization Method Inconsistencies:**
-   - `to_json()` vs `to_list_json()` have different field sets
-   - `get_stats_json()` returns different structure than other methods
-   - Some methods add calculated fields that don't exist in database
+   - **RESOLVED**: Maintained original purpose of serialization methods
+   - **RESOLVED**: Ensured consistent inheritance patterns for subclasses
+   - **RESOLVED**: Kept calculated fields in appropriate methods
+   
+   **CORRECTED UNDERSTANDING:**
+   
+   **Method Purposes:**
+   - `to_json()`: Complete item data for full object views (includes calculated fields)
+   - `to_list_json()`: Minimal data for list views (performance optimized)
+   - `get_stats_json()`: Stats-only data for stat calculations
+   
+   **Consistent Inheritance:**
+   - EquipmentItem.to_json() adds: slot, type, total_sockets, sockets
+   - EquipmentItem.to_list_json() adds: slot (minimal for lists)
+   - Essence.to_json() adds: tier, essence_type
+   - Essence.to_list_json() adds: essence_type (minimal for lists)
+   
+   **Database vs Calculated Fields:**
+   - Base Item: stat_names (database field via relationship)
+   - EquipmentItem: total_sockets, sockets (calculated fields)
 
 4. **Value Table System Inconsistencies:**
    - **RESOLVED**: Created unified `ValueLookupTable` system to replace `DpsTable` and `ProgressionTable`

@@ -39,18 +39,6 @@ class Essence(Item):
     def __repr__(self) -> str:
         return f"<Essence(key={self.key}, name='{self.name}')>"
     
-    def to_dict(self, ilvl: Optional[int] = None) -> Dict:
-        """
-        Convert the essence to a dictionary representation.
-        Extends the base to_dict with essence-specific fields.
-        """
-        result = super().to_dict(ilvl)
-        result.update({
-            'tier': self.tier,
-            'essence_type': self.essence_type,
-        })
-        return result
-    
     def to_json(self) -> Dict:
         """
         Convert the essence to a JSON representation for API responses.
@@ -66,7 +54,7 @@ class Essence(Item):
     def to_list_json(self) -> Dict:
         """
         Convert the essence to a minimal JSON representation for list views.
-        Extends the base to_list_json with essential essence fields.
+        Returns only essential data for performance in list displays.
         """
         result = super().to_list_json()
         result.update({

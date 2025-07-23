@@ -58,11 +58,13 @@ curated_data/
 **Process:**
 ```python
 def generate_item_sprites():
-    # 1. Collect all required item icons
-    # 2. Arrange in optimal grid layout
-    # 3. Create sprite sheet image
-    # 4. Generate CSS with background-position
-    # 5. Create mapping file (icon_id -> sprite_position)
+    # 1. Collect all required item icons from database
+    # 2. Analyze usage patterns (most used icons first)
+    # 3. Arrange in optimal grid layout
+    # 4. Create sprite sheet image
+    # 5. Generate CSS with background-position
+    # 6. Update database with sprite coordinates
+    # 7. Create mapping file (icon_id -> sprite_position)
 ```
 
 **Sprite Sheet Layout:**
@@ -70,15 +72,95 @@ def generate_item_sprites():
 - Minimal padding between icons
 - Power-of-2 dimensions for optimal compression
 - Multiple sprite sheets if needed (e.g., items, equipment, essences)
+- Usage-based ordering (most used icons in primary sprite sheets)
 
-### 2.2 CSS Generation
+### 2.2 Database-Driven Sprite Workflow
+**Files:** `scripts/sprite_optimizer.py`, `scripts/generate_sprites.py`
+
+**Process:**
+```python
+def optimize_sprites_from_database():
+    """Generate optimized sprite sheets based on database usage patterns."""
+    # 1. Query database for icon usage statistics
+    icon_usage = db.query(Icon).order_by(Icon.usage_count.desc()).all()
+    
+    # 2. Group icons by usage frequency
+    popular_icons = [icon for icon in icon_usage if icon.usage_count > 10]
+    rare_icons = [icon for icon in icon_usage if icon.usage_count <= 10]
+    
+    # 3. Generate primary sprite sheet with popular icons
+    primary_sprite = generate_sprite_sheet(popular_icons, "sprites1.png")
+    
+    # 4. Generate secondary sprite sheet with rare icons
+    secondary_sprite = generate_sprite_sheet(rare_icons, "sprites2.png")
+    
+    # 5. Update database with sprite coordinates
+    update_icon_coordinates(popular_icons, primary_sprite)
+    update_icon_coordinates(rare_icons, secondary_sprite)
+    
+    # 6. Generate CSS with database-driven positioning
+    generate_sprite_css(icon_usage)
+    
+    return {
+        'primary_sprites': len(popular_icons),
+        'secondary_sprites': len(rare_icons),
+        'total_optimized': len(icon_usage)
+    }
+
+def update_icon_coordinates(icons, sprite_sheet):
+    """Update database with sprite sheet coordinates."""
+    for icon in icons:
+        icon.sprite_sheet = sprite_sheet.filename
+        icon.x_coord = sprite_sheet.get_x_coord(icon)
+        icon.y_coord = sprite_sheet.get_y_coord(icon)
+        db.commit()
+
+def generate_sprite_css(icons):
+    """Generate CSS from database icon metadata."""
+    css_content = []
+    for icon in icons:
+        if icon.validate_for_sprite_sheet():
+            css_rule = icon.generate_css_rule()
+            if css_rule:
+                css_content.append(css_rule)
+    
+    with open('curated_data/sprites/items-sprite.css', 'w') as f:
+        f.write('\n'.join(css_content))
+
+def update_icon_usage_statistics():
+    """Update icon usage statistics for sprite optimization."""
+    # Query all icons and count usage
+    icon_usage = db.query(Icon).all()
+    
+    for icon in icon_usage:
+        # Count how many entities use this icon
+        usage_count = db.query(EntityIcon).filter(
+            EntityIcon.icon_id == icon.icon_id
+        ).count()
+        
+        icon.usage_count = usage_count
+    
+    db.commit()
+    
+    # Regenerate sprite sheets if usage patterns changed significantly
+    if usage_patterns_changed_significantly():
+        optimize_sprites_from_database()
+```
+
+**Database Integration:**
+- **Usage Tracking**: `Icon.usage_count` tracks how often each icon is used
+- **Sprite Metadata**: `sprite_sheet`, `x_coord`, `y_coord` store positioning
+- **CSS Generation**: `css_class` and `css_background_position` properties
+- **Incremental Updates**: Only regenerate sprites when usage patterns change
+
+### 2.3 CSS Generation
 **Output:** `curated_data/sprites/items-sprite.css`
 ```css
 .icon-item-12345 {
-    background-image: url('/static/sprites/items-sprite.png');
+    background-image: url('/static/sprites/sprites1.png');
     background-position: -32px -64px;
-    width: 32px;
-    height: 32px;
+    width: 64px;
+    height: 64px;
     display: inline-block;
 }
 ```
@@ -307,6 +389,25 @@ def update_sprites_incrementally(changes):
         update_sprite_css(new_icon_ids)
     
     return len(new_icon_ids) > 0
+
+def update_icon_usage_statistics():
+    """Update icon usage statistics for sprite optimization."""
+    # Query all items and count icon usage
+    icon_usage = db.query(Icon).all()
+    
+    for icon in icon_usage:
+        # Count how many items use this icon
+        usage_count = db.query(ItemIcon).filter(
+            ItemIcon.icon_url == icon.icon_url
+        ).count()
+        
+        icon.usage_count = usage_count
+    
+    db.commit()
+    
+    # Regenerate sprite sheets if usage patterns changed significantly
+    if usage_patterns_changed_significantly():
+        optimize_sprites_from_database()
 ```
 
 ### 7.5 Smart Update Detection
@@ -453,6 +554,15 @@ class UpdateMonitor:
 - **5-10x faster stat calculations** (progression lookup tables)
 - **30-50% reduced memory usage** (optimized data structures)
 - **3-5x faster parsing** (JSON vs XML)
+
+### Normalized Icon Storage Benefits:
+- **True storage reduction**: Unique icons stored once in `icons` table
+- **Usage-based optimization**: Most used icons prioritized in sprite sheets
+- **Efficient queries**: Can find all items using specific icons
+- **Metadata support**: Icon dimensions, file sizes, sprite coordinates
+- **Incremental updates**: Only regenerate sprites when usage patterns change
+- **Performance tracking**: Monitor which icons are actually used
+- **Flexible optimization**: Easy to add new icon-related features
 
 ### Deployment Benefits:
 - **Faster deployments** (compressed data files)

@@ -197,17 +197,91 @@ All API endpoints now use standardized response formats with consistent field na
 ---
 
 ## Phase 3: Frontend Updates
-**Status:** Not Started  
-**Estimated Time:** 1 day
+**Status:** Blocked - Waiting for Data Processing Plan Implementation  
+**Estimated Time:** 2-3 days  
+**Dependencies:** Phase 1-6 of DATA_PROCESSING_PLAN.md must complete first
 
-### Tasks:
-- [ ] Update frontend code that expects different field names
-- [ ] Test all frontend functionality to ensure it works with standardized data
+### Backend Changes Completed:
+✅ **API Response Standardization**: All endpoints now wrap responses in `{"result": data, "metadata": {...}}` format  
+✅ **Equipment Model Consolidation**: Weapons merged into EquipmentItem with unified `type` field  
+✅ **Database Field Standardization**: Consistent snake_case field names matching database columns  
+✅ **Icon System Normalization**: Icons now stored in normalized `Icon` and `EntityIcon` tables  
 
-### Notes:
-- Identify any hardcoded field name assumptions in frontend code
-- Update any JavaScript/TypeScript interfaces or type definitions
-- Test all pages and components that consume API data
+### Frontend Impact Analysis:
+
+#### **1. API Response Structure Changes**
+**Current Issue**: Frontend expects direct data objects, but API now returns wrapped responses
+
+**Affected Components:**
+- Database panels (equipment, essences, etc.)
+- Builder equipment selection
+- Item detail displays
+- All JavaScript that consumes API data
+
+**Required Changes:**
+```javascript
+// Old pattern
+const items = await fetch('/api/data/equipment/').then(r => r.json());
+
+// New pattern  
+const response = await fetch('/api/data/equipment/').then(r => r.json());
+const items = response.result; // Data is now in .result field
+```
+
+**Files to Update:**
+- `web/static/js/database/core/database-controller.js`
+- `web/static/js/builder/build-state.js`
+- All API-consuming JavaScript files
+
+#### **2. Equipment Model Changes**
+**Current Issue**: Frontend may expect weapon-specific fields that no longer exist
+
+**Key Changes:**
+- Weapons are now `EquipmentItem` with `type` indicating specific weapon type (e.g. "bow", "sword", "dagger")
+- Unified `type` field describes specific equipment category (e.g. "light-armour", "medium-armour", "bow", "sword")
+- Removed weapon-specific fields (DPS handled as stats now)
+- Equipment items use generic `slot` field
+
+**Affected Components:**
+- Equipment database panel filtering
+- Builder equipment slot logic
+- Equipment detail displays
+
+**Required Changes:**
+```javascript
+// Old weapon-specific logic
+if (item.weapon_type) { /* weapon logic */ }
+
+// New unified logic
+if (["bow", "sword", "dagger"].includes(item.type)) { /* weapon logic */ }
+```
+
+#### **3. Icon System Changes**
+**Current Issue**: Icons temporarily non-functional during transition
+
+**Current State:**
+- Database stores `icon_ids` (normalized icon references)
+- API may not provide `icon_urls` during transition
+- Sprite system implemented in database but not deployed
+
+**Temporary Solution:**
+- Icons will be non-functional until sprite sheets are generated
+- Can implement fallback placeholder icons
+- Full icon functionality will be restored when DATA_PROCESSING_PLAN Phase 2 completes
+
+#### **4. Field Name Standardization**
+**Current Issue**: Frontend may expect camelCase fields that are now snake_case
+
+**Key Changes:**
+- `baseIlvl` → `base_ilvl`
+- `essenceType` → `essence_type` 
+- `armourType` → `type` (unified)
+- `weaponType` → `type` (unified)
+
+**Required Changes:**
+- Update all JavaScript field references
+- Update template variable references
+- Update any hardcoded field name assumptions
 
 ---
 

@@ -2,25 +2,22 @@
 
 ## Overview
 
-Transform the current deployment process to use locally pre-processed, curated data with sprite sheet optimization.
+Transform the current deployment process to use locally pre-processed, curated data with intelligent versioning and smart deployment. This new infrastructure eliminates redundant processing steps and provides robust incremental updates.
 
-## Phase 1: Data Curation System
+## Core Infrastructure (4-Step Process)
 
-### 1.1 Create Data Curation Script
-**File:** `scripts/curate_data.py`
-
-**Purpose:** Process full LOTRO companion repositories into minimal, optimized data files
+### Step 1: Data Curation
+**Purpose:** Process full LOTRO companion repositories into minimal, optimized data files with built-in versioning
 
 **Process:**
-```python
-def curate_lotro_data():
-    # 1. Parse full items.xml and extract only needed items
-    # 2. Parse progressions.xml and extract only used progression tables
-    # 3. Parse dpsTables.xml and extract only used DPS tables
-    # 4. Create optimized JSON files with only required data
-    # 5. Compress JSON files using gzip for minimal deployment size
-    # 6. Generate sprite sheets from individual icons
-    # 7. Create CSS file with sprite positioning
+```
+1. Parse full items.xml and extract only needed items
+2. Parse progressions.xml and extract only used progression tables  
+3. Parse dpsTables.xml and extract only used DPS tables
+4. Create optimized JSON files with only required data
+5. Generate version metadata for each data type
+6. Compare against existing versions to detect changes
+7. Compress JSON files using gzip for minimal deployment size
 ```
 
 **Output Structure:**
@@ -29,574 +26,211 @@ curated_data/
 ├── items.json.gz          # Compressed optimized items data
 ├── progressions.json.gz   # Compressed progression tables
 ├── dps_tables.json.gz     # Compressed DPS tables
-├── sprites/
-│   ├── items-sprite.png   # Combined sprite sheet
-│   └── items-sprite.css   # CSS positioning rules
-└── metadata.json          # Version info, file sizes, etc.
+├── version_metadata.json  # Version info and change tracking
+├── changes.json          # Detailed change log
+└── metadata.json         # Processing metadata and statistics
 ```
 
-### 1.2 Data Optimization Strategies
+**Key Features:**
+- **Change Detection**: Automatically identifies new, updated, and deleted items
+- **Version Tracking**: Maintains version history for each data type
+- **Compression**: 90-95% size reduction through gzip compression
+- **Validation**: Ensures data integrity with Pydantic validation
+- **Metadata**: Tracks processing statistics and source information
 
-**JSON Optimization:**
-- Remove unused fields
-- Use shorter field names where possible
-- Minimize nested structures
-- Use arrays instead of objects where appropriate
-- Compress with gzip for deployment (90-95% compression ratio)
-
-**Icon Optimization:**
-- Convert to optimized PNG format
-- Standardize icon sizes (32x32, 64x64)
-- Remove duplicate icons
-- Create sprite sheets with minimal padding
-
-## Phase 2: Sprite Sheet System
-
-### 2.1 Sprite Generation
-**File:** `scripts/generate_sprites.py`
+### Step 2: Icon Sprite Sheet Generation
+**Purpose:** Create optimized sprite sheets based on curated data with usage-based optimization
 
 **Process:**
-```python
-def generate_item_sprites():
-    # 1. Collect all required item icons from database
-    # 2. Analyze usage patterns (most used icons first)
-    # 3. Arrange in optimal grid layout
-    # 4. Create sprite sheet image
-    # 5. Generate CSS with background-position
-    # 6. Update database with sprite coordinates
-    # 7. Create mapping file (icon_id -> sprite_position)
+```
+1. Extract icon requirements from curated data
+2. Analyze icon usage patterns (most used icons first)
+3. Generate sprite sheets with optimal layout
+4. Create CSS positioning rules for each icon
+5. Update database with sprite coordinates
+6. Generate incremental updates for changed icons only
 ```
 
-**Sprite Sheet Layout:**
-- Grid-based arrangement (e.g., 16x16 icons per row)
-- Minimal padding between icons
-- Power-of-2 dimensions for optimal compression
-- Multiple sprite sheets if needed (e.g., items, equipment, essences)
-- Usage-based ordering (most used icons in primary sprite sheets)
+**Sprite Sheet Strategy:**
+- **Usage-Based Ordering**: Most frequently used icons in primary sprite sheets
+- **Incremental Updates**: Only regenerate sprites when icons actually change
+- **Multiple Sheets**: Separate sheets for items, equipment, essences if needed
+- **Optimized Layout**: Power-of-2 dimensions for optimal compression
+- **CSS Generation**: Automatic CSS rule generation for sprite positioning
 
-### 2.2 Database-Driven Sprite Workflow
-**Files:** `scripts/sprite_optimizer.py`, `scripts/generate_sprites.py`
+**Output Structure:**
+```
+curated_data/sprites/
+├── items-sprite.png       # Primary sprite sheet
+├── items-sprite.css       # CSS positioning rules
+├── equipment-sprite.png   # Equipment-specific sprites
+├── equipment-sprite.css   # Equipment CSS rules
+└── sprite_metadata.json   # Sprite optimization statistics
+```
+
+### Step 3: Smart Deployment
+**Purpose:** Deploy curated data and sprite sheets only when changes are detected
 
 **Process:**
-```python
-def optimize_sprites_from_database():
-    """Generate optimized sprite sheets based on database usage patterns."""
-    # 1. Query database for icon usage statistics
-    icon_usage = db.query(Icon).order_by(Icon.usage_count.desc()).all()
-    
-    # 2. Group icons by usage frequency
-    popular_icons = [icon for icon in icon_usage if icon.usage_count > 10]
-    rare_icons = [icon for icon in icon_usage if icon.usage_count <= 10]
-    
-    # 3. Generate primary sprite sheet with popular icons
-    primary_sprite = generate_sprite_sheet(popular_icons, "sprites1.png")
-    
-    # 4. Generate secondary sprite sheet with rare icons
-    secondary_sprite = generate_sprite_sheet(rare_icons, "sprites2.png")
-    
-    # 5. Update database with sprite coordinates
-    update_icon_coordinates(popular_icons, primary_sprite)
-    update_icon_coordinates(rare_icons, secondary_sprite)
-    
-    # 6. Generate CSS with database-driven positioning
-    generate_sprite_css(icon_usage)
-    
-    return {
-        'primary_sprites': len(popular_icons),
-        'secondary_sprites': len(rare_icons),
-        'total_optimized': len(icon_usage)
-    }
-
-def update_icon_coordinates(icons, sprite_sheet):
-    """Update database with sprite sheet coordinates."""
-    for icon in icons:
-        icon.sprite_sheet = sprite_sheet.filename
-        icon.x_coord = sprite_sheet.get_x_coord(icon)
-        icon.y_coord = sprite_sheet.get_y_coord(icon)
-        db.commit()
-
-def generate_sprite_css(icons):
-    """Generate CSS from database icon metadata."""
-    css_content = []
-    for icon in icons:
-        if icon.validate_for_sprite_sheet():
-            css_rule = icon.generate_css_rule()
-            if css_rule:
-                css_content.append(css_rule)
-    
-    with open('curated_data/sprites/items-sprite.css', 'w') as f:
-        f.write('\n'.join(css_content))
-
-def update_icon_usage_statistics():
-    """Update icon usage statistics for sprite optimization."""
-    # Query all icons and count usage
-    icon_usage = db.query(Icon).all()
-    
-    for icon in icon_usage:
-        # Count how many entities use this icon
-        usage_count = db.query(EntityIcon).filter(
-            EntityIcon.icon_id == icon.icon_id
-        ).count()
-        
-        icon.usage_count = usage_count
-    
-    db.commit()
-    
-    # Regenerate sprite sheets if usage patterns changed significantly
-    if usage_patterns_changed_significantly():
-        optimize_sprites_from_database()
+```
+1. Compare new curated data against existing server data
+2. Determine if deployment is actually needed
+3. If changes detected:
+   - Compress and upload curated JSON files
+   - Upload updated sprite sheets and CSS
+   - Update deployment metadata
+4. If no changes: Skip deployment entirely
 ```
 
-**Database Integration:**
-- **Usage Tracking**: `Icon.usage_count` tracks how often each icon is used
-- **Sprite Metadata**: `sprite_sheet`, `x_coord`, `y_coord` store positioning
-- **CSS Generation**: `css_class` and `css_background_position` properties
-- **Incremental Updates**: Only regenerate sprites when usage patterns change
+**Smart Deployment Features:**
+- **Change Detection**: Only deploy when data actually changes
+- **Dry Run Support**: First-time deployment handled seamlessly
+- **Rollback Capability**: Maintain previous version for safety
+- **Deployment Logging**: Track what was deployed and why
+- **Performance Monitoring**: Track deployment efficiency
 
-### 2.3 CSS Generation
-**Output:** `curated_data/sprites/items-sprite.css`
-```css
-.icon-item-12345 {
-    background-image: url('/static/sprites/sprites1.png');
-    background-position: -32px -64px;
-    width: 64px;
-    height: 64px;
-    display: inline-block;
-}
+### Step 4: Server-Side Import
+**Purpose:** Import curated data to SQLite database with transaction safety and progress tracking
+
+**Process:**
+```
+1. Run database migrations if needed
+2. Import curated items data with transaction safety
+3. Import curated progressions data
+4. Import curated DPS tables
+5. Update sprite sheet references in database
+6. Verify import success and data integrity
+7. Update server-side version metadata
 ```
 
-## Phase 3: Import System Refactoring
+**Import Features:**
+- **Transaction Safety**: All imports wrapped in database transactions
+- **Progress Tracking**: Real-time progress reporting during import
+- **Validation**: Verify imported data against source
+- **Error Handling**: Robust error handling with rollback capability
+- **Performance Monitoring**: Track import performance metrics
 
-### 3.1 Modify Import Scripts
-**Files to update:**
-- `scripts/importers/run_import.py`
-- `scripts/importers/items.py`
-- `scripts/importers/progressions.py`
+## Enhanced Features
 
-**Changes:**
-```python
-# Update data path configuration
-def get_curated_data_paths():
-    return {
-        'items': 'curated_data/items.json.gz',
-        'progressions': 'curated_data/progressions.json.gz',
-        'dps_tables': 'curated_data/dps_tables.json.gz',
-        'sprites': 'curated_data/sprites/'
-    }
-```
+### Version Tracking System
+**Purpose:** Maintain comprehensive version history and change tracking
 
-### 3.2 Remove Icon Copying
-**File:** `scripts/copy_icons.py` (deprecate)
+**Components:**
+- **Version Metadata**: Track version info for each data type
+- **Change Detection**: Identify what changed between versions
+- **Change Logging**: Detailed logs of all changes
+- **Rollback Support**: Ability to revert to previous versions
+- **Performance Metrics**: Track processing and deployment efficiency
 
-**Replace with:** Sprite sheet deployment in Dockerfile
+### Incremental Update System
+**Purpose:** Efficiently update only changed data
 
-## Phase 4: Template System Updates
-
-### 4.1 Update Item Templates
-**Files to update:**
-- `web/templates/items/`
-- `web/templates/components/`
-
-**Changes:**
-```html
-<!-- Old: Individual icon files -->
-<img src="/static/icons/items/{{ item.icon }}.png" alt="{{ item.name }}">
-
-<!-- New: CSS sprite -->
-<div class="icon-item-{{ item.icon_id }}" title="{{ item.name }}"></div>
-```
-
-### 4.2 Add Sprite CSS to Base Template
-**File:** `web/templates/base.html`
-```html
-<head>
-    <!-- Add sprite CSS -->
-    <link rel="stylesheet" href="/static/sprites/items-sprite.css">
-</head>
-```
-
-## Phase 5: Deployment Process
-
-### 5.1 Update Dockerfile
-```dockerfile
-# Copy curated data instead of full repositories
-COPY curated_data/ /app/curated_data/
-
-# Copy sprite sheets
-COPY curated_data/sprites/ /app/web/static/sprites/
-```
-
-### 5.2 Update Environment Configuration
-**File:** `config/data_paths.py`
-```python
-def get_curated_data_paths():
-    """Get paths for curated data files."""
-    project_root = Path(__file__).parent.parent
-    return {
-        'items': project_root / 'curated_data' / 'items.json.gz',
-        'progressions': project_root / 'curated_data' / 'progressions.json.gz',
-        'dps_tables': project_root / 'curated_data' / 'dps_tables.json.gz',
-    }
-```
-
-### 5.3 Server-Side Import Process
-**File:** `scripts/deploy_import.py`
-```python
-def import_curated_data():
-    """Import curated data on Fly.io instance."""
-    # 1. Run database migrations
-    # 2. Import curated items data
-    # 3. Import curated progressions data
-    # 4. Import curated DPS tables
-    # 5. Verify import success
-```
-
-## Phase 6: Update Process
-
-### 6.1 Local Update Script
-**File:** `scripts/update_curated_data.py`
-```python
-def update_curated_data():
-    """Update curated data from latest LOTRO companion data."""
-    # 1. Pull latest LOTRO companion data
-    # 2. Re-run curation process
-    # 3. Generate new sprite sheets
-    # 4. Commit changes to repository
-    # 5. Deploy to Fly.io
-```
-
-### 6.2 Preserve User Data
-**Strategy:**
-- Use Alembic migrations for schema changes
-- Keep user data in separate tables
-- Only update game data tables during imports
-- Implement backup/restore for user data
-
-## Phase 7: Incremental Update System
-
-### 7.1 Version Tracking System
-**File:** `scripts/version_tracker.py`
-```python
-class DataVersionTracker:
-    def __init__(self):
-        self.version_file = "curated_data/version_metadata.json"
-    
-    def track_item_versions(self, items_data):
-        """Track version info for each item."""
-        versions = {}
-        for item in items_data:
-            versions[item['id']] = {
-                'last_updated': item.get('last_modified', datetime.now().isoformat()),
-                'hash': self._calculate_item_hash(item),
-                'version': item.get('version', '1.0')
-            }
-        return versions
-    
-    def get_changed_items(self, new_data, existing_versions):
-        """Identify items that have changed since last import."""
-        changed_items = []
-        for item in new_data:
-            item_id = item['id']
-            new_hash = self._calculate_item_hash(item)
-            
-            if item_id not in existing_versions:
-                changed_items.append(('new', item))
-            elif existing_versions[item_id]['hash'] != new_hash:
-                changed_items.append(('updated', item))
-        
-        return changed_items
-```
-
-### 7.2 Incremental Import Script
-**File:** `scripts/incremental_import.py`
-```python
-def incremental_import_items():
-    """Import only new/changed items efficiently."""
-    # 1. Load existing version metadata
-    tracker = DataVersionTracker()
-    existing_versions = tracker.load_versions()
-    
-    # 2. Parse new curated data
-    new_items = load_curated_items()
-    
-    # 3. Identify changes
-    changes = tracker.get_changed_items(new_items, existing_versions)
-    
-    # 4. Process changes by type
-    for change_type, item in changes:
-        if change_type == 'new':
-            insert_new_item(item)
-        elif change_type == 'updated':
-            update_existing_item(item)
-    
-    # 5. Update version metadata
-    new_versions = tracker.track_item_versions(new_items)
-    tracker.save_versions(new_versions)
-    
-    # 6. Generate incremental sprite updates
-    if changes:
-        update_sprites_incrementally(changes)
-```
-
-### 7.3 Database Update Strategies
-**File:** `scripts/database_updater.py`
-```python
-class DatabaseUpdater:
-    def insert_new_item(self, item_data):
-        """Insert a new item efficiently."""
-        # Use UPSERT pattern for idempotency
-        query = """
-        INSERT INTO items (id, name, description, icon_id, ...)
-        VALUES (:id, :name, :description, :icon_id, ...)
-        ON CONFLICT (id) DO UPDATE SET
-            name = EXCLUDED.name,
-            description = EXCLUDED.description,
-            icon_id = EXCLUDED.icon_id,
-            updated_at = NOW()
-        """
-        return self.db.execute(query, item_data)
-    
-    def batch_update_items(self, items_data):
-        """Update multiple items in a single transaction."""
-        with self.db.transaction():
-            for item in items_data:
-                self.insert_new_item(item)
-    
-    def update_progressions_incrementally(self, new_progressions):
-        """Update only changed progression values."""
-        # Compare existing vs new progression data
-        # Update only changed level ranges
-        pass
-```
-
-### 7.4 Sprite Sheet Incremental Updates
-**File:** `scripts/sprite_updater.py`
-```python
-def update_sprites_incrementally(changes):
-    """Update sprite sheets with only new/changed icons."""
-    # 1. Extract new/changed icon IDs
-    new_icon_ids = set()
-    for change_type, item in changes:
-        if 'icon_id' in item:
-            new_icon_ids.add(item['icon_id'])
-    
-    # 2. Check if sprite sheet needs regeneration
-    if len(new_icon_ids) > 0:
-        # Regenerate sprite sheet with new icons
-        generate_updated_sprites(new_icon_ids)
-        
-        # Update CSS with new positioning
-        update_sprite_css(new_icon_ids)
-    
-    return len(new_icon_ids) > 0
-
-def update_icon_usage_statistics():
-    """Update icon usage statistics for sprite optimization."""
-    # Query all items and count icon usage
-    icon_usage = db.query(Icon).all()
-    
-    for icon in icon_usage:
-        # Count how many items use this icon
-        usage_count = db.query(ItemIcon).filter(
-            ItemIcon.icon_url == icon.icon_url
-        ).count()
-        
-        icon.usage_count = usage_count
-    
-    db.commit()
-    
-    # Regenerate sprite sheets if usage patterns changed significantly
-    if usage_patterns_changed_significantly():
-        optimize_sprites_from_database()
-```
-
-### 7.5 Smart Update Detection
-**File:** `scripts/update_detector.py`
-```python
-class UpdateDetector:
-    def detect_lotro_updates(self):
-        """Detect if LOTRO companion data has new updates."""
-        # 1. Check LOTRO companion repository for new commits
-        # 2. Compare with last known good commit
-        # 3. Return list of changed files
-        
-        changed_files = self.git_diff()
-        return {
-            'items.xml': 'items.xml' in changed_files,
-            'progressions.xml': 'progressions.xml' in changed_files,
-            'dpsTables.xml': 'dpsTables.xml' in changed_files
-        }
-    
-    def should_update(self, changes):
-        """Determine if update is needed based on changes."""
-        # Only update if relevant files changed
-        relevant_files = ['items.xml', 'progressions.xml', 'dpsTables.xml']
-        return any(changes.get(file, False) for file in relevant_files)
-```
-
-### 7.6 Automated Update Workflow
-**File:** `scripts/automated_update.py`
-```python
-def automated_update_workflow():
-    """Complete automated update workflow."""
-    # 1. Check for updates
-    detector = UpdateDetector()
-    changes = detector.detect_lotro_updates()
-    
-    if not detector.should_update(changes):
-        print("No relevant updates detected")
-        return
-    
-    # 2. Pull latest data
-    pull_latest_lotro_data()
-    
-    # 3. Run incremental curation
-    curate_incremental_data(changes)
-    
-    # 4. Perform incremental import
-    incremental_import_items()
-    
-    # 5. Update sprites if needed
-    update_sprites_if_needed()
-    
-    # 6. Deploy changes
-    deploy_incremental_changes()
-    
-    print(f"Update completed: {len(changes)} files processed")
-```
-
-### 7.7 Performance Optimizations
-**Strategy:**
+**Features:**
+- **Smart Detection**: Only process items that actually changed
 - **Batch Processing**: Update multiple items in single transactions
-- **Indexed Updates**: Use database indexes for fast item lookups
-- **Caching**: Cache frequently accessed progression data
-- **Parallel Processing**: Update sprites and database concurrently
-- **Rollback Strategy**: Implement transaction rollback for failed updates
+- **Sprite Optimization**: Only regenerate sprites for changed icons
+- **Performance Monitoring**: Track update efficiency and timing
+- **Automated Workflow**: Complete end-to-end update process
 
-### 7.8 Monitoring and Logging
-**File:** `scripts/update_monitor.py`
-```python
-class UpdateMonitor:
-    def log_update(self, changes, duration, success):
-        """Log update performance and results."""
-        log_entry = {
-            'timestamp': datetime.now().isoformat(),
-            'changes_count': len(changes),
-            'duration_seconds': duration,
-            'success': success,
-            'items_updated': len([c for c in changes if c[0] == 'updated']),
-            'items_new': len([c for c in changes if c[0] == 'new'])
-        }
-        self.append_to_log(log_entry)
-    
-    def get_update_stats(self):
-        """Get update performance statistics."""
-        # Return average update time, success rate, etc.
-        pass
-```
+### Error Handling and Monitoring
+**Purpose:** Ensure robust operation with comprehensive error handling
 
-## Implementation Steps
+**Components:**
+- **Error Classification**: Categorize errors by type and severity
+- **Rollback Capability**: Automatic rollback on critical errors
+- **Logging System**: Comprehensive logging of all operations
+- **Performance Monitoring**: Track processing times and efficiency
+- **Alert System**: Notify on critical failures or performance issues
 
-### Step 1: Create Curation System
-1. Write `scripts/curate_data.py`
-2. Test with sample data
-3. Optimize JSON output format
-4. Implement gzip compression for deployment
+## Implementation Phases
 
-### Step 2: Implement Progression Optimization
-1. Create `scripts/optimize_progressions.py`
-2. Transform progression data into lookup tables
-3. Update stat calculation queries
-4. Test performance improvements
+### Phase 1: Core Infrastructure
+**Duration:** 1-2 weeks
 
-### Step 3: Implement Sprite System
-1. Write `scripts/generate_sprites.py`
-2. Create CSS generation
-3. Test sprite rendering
+**Tasks:**
+1. Implement data curation system with versioning
+2. Create sprite sheet generation with usage optimization
+3. Build smart deployment system with change detection
+4. Develop server-side import with transaction safety
+5. Add comprehensive error handling and logging
 
-### Step 4: Update Import System
-1. Modify import scripts for curated compressed JSON data
-2. Update data path configuration
-3. Implement lookup table creation
-4. Test import process with compressed files
+**Deliverables:**
+- Complete 4-step infrastructure
+- Version tracking system
+- Error handling and monitoring
+- Basic testing framework
 
-### Step 5: Update Templates
-1. Modify item templates for sprites
-2. Update base template
-3. Test rendering
+### Phase 2: Optimization and Enhancement
+**Duration:** 1 week
 
-### Step 6: Update Deployment
-1. Modify Dockerfile
-2. Update environment configuration
-3. Test deployment process
+**Tasks:**
+1. Implement incremental update system
+2. Add performance monitoring and metrics
+3. Optimize sprite sheet generation
+4. Enhance error handling and recovery
+5. Add comprehensive testing
 
-### Step 7: Create Update Process
-1. Write update scripts
-2. Implement user data preservation
-3. Test update workflow
+**Deliverables:**
+- Incremental update capability
+- Performance monitoring dashboard
+- Comprehensive test suite
+- Production-ready deployment
 
-### Step 8: Implement Incremental Updates
-1. Create version tracking system
-2. Implement incremental import logic
-3. Add sprite sheet incremental updates
-4. Create automated update workflow
-5. Add monitoring and logging
-6. Test incremental update performance
+### Phase 3: Production Deployment
+**Duration:** 1 week
+
+**Tasks:**
+1. Deploy to staging environment
+2. Conduct comprehensive testing
+3. Deploy to production
+4. Monitor performance and stability
+5. Document operational procedures
+
+**Deliverables:**
+- Production deployment
+- Operational documentation
+- Monitoring and alerting
+- Maintenance procedures
 
 ## Expected Benefits
 
-### Performance Improvements:
-- **50-100x fewer HTTP requests** for icons
-- **2-5x faster page loading**
-- **50-75% smaller data files** (JSON vs XML)
+### Performance Improvements
+- **50-100x fewer HTTP requests** for icons (sprite sheets)
+- **2-5x faster page loading** (optimized data and sprites)
+- **50-75% smaller data files** (JSON vs XML + compression)
 - **90-95% compression** for deployment files
-- **Better browser caching**
-- **5-10x faster stat calculations** (progression lookup tables)
+- **5-10x faster stat calculations** (optimized progression tables)
 - **30-50% reduced memory usage** (optimized data structures)
-- **3-5x faster parsing** (JSON vs XML)
 
-### Normalized Icon Storage Benefits:
-- **True storage reduction**: Unique icons stored once in `icons` table
-- **Usage-based optimization**: Most used icons prioritized in sprite sheets
-- **Efficient queries**: Can find all items using specific icons
-- **Metadata support**: Icon dimensions, file sizes, sprite coordinates
-- **Incremental updates**: Only regenerate sprites when usage patterns change
-- **Performance tracking**: Monitor which icons are actually used
-- **Flexible optimization**: Easy to add new icon-related features
+### Deployment Benefits
+- **99% reduction in deployment data size** (compressed curated data)
+- **Faster deployments** (only deploy when changes detected)
+- **More reliable** (transaction safety and rollback capability)
+- **Version controlled** (curated data in git with version tracking)
+- **Preserves user data** (server-side processing only)
 
-### Deployment Benefits:
-- **Faster deployments** (compressed data files)
-- **More reliable** (no server-side cloning)
-- **Version controlled** (curated data in git)
-- **Preserves user data** (server-side processing)
-- **Reduced database size** (13% storage reduction)
-- **Minimal bandwidth usage** (99% smaller deployment files)
+### Maintenance Benefits
+- **Easier updates** (local processing with smart deployment)
+- **Better debugging** (comprehensive logging and error handling)
+- **Reduced server load** (minimal processing on server)
+- **Scalable** (sprite sheets and optimized data scale well)
+- **Automated** (end-to-end update workflow)
 
-### Maintenance Benefits:
-- **Easier updates** (local processing)
-- **Better debugging** (JSON is human-readable)
-- **Reduced server load** (fewer files)
-- **Scalable** (sprite sheets scale well)
-- **Simplified queries** (no complex joins for stats)
-- **Type safety** (Pydantic validation)
-
-### Incremental Update Benefits:
-- **10-50x faster updates** (only changed items)
-- **Reduced downtime** (partial updates vs full rebuilds)
+### Incremental Update Benefits
+- **10-50x faster updates** (only process changed data)
+- **Reduced downtime** (incremental updates vs full rebuilds)
 - **Better reliability** (smaller transaction scope)
-- **Efficient resource usage** (minimal processing)
-- **Automated detection** (smart update triggers)
-- **Rollback capability** (transaction safety)
-- **Performance monitoring** (update metrics tracking)
+- **Efficient resource usage** (minimal processing overhead)
+- **Automated detection** (smart change detection)
 
 ## File Size Estimates
 
-### Current State:
+### Current State
 - Full LOTRO companion repos: ~500MB
 - Individual icons: ~2-5MB
 - Total deployment data: ~50-100MB
 
-### After Optimization:
+### After Optimization
 - Curated JSON files: ~0.5-1MB (50-75% smaller than XML)
 - Compressed JSON files: ~0.05-0.1MB (90-95% compression)
 - Sprite sheets: ~0.5-1MB
@@ -604,87 +238,85 @@ class UpdateMonitor:
 
 **Result: 99% reduction in deployment data size**
 
-## Technical Details
+## Technical Architecture
 
-### Data Curation Process:
-1. **Parse full repositories** - Read complete LOTRO companion XML data
-2. **Filter required data** - Extract only items, progressions, and DPS tables used by the application
-3. **Transform to JSON** - Convert XML to optimized JSON format with Pydantic validation
-4. **Compress for deployment** - Apply gzip compression for minimal file sizes
-5. **Generate metadata** - Track what was included and why
-
-### Progression Table Optimization:
-1. **Analyze level ranges** - Current data shows levels 500-550 are most relevant
-2. **Create lookup table** - Denormalize progression data into direct level-value mapping
-3. **Optimize storage** - Replace 5,038 individual values with 13,464 lookup entries
-4. **Improve performance** - Eliminate joins for 5-10x faster stat calculations
-
-**Current Structure:**
-- 264 progression tables with 5,038 individual values
-- Complex joins required for stat calculations
-- Redundant storage of table metadata
-
-**Optimized Structure:**
-```sql
-CREATE TABLE progression_lookup (
-    table_id VARCHAR(50) PRIMARY KEY,
-    level_500 FLOAT,
-    level_501 FLOAT,
-    -- ... up to level_550
-    level_550 FLOAT
-);
+### Data Flow
+```
+LOTRO Companion Data → Local Curation → Version Detection → Smart Deployment → Server Import
 ```
 
-**Benefits:**
-- **13% storage reduction** (15,400 → 13,464 data points)
-- **5-10x faster queries** (direct lookup vs joins)
-- **30-50% memory reduction** (single table structure)
-- **Simplified queries** (no complex joins needed)
+### Key Components
+- **Data Curator**: Processes and optimizes game data
+- **Sprite Generator**: Creates optimized sprite sheets
+- **Version Tracker**: Manages version history and changes
+- **Smart Deployer**: Deploys only when needed
+- **Server Importer**: Safely imports data to database
 
-### Sprite Sheet Generation:
-1. **Collect icons** - Gather all required item icons
-2. **Optimize images** - Standardize sizes, remove duplicates
-3. **Arrange grid** - Create optimal layout for sprite sheet
-4. **Generate CSS** - Create positioning rules for each icon
-5. **Create mapping** - Link icon IDs to sprite positions
+### Error Handling Strategy
+- **Transaction Safety**: All database operations wrapped in transactions
+- **Rollback Capability**: Automatic rollback on critical errors
+- **Error Classification**: Categorize errors for appropriate handling
+- **Comprehensive Logging**: Track all operations for debugging
+- **Alert System**: Notify on critical failures
 
-### Import System Changes:
-1. **Update paths** - Point to curated compressed JSON data instead of full repositories
-2. **Modify parsers** - Handle compressed JSON format with automatic decompression
-3. **Remove icon copying** - Icons now come from sprite sheets
-4. **Add validation** - Ensure curated data integrity with Pydantic validation
-5. **Implement lookup tables** - Transform progression data into optimized format
-
-### Template Updates:
-1. **Replace img tags** - Use CSS sprites instead of individual files
-2. **Add sprite CSS** - Include positioning styles
-3. **Update components** - Modify all icon-using templates
-4. **Test rendering** - Ensure sprites display correctly
+### Monitoring and Metrics
+- **Processing Performance**: Track curation and sprite generation times
+- **Deployment Efficiency**: Monitor deployment frequency and size
+- **Import Performance**: Track database import speed and success rates
+- **Error Rates**: Monitor error frequency and types
+- **Resource Usage**: Track memory and CPU usage during processing
 
 ## Migration Strategy
 
-### Phase 1: Development
-- Implement curation system locally
+### Development Phase
+- Implement core infrastructure locally
 - Test with sample data
-- Validate sprite generation
+- Validate sprite generation and deployment
 
-### Phase 2: Testing
+### Testing Phase
 - Deploy to staging environment
-- Test import process
-- Verify performance improvements
+- Test complete workflow
+- Validate performance improvements
+- Test error handling and recovery
 
-### Phase 3: Production
+### Production Phase
 - Deploy to production
-- Monitor performance metrics
+- Monitor performance and stability
 - Validate user experience
+- Document operational procedures
 
-### Phase 4: Optimization
-- Fine-tune curation process
-- Optimize sprite layouts
-- Implement caching strategies
+### Optimization Phase
+- Fine-tune processing parameters
+- Optimize sprite sheet layouts
+- Implement advanced monitoring
+- Add automated maintenance procedures
+
+## Success Criteria
+
+### Performance Metrics
+- [ ] 90%+ reduction in deployment data size
+- [ ] 5x+ improvement in page loading speed
+- [ ] 10x+ reduction in icon HTTP requests
+- [ ] 5x+ faster stat calculations
+- [ ] 50%+ reduction in server processing time
+
+### Reliability Metrics
+- [ ] 99.9%+ deployment success rate
+- [ ] Zero data loss during updates
+- [ ] Automatic rollback on critical errors
+- [ ] Comprehensive error logging and alerting
+- [ ] Transaction safety for all database operations
+
+### Operational Metrics
+- [ ] Automated end-to-end update workflow
+- [ ] Smart deployment (only when changes detected)
+- [ ] Comprehensive monitoring and alerting
+- [ ] Complete operational documentation
+- [ ] Automated testing and validation
 
 ---
 
 **Created:** 2024-12-19  
 **Status:** Planning Phase  
-**Next Review:** 2025-01-19 
+**Next Review:** 2025-01-19  
+**Version:** 2.0 (Complete Rewrite) 
